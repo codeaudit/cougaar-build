@@ -81,15 +81,15 @@ sub usage {
   print STDERR "\t-t name\tTag (with name) instead of building (also uses -r and -D)\n";
   print STDERR "\t-b\tWhen tagging, branch instead of simple tag\n";
   print STDERR "\t-F\tWhen tagging, Force the tag (move the tag if it previously existed)\n";
-#  print STDERR "\t-m mod[,...]\tSpecify a module or modules to build instead of all.\n";
+  print STDERR "\t-m mod[,...]\tSpecify a module or modules to build instead of all.\n";
   print STDERR "\n";
   print STDERR "Examples:\n";
   print STDERR "Standard vebose build of the HEAD:\n";
   print STDERR "\tbuild -v default.build\n";
   print STDERR "Retroactively point-tag the repositories at a specific date:\n";
   print STDERR "\tbuild  -D '7/31/2001 10:00:11' -t V8_3_0 default.build\n";
-#  print STDERR "Build blackjack (and all required parts):\n";
-#  print STDERR "\tbuild -m blackjack default.build\n";
+  print STDERR "Build blackjack (and all required parts):\n";
+  print STDERR "\tbuild -m blackjack default.build\n";
   exit(1);
 }
 
@@ -124,26 +124,39 @@ $compiler_command = opt("compiler",$compiler_command);
 $java_command = opt("java", $java_command);
 $javadoc_command = opt("javadoc", $javadoc_command);
 
-#$javadoc_command = "/usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m";
-#$javadoc_command = "/usr/local/java/j2sdk1_3_0_02/bin/javadoc -J-Xmx128m -J-Xms128m";
-#$javadoc_command = "javadoc -J-Xmx256m -J-Xms256m";
-
 if ($opt_m) {
   @modules = compute_modules($opt_m);
+  my $foo = join(", ", @modules);
+  print "Computed modules from $opt_m = \n\t$foo\n";
 }
 
 sub compute_modules {
   my ($modspec) = @_;
   local(%done);
   local(@acc);
-  foreach $mod (split /\s*,\s*/, @modspec) {
+  local(@stack);
+  foreach $mod (split /\s*,\s*/, $modspec) {
     compute_modules1($mod) if (! $done{$mod});
   }
   return @acc;
 }
 
 sub compute_modules1 {
-  my ($mod, @acc) = @_;
+  my ($mod) = @_;
+  return if ($done{$mod});
+  if (grep /^$mod\$/, @stack) {
+    die "Fatal error: dependency loop: $mod in @acc\n";
+  }
+  push @stack, $mod;
+  my ($foo) = opt("$mod.deps");
+  foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
+    if (! $done{$dep}) {
+      compute_modules1($dep);
+    }
+  }
+  pop @stack;
+  $done{$mod}=1;
+  push @acc, $mod;
 }
 
 {
