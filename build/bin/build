@@ -806,14 +806,6 @@ sub build_module {
     sopt($mod, "run.abs.jarlist", join("$cpsep",@apccp));
   }
 
-  # FIXME: Somehow if the current module has no javadoc packages,
-  # it is being assigned the list of packages for the previous module.
-  # See base getting blackjack's modules, dbms getting quo? -would have thought
-  # qos
-
-  # Get the Javadoc packages set up now...
-  get_javadoc_packages($mod, "$mysrc");
-
   generateAntRecipe($mod);
 
   $moduleFailed{$mod} = !$builtjar;
@@ -1256,10 +1248,11 @@ sub add_dist {
 # Get the packages to be javadoc'ed
 sub get_javadoc_packages {
   local($mod, $src) = @_;
-  my %pmap;
+  my %pmap = ();		# probably redundant
+  return %pmap if (! -d $src);
   chdir "$src";
   # find all the directories with packages and convert 
-  open(LIST, "find . -name '*.java' -print|");
+  open(LIST, "find . -name '*.java' -print|") or return %pmap;
   while (<LIST>) {
     my $line = $_;
     my $p = rindex($line, '/') - 2;
@@ -1270,12 +1263,6 @@ sub get_javadoc_packages {
     }
   }
   close(LIST);
-
-  # remember packages for ant
-  if (gopt($mod, "javadoc.packages") eq "") {
-    sopt($mod,"javadoc.packages", join(",", sort keys %pmap));
-  }
-
   return %pmap;
 }
 
@@ -1989,10 +1976,10 @@ sub compile_dir {
     unlink($tmpfile);
 
     # search for files/classes to rmic
+    my @rmicfl;
     if ($cok) {
       my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
       if ($#rmicfiles>=0) {
-	my @rmicfl;
 	foreach $rf (@rmicfiles) {
 	  chomp $rf;
 	  if ( ($rf =~ /\.\/(.*)/) ) {
@@ -2198,6 +2185,17 @@ sub generateAntRecipe {
 
   sopt($mod, "Name", $mod);
   sopt($mod, "PrettyName", $mod); # build file can override.
+  # Get the Javadoc packages set up now...
+  {
+    my %pmap = get_javadoc_packages($mod, "$srcdir/$mod/src");
+    my $jdpkgs = join(",", sort keys %pmap);
+    if (gopt($mod, "javadoc.packages") eq "") {
+      sopt($mod,"javadoc.packages", $jdpkgs);
+    } else {
+      print STDERR "\nDeclining to overwrite javadoc.packages for $mod\n";
+    }
+  }
+
 
   my $template = "$srcdir/build/data/moduleTemplate.xml";
   my $recipe = "$srcdir/$mod/build.xml";
