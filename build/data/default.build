@@ -200,7 +200,7 @@ tutorial.jars = xerces
 
 # csmart
 csmart.deps = core,server,glm,planserver,scalability
-csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk
+csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
 csmart.repository = internal
