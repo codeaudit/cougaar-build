@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 1997-2001 BBNT Solutions, LLC
+ *  Copyright 1997-2002 BBNT Solutions, LLC
  *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
  * 
  *  This program is free software; you can redistribute it and/or modify
@@ -19,13 +19,17 @@
  * </copyright>
  */
 
-
 package org.cougaar.tools.build;
 
 import java.io.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
 
+/**
+ * Write a class Version.java using <code>version.def</code> to get the Version number,
+ * and system properties <code>repository.tag</code>, <code>repository.time</code>, 
+ * and <code>repository.modified</code> to get Repository information.
+ **/
 public class VersionWriter extends WriterBase {
   private String[] args;
   boolean isVerbose = false;
@@ -82,7 +86,9 @@ public class VersionWriter extends WriterBase {
       PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),"Version.java"))));
       writeCR(out, deffilename);
       println(out);
-      println(out,"package org.cougaar;");
+
+      // Make package match getTargetDir()
+      println(out,"package " + getPackageFromDir(getTargetDir()) + ";");
       if (version == null) version = "unknown";
       String rtag = System.getProperty("repository.tag");
       String rdate = System.getProperty("repository.time");
