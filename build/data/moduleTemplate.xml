@@ -127,6 +127,7 @@
     <property name="doc" value="${MODSOURCE}/doc" />
     <property name="data" value="${MODSOURCE}/data" />
     <property name="configs" value="${MODSOURCE}/configs" />
+    <property name="dev" value="${MODSOURCE}/dev" />
     
     <!-- These are temporary base directories. -->
     <property name="examples.build" value="${TMP}/examples" />
@@ -199,11 +200,13 @@
     <!-- All based on property zipbase -->
     <!-- ========================================================== -->
     <target name="set-zip-dirs">
+      <property name="zipdir.base" value="${zipbase}/${module}"/>
       <property name="zipdir.javadocs" value="${zipbase}/${module}/doc/api"/>
       <property name="zipdir.src" value="${zipbase}/${module}/src"/>
       <property name="zipdir.bin" value="${zipbase}/${module}/bin"/>
       <property name="zipdir.data" value="${zipbase}/${module}/data"/>
       <property name="zipdir.configs" value="${zipbase}/${module}/configs"/>
+      <property name="zipdir.dev" value="${zipbase}/${module}/dev"/>
       <property name="zipdir.doc" value="${zipbase}/${module}/doc"/>
       <property name="zipdir.regress" value="${zipbase}/${module}/regress"/>
       <property name="zipdir.examples" value="${zipbase}/${module}/examples"/>
@@ -308,6 +311,7 @@
       <available property="has.bin" file="${bin}"/>
       <available property="has.data" file="${data}"/>
       <available property="has.configs" file="${configs}"/>
+      <available property="has.dev" file="${dev}"/>
       <available property="has.doc" file="${doc}"/>
       <available property="has.Regress" file="${regress}"/>
       
@@ -325,7 +329,7 @@
       <uptodate property="defrunner.notRequired">
 	<srcfiles dir="${src}" includes="**/*.def"/>
 	<!-- If file.gen newer than .def, don't rerun -->
-	<mapper type="glob" from="*.def" to="${src}/*.gen"/>
+	<mapper type="glob" from="*.def" to="*.gen"/>
 	<!-- FIXME: even better: if above is true AND every file
 	listed in .gen exists and is newer than .def, dont
 	rerun -->
@@ -352,9 +356,6 @@
     <target name="compile" depends="prepare, defrunner, really-compile, rmic-source"
 	    description="Compile the source Code"> </target>
 
-    <!-- FIXME: defrunner generated files are always being recompiled,
-    even when not necessary? -->
-
     <!-- See if the jarfile needs recompiling -->
     <!-- Note that module-date.jar is not checked, just module.jar -->
     <!-- Also the property set here is _not_ currently used. -->
@@ -379,6 +380,7 @@
 	  <path refid="compile.classpath" />
 	</classpath>
       </javac>
+
       <!-- Copy any gifs and HTML help files over as well -->
       <copy todir="${build}" >
 	<fileset dir="${src}">
@@ -509,18 +511,31 @@
     
 
     <!-- ====================================================================== -->
-    <!-- Zip up the source: src, examples, regress		          -->
+    <!-- Zip up the source: src, examples, regress, dev		          -->
     <!-- ====================================================================== -->	
-    <target name="zip-dev" depends="clean-gencode, set-zip-dirs, zip-prep, zip-copy-src, zip-copy-ex, zip-copy-test"
+    <!-- Note: perl script includes doc dir for non-unified modules -->
+    <target name="zip-dev" depends="clean-gencode, set-zip-dirs,
+    zip-prep, zip-copy-root-files, zip-copy-src, zip-copy-ex, zip-copy-dev, zip-copy-test"
 	    description="Create -dev zip file">
     <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
       <zip zipfile="../${module}-dev.zip" basedir="${zipbase}" />
       <delete dir="${zipdir.src}"/>
       <delete dir="${zipdir.examples}"/>
       <delete dir="${zipdir.regress}"/>
+      <delete dir="${zipdir.dev}"/>
     </target>
+
     <target name="zip-prep">
       <delete dir="${zipbase}"/>
+    </target>
+
+    <target name="zip-copy-root-files" depends="set-zip-dirs">
+      <copy todir="${zipdir.base}">
+        <fileset dir="${MODSOURCE}">
+          <include name="build.xml"/>
+          <!-- Others? -->
+        </fileset>
+      </copy>
     </target>
     <target name="zip-copy-src" depends="set-zip-dirs, prepare" if="has.src">
       <mkdir dir="${zipdir.src}"/>
@@ -538,6 +553,7 @@
 	</fileset>
       </copy>
     </target>
+
     <target name="zip-copy-ex" depends="set-zip-dirs, prepare" if="has.examples">
       <mkdir dir="${zipdir.examples}"/>
       <copy todir="${zipdir.examples}">
@@ -550,6 +566,14 @@
       <mkdir dir="${zipdir.regress}"/>
       <copy todir="${zipdir.regress}">
 	<fileset dir="${regress}">
+	  <patternset id="real.sources"/>
+	</fileset>
+      </copy>
+    </target>
+    <target name="zip-copy-dev" depends="prepare, set-zip-dirs" if="has.dev">
+      <mkdir dir="${zipdir.dev}"/>
+      <copy todir="${zipdir.dev}">
+	<fileset dir="${dev}">
 	  <patternset id="real.sources"/>
 	</fileset>
       </copy>
