@@ -39,6 +39,7 @@ public class MakeContext {
     public static final String PROP_3RD_PARTY_JARS   = PROP_PREFIX + "3rd.party.jars";
     public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
     public static final String PROP_DEFAULT_TARGET   = PROP_PREFIX + "default.target";
+    public static final String PROP_NO_PREREQUISITES = PROP_PREFIX + "no.prerequisites";
 
     public static final String DEFAULT_TARGET = "compileDir";
 
@@ -795,6 +796,10 @@ public class MakeContext {
 	}
     }
 
+    public boolean isNoPrerequisites() {
+        return theProperties.getProperty(PROP_NO_PREREQUISITES, "false").equals("true");
+    }
+
     /**
      * Inner class for sucking on the output streams of a subprocess.
      **/
@@ -838,5 +843,3 @@ public class MakeContext {
         }
     }
 }
-
-

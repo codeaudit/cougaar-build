@@ -37,8 +37,12 @@ public class Targets {
         String[] prerequisiteModules = theContext.getPrerequisites(theContext.getModuleName());
         for (int i = 0; i < prerequisiteModules.length; i++) {
             String moduleName = prerequisiteModules[i];
-            if (theContext.getModuleRoot(moduleName).isDirectory()) {
+            File moduleDirectory = theContext.getModuleRoot(moduleName);
+            if (moduleDirectory.isDirectory()) {
                 String tgt = moduleName + ".jar";
+                if (theContext.isNoPrerequisites()) {
+                    if (new File(theContext.getProjectLib(), tgt).exists()) continue;
+                }
                 theContext.makeTarget(tgt);
             }
         }

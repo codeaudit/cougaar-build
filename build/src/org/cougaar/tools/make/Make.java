@@ -67,6 +67,10 @@ public class Make {
 		addProperty(MakeContext.PROP_TEST, "true");
 		continue;
 	    }
+	    if (arg.equals("-noprerequisites")) {
+		addProperty(MakeContext.PROP_NO_PREREQUISITES, "true");
+		continue;
+	    }
 	    if (arg.equals("-jikesClassPath")) {
 		addProperty(MakeContext.PROP_JIKES_CLASS_PATH, "true");
 		continue;
