@@ -22,7 +22,8 @@
 
 # run a full release build
 
-# eventually get it right
+# This will eventually just check things out and generate the ant scripts,
+# though it would be nice if we could do the checkouts with ant, too.  sigh.
 
 use Cwd;
 use File::Copy;
