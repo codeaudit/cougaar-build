@@ -161,7 +161,6 @@ EOF
 %opts;
 parse_args();
 if (-e $opt_file) {
-  print "parsing $opt_file\n";
   parse_config($opt_file);
 } else {
   my($of)="/tmp/$$.build";
@@ -184,7 +183,6 @@ use Sys::Hostname;
 sub maybeLoadParams {
   my ($p) = @_;
   if ( -e $p )  {
-    print "parsing \"$p\"\n" if ($verbose);
     parse_config($p);
     return 1;
   } else {
@@ -200,7 +198,6 @@ sub maybeLoadParams {
     my ($shost);
     if ($host =~ /^([^.]+)\./) {
       $shost = $1;
-      print "shost = $shost\n";
     }
 
     $success = maybeLoadParams("$home/.cougaar-build-$host") || 
@@ -1224,6 +1221,7 @@ sub finddirs {
 #parse the input file
 sub parse_config {
   my ($file) = @_;
+  print "Parsing build parameter file \"$p\"\n" if ($verbose);
 
   open(STUFF,"<$file") || die("Could not open build script file '$file' for reading!\n");
   my $count = 0;
@@ -1234,7 +1232,7 @@ sub parse_config {
 
     s/\s*\#.*//; # drop comments immediately with leading whitespace
     s/[\n\r]//g; # drop extra newline / returns
-    
+
     # incorporate previous wrapped line text
     if (! ($leftover eq "")) {
       $_ = "$leftover$_";
@@ -1266,7 +1264,7 @@ sub parseopt {
     my $key = $1;
     my $val = $2;
     if ( exists $opts{$key} ) {
-       print "build::parseopt() warning: Overwriting existing Key:Value pair: $key:$opts{$key} with $key:$val\n";
+       print "build::parseopt() warning: Overwriting existing Key:Value pair: $key:$opts{$key} with $key:$val\n" if ($verbose>1);
     }
     $opts{$key}=$val;
     return 1;
