@@ -905,7 +905,7 @@ public class PGWriter extends WriterBase {
             if (etype != null) {
               String clname = toClassName(name);
               println(out,"  public boolean in"+clname+"("+etype+" _element) {\n"+
-                          "    return "+var+".contains(_element);\n"+
+                          "    return ("+var+"==null)?false:("+var+".contains(_element));\n"+
                           "  }");
 
               println(out,"  public "+etype+"[] get"+clname+"AsArray() {");
