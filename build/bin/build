@@ -2,7 +2,7 @@
 # -*- Perl -*-
 
 # <copyright>
-#  Copyright 2001 BBNT Solutions, LLC
+#  Copyright 2001-2002 BBNT Solutions, LLC
 #  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
 # 
 #  This program is free software; you can redistribute it and/or modify
@@ -65,6 +65,9 @@ sub parse_args {
 	  $skip = 1;
 	} elsif ($c eq "c") {
 	  $checkoutP = 1;
+	} elsif ($c eq "U") {
+	  $isUpdating = 1;
+	  $skip = 1;
 	} elsif ($c eq "b") {
 	  $branchP = 1;
 	} elsif ($c eq "F") {
@@ -89,11 +92,12 @@ sub usage {
   print STDERR <<EOF;
 Usage: build [options] [ReleaseDescriptionFile]
 	-S	Skip checkout, rebuild from last try
+	-c	Checkout cvs sources from head of tag rather than export from timestamp point
+	-U	Update cvs sources from previous -c invocation (implies -S)
 	-Q	Quick build (no documentation)
 	-v	be verbose
 	-q	be quiet
 	-n	show what would be done, but dont do it.  Implies -v.
-	-c	checkout cvs sources from head of tag rather than export from timestamp point
 	-okey=value	set parameters on the command line
 	-D date	Specify a repository date to build/tag relative to
 	-r tag	Specify a repository tag to build/tag relative to
@@ -450,8 +454,8 @@ if ($java_home) {
   }
 }
 
-# Check out everything from CVS
-&checkout if (!$skip);
+# Check out everything from CVS (handles $skip and $isUpdating correctly)
+&checkout;
 
 # build the modules
 &build;
@@ -505,7 +509,13 @@ sub checkout {
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
   foreach $mod (@modules) {
-    checkout_module($mod,$srcdir);
+    if ($isUpdating) {
+      update_module($mod,$srcdir);
+    } elsif ($skip) {
+      print "Skipping checkout of $mod\n" if $verbose;
+    } else {
+      checkout_module($mod,$srcdir);
+    }
   }
 
   print "Checkout complete\n" if $verbose;
@@ -536,6 +546,21 @@ sub checkout_module {
     $rarg .= " -D '$rdate'" if ($rarg eq "" || !pointP);
     mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
   }
+}
+
+sub update_module {
+  my ($mod, $dir) = @_;
+  chdir ($dir) || die ("Couldn't chdir to $build_dir");
+  print "\tupdating $mod\n" if $verbose;
+
+  my $rep = getCVSROOT($mod);
+  my $cvsmod = opt("$mod.module","$mod");
+  chdir ($mod);
+
+  my $arg = "";
+  $arg = "-Q";			# if ($verbose<=1);
+
+  mysystem("cvs $arg -d '$rep' update");
 }
 
 
