@@ -84,14 +84,15 @@ modules=\
 	csmart,\
 	quo,\
 	qos,\
-	deltaeport
+	deltaeport,\
+	dbms
 
 # leave out Marine for now - it is broken
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
 	glm,scalability,server,aggagent,uiframework,base,tutorial,\
-	tops,datagrabber,glmtrans,vishnu,csmart,quo,qos
+	tops,datagrabber,glmtrans,vishnu,csmart,quo,qos,dbms
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -174,6 +175,7 @@ vishnu.repository = internal
 Marine.repository = internal
 csmart.repository = internal
 deltaeport.repository = internal
+dbms.repository = dbms
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
