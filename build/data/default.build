@@ -1,4 +1,4 @@
-# COUGAAR release build driver for the HEAD (currently > 8.2)
+# COUGAAR release build driver for the HEAD (currently > 10.2)
 # 
 # !!! THIS IS ONLY AN EXAMPLE !!!
 #
@@ -97,7 +97,6 @@ modules=\
 	tutorial,\
 	csmart,\
 	quo, qos,\
-	dbms,\
 	server,\
 	webserver, webtomcat,\
 	community, \
@@ -180,7 +179,7 @@ toolkit.jars = xerces
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart,servlet
-glm.extras = oracle12, mm-mysql-2, pgjdbc2
+glm.extras = m-mysql-2
 
 # scalability testing kit
 scalability.deps = core,planning,glm,util
@@ -208,7 +207,7 @@ tutorial.jars = xerces
 csmart.deps = core,planning,server,glm,scalability,bootstrap,util
 csmart.jars = xerces,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
-csmart.extras = oracle12, mm-mysql-2, pgjdbc2, log4j
+csmart.extras = mm-mysql-2, log4j
 csmart.repository = internal
 # Set PrettyName for ANT script generation
 csmart.PrettyName = CSMART
@@ -229,9 +228,6 @@ webtomcat.jars = servlet, tomcat_40
 # community
 community.deps = util,core,planning,glm,webserver
 community.jars = log4j,xerces,servlet,concurrent
-
-# dbms module
-dbms.repository = dbms
 
 #
 # Adaptive Logistics jars
