@@ -15,7 +15,7 @@ product.name=cougaar
 tmp = /tmp
 
 # if set, java.home will be used to find java, jar, javadoc, rmi
-java.home = /usr/local/java/jdk1.4
+java.home = /usr/local/java/j2sdk1.4.2
 # java.command may be used to figure out java.home if not otherwise
 java.command = java
 # old syntax (still grudginly accepted)
