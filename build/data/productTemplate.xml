@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="ASCII" standalone="yes" ?> 
+<!DOCTYPE ant1.5 SYSTEM "ant-1.5.dtd">
+<!-- Comment out the DTD reference if you want to avoid ANT validating. -->
+<!--
+     Template compiling (by the build script) is performed by searching
+     for "percent { VAR }" patterns and replacing the matched string with:
+	Name - name of the product
+	BEGIN - all lines upto and including this one are skipped.
+ -->
+
+<!-- %{BEGIN} Everything after this line will be included in the generated module build.xml files -->
+<!-- Autobuild-generated ANT script for building the whole "%{Name}" product. -->
+<!-- The source for this file is in build/data/productTemplate.xml -->
+
+<!-- autobuild might execute this with something like:
+  ant -DTARGETBASE=/tmp/%{Name}/latest/target -DSOURCEBASE=/tmp/%{Name}/latest/src
+      -DTMP=/tmp/tmpdir                                           -->
+
+<!-- Instructions for individual users:
+     Installation layout is configurable. Standard settings:
+       TARGETBASE=.. (ie COUGAAR_INSTALL_PATH)
+       SOURCEBASE=. (ie the directory containing the module sources)
+       TMPDIR=./tmp
+
+     Other settings may be over-ridden using the optional properties
+     files SOURCEBASE/%{Name}.properties and TARGETBASE/global.properties
+
+-->
+
+<!-- ================================================================   -->
+<project name="%{PrettyName}" default="compile">
+    <property name="product" value="%{Name}"/>
+    <property name="productUp" value="%{PrettyName}"/>
+
+    <!-- ====== Basic Directories, and user property over-rides  ====== -->
+    <!-- SOURCEBASE is where the sources for the modules are -->
+    <property name="SOURCEBASE" value="." /> 
+
+    <!-- builddata is where the master build data is kept -->
+    <property name="build.data" value="${SOURCEBASE}/build/data"/>
+
+    <property file="${build.data}/${product}.properties" />  <!-- per-module properties file! -->
+
+    <!-- TARGETBASE is where we will install files -->
+    <!-- In a developer environment, this is usually
+    COUGAAR_INSTALL_PATH -->
+    <property name="TARGETBASE" value=".." />
+    <!-- Set any not-yet-set properties to values specific to this
+    installation -->
+    <property file="${TARGETBASE}/global.properties" />
+
+    <!-- You can also have a user-specific global properties file. -->
+    <!-- Windows users will have to set user.home, eg by invoking
+     ant with: -Duser.home=D:/MyHomeDir  -->
+    <!-- To use such a file, uncomment the following line. -->
+    <!--    <property file="${user.home}/.ant.properties" /> -->
+
+    <!-- ================ Tool options ================ -->
+    <!-- Individual users may choose to modify these settings. -->
+    <!-- These values are only used if not already set by the
+    module.properties or global.properties files. For all property
+    values, the first setting wins. -->
+
+    <!-- Note that a popular alternative build.compiler is 'jikes' -->
+    <property name="build.compiler" value="modern"/>
+    <!-- Include extra debug info in compilations -->
+    <property name="build.compiler.debug" value="on"/>
+    <!-- Do not include deprecation warnings -->
+    <property name="build.compiler.deprecation" value="off"/>
+    <!-- Don't exclude basic debug info -->
+    <property name="build.compiler.optimize" value="off"/>
+
+    <!-- ================ Ant options ================ -->
+    <!-- Keep the ant environment separate from the target environment -->
+    <property name="build.sysclasspath" value="ignore"/>
+
+    <!-- ================ Directories ================ -->
+
+    <!-- TMP is a temporary location for compiling, zipping, etc -->
+    <!-- Generated classfiles will go in TMP/classes, so that would often
+    be the setting for COUGAAR_DEV_PATH in a developer environment -->
+    <property name="TMP" value="${SOURCEBASE}/tmp" />
+
+    <!-- Individuals should not need to modify below here. -->
+
+    <target name="build" depends="%{build.depends}">
+    </target>
+
+    <target name="install" depends="%{install.depends}">
+    </target>
+
+
+<!-- %{MODULE_START} The start of the per-module recipe -->
+    <target name="build.%{MODULE}" depends="%{build.depends}">
+      <ant dir="${SOURCEBASE}/%{MODULE}" target="build"
+	   inheritAll="true">
+	<property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" />
+      </ant>
+    </target>
+    <target name="install.%{MODULE}" depends="%{install.depends}">
+      <ant dir="${SOURCEBASE}/%{MODULE}" target="install"
+	   inheritAll="true">
+	<property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" />
+      </ant>
+    </target>
+<!-- %{MODULE_END} End of per-module recipe -->    
+
+
+</project>

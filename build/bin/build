@@ -385,6 +385,7 @@ $start_time = time;
 $srcdir = "$build_dir/src";
 
 $product = opt("product.name");
+$product = "cougaar" if ($product eq "");
 
 $latest_dir = "$build_root/latest";
 
@@ -475,6 +476,8 @@ print "Building module unified\n";
 # build unified javadoc
 &build_javadoc("unified", "$product-api") if (!$nodoc);
 print "Done building unified\n";
+
+&generateProductAntRecipe($product);
 
 # add any dist extras
 &add_dist;
@@ -806,7 +809,7 @@ sub build_module {
     sopt($mod, "run.abs.jarlist", join("$cpsep",@apccp));
   }
 
-  generateAntRecipe($mod);
+  generateModuleAntRecipe($mod);
 
   $moduleFailed{$mod} = !$builtjar;
 
@@ -2184,7 +2187,7 @@ sub fixbat {
 }
 
 # generate the ANT recipe for a module
-sub generateAntRecipe {
+sub generateModuleAntRecipe {
   my ($mod) = @_;
 
   print "Generating Ant recipe for $mod\n" if $verbose;
@@ -2238,4 +2241,94 @@ sub generateAntRecipe {
       print STDERR "Warning: Old version of $recipe is stale.\n";
     }
   }
+}
+
+sub generateProductAntRecipe {
+  my ($product) = @_;
+  print "Generating master Ant recipe for $product\n" if $verbose;
+  my ($prod)= "product";
+
+  sopt($prod, "Name", $product);
+  sopt($prod, "PrettyName", $product); # build file can override.
+
+  my ($allmods) = join ",",@modules;
+  foreach $pass (split /\s*,\s*/, "build,compile,install,test") {
+    sopt($prod, "$pass.depends", joinopt($pass,$allmods));
+  }
+
+  my $template = "$srcdir/build/data/productTemplate.xml";
+  my $recipe = "$srcdir/build.xml";
+  my $backup = "";
+  if (-e $recipe) {
+    $backup = "$srcdir/build.bak";
+    unlink $backup;
+    rename $recipe, $backup;
+  }
+
+  open(I, "<$template");
+  open(O, ">$recipe");
+  my ($began) = 0;
+  my ($inmod) = 0;
+  my @modlines;
+
+  while (<I>) {
+    if (/%\{BEGIN\}/) {
+      $began++;
+    } else {
+      if ($began) {
+	if (/MODULE_START/) {
+	  $inmod=1;
+	} elsif (/MODULE_END/) {
+	  $inmod=0;
+	  # @modlines has the per-module hackery
+	  foreach $mod (@modules) {
+	    my ($modspec);
+	    $modspec = opt("$mod.deps");
+	    foreach $pass (split /\s*,\s*/, "build,compile,install,test") {
+	      sopt($mod, "$pass.depends", joinopt($pass,$modspec));
+	    }
+	    print "mod=$mod: deps=$modspec\n";
+
+	    sopt($mod, "Name", $mod);
+	    sopt($mod, "PrettyName", $mod); # build file can override.
+
+	    foreach $mlc (@modlines) {
+	      my($ml) = $mlc;
+	      $ml =~ s/%\{MODULE\}/$mod/g;
+	      $ml =~ s/%\{([^\}]+)\}/gopt($mod,$1)/ge;
+	      print O "$ml";
+	    }
+	  }
+	} else {
+	  if ($inmod) {
+	    push @modlines, $_;
+	  } else {
+	    # perl is cooler than, well....
+	    s/%\{([^\}]+)\}/gopt($prod,$1)/ge;
+	    print O "$_";
+	  }
+	}
+      }
+    }
+  }
+  close(O);
+  close(I);
+
+  # check to see if the build.xml changed - if it was checked in, then
+  # we want to warn that the old (checked-in) version is stale.
+  if ($backup ne "") {
+    my $rc = mysystem("diff -q $backup $recipe");
+    if ($rc) {
+      print STDERR "Warning: Old version of $recipe is stale.\n";
+    }
+  }
+}
+
+sub joinopt {
+  my ($prefix, $modspec) = @_;
+  my @prod;
+  foreach $dep (split /\s*,\s*/, $modspec) {
+    push @prod, "$prefix.$dep";
+  }
+  return join(",", @prod);
 }
