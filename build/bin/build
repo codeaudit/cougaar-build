@@ -18,7 +18,7 @@ use File::Find;
 
 require "getopts.pl";
 
-&Getopts('r:D:hvqnQ');
+&Getopts('r:D:hvqnQSc');
 
 $nodoc=$opt_Q;
 
@@ -26,9 +26,16 @@ usage() if $opt_h;
 
 sub usage {
   print STDERR "Usage: build [options] ReleaseDescriptionFile\n";
+  print STDERR "\t-S\tSkip checkout, rebuild from last try\n";
   print STDERR "\t-Q\tQuick build (no documentation)\n";
+  print STDERR "\t-v\tbe verbose\n";
+  print STDERR "\t-q\tbe quiet\n";
+  print STDERR "\t-c\tcheckout cvs sources from head of tag rather than export from timestamp point\n";
   exit(1);
 }
+
+$skip = $opt_S;
+$checkoutP = $opt_c;
 
 @modules;
 
@@ -38,6 +45,11 @@ parse_config();
 
 $javac_command = "jikes -g";
 #$javac_command = "javac -J-Xmx128m -J-Xms128m -g";
+%javac_commands = (
+		   "javac" => "javac -J-Xmx128m -J-Xms128m -g",
+		   "jikes" => "jikes -g",
+		   );
+
 $java_command = "java";
 $javadoc_command = "/usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m";
 #$javadoc_command = "javadoc -J-Xmx256m -J-Xms256m";
@@ -64,7 +76,6 @@ $javadoc_command = opt("javadoc", $javadoc_command);
   $bdate="$yr$mon$mday$hour$min$sec";
 }
 
-
 $verbose = 1;
 $verbose-- if $opt_q;
 $verbose++ if $opt_v;
@@ -82,6 +93,16 @@ $rdate = $opt_D if ($opt_D);
 # root of the build directory tree
 $build_root = opt("build.root");
 #$build_root = "/tmp";
+
+if ($skip) {
+  opendir D, $build_root;
+  @alldirs = grep !/^\./, readdir D;
+  closedir D;
+  @alldirs = grep /[0-9]*/, @alldirs;
+  @alldirs = sort @alldirs;
+
+  $bdate = $alldirs[0];
+}
 
 # absolute path of directory we are building into
 $build_dir = "$build_root/$bdate";
@@ -103,7 +124,7 @@ $augmented_classpath = $classpath;
 # hack for jikes until it is Java2 complient
 if ( $javac_command =~ /jikes/ ) {
   my $javahome;
-  if ( $java_command =~ /(.*)\/bin\/java/ ) {
+  if ( $java_command =~ /^(.+)\/bin\/java$/ ) {
     $javahome = $1;
   } else {
     open(JAVA, "which java|");
@@ -114,6 +135,8 @@ if ( $javac_command =~ /jikes/ ) {
     } else {
       die("Cannot find java");
     }
+  }
+  if ($javahome) {
     $rtjar = "$javahome/jre/lib/rt.jar";
     @rtjars = ($rtjar);
     $augmented_classpath = "$augmented_classpath:$rtjar";
@@ -154,7 +177,7 @@ print "Building $rtag at $rdate into $build_dir\n"  if $verbose;
 print "Output is in $errout\n" if $verbose;
 
 # Check out everything from CVS
-&checkout;
+&checkout if (!$skip);
 
 # build the modules
 &build;
@@ -205,7 +228,15 @@ sub checkout {
 
     my $arg = "";
     $arg = "-Q" if ($verbose<=1);
-    mysystem ("cvs $arg -d '$repb$rep' export -r $tag -D '$rdate' -d $mod $mod");
+    my $rarg="";
+    # special case for HEAD - bogon.
+    $rarg = "-r $tag" if (! ($tag eq "HEAD"));
+    if ($checkoutP) {
+      # leave it in development mode
+      mysystem ("cvs $arg -d '$repb$rep' checkout $rarg -d $mod $mod");
+    } else {
+      mysystem ("cvs $arg -d '$repb$rep' export $rarg -D '$rdate' -d $mod $mod");
+    }
   }
 
   print "Checkout complete\n" if $verbose;
@@ -247,7 +278,11 @@ sub build_module {
   chdir $mysrc;
   my $tmpfile = "/tmp/build.$$";
   mysystem("find . -name '*.java' -print>$tmpfile");
-  mysystem("$javac_command -d $tmplib -classpath $cp \@$tmpfile");
+  my $jc = $javac_command;
+  $jco = opt("$mod.javac");
+  if ($jco) { $jc = $javac_commands{$jco}; }
+
+  mysystem("$jc -d $tmplib -classpath $cp \@$tmpfile");
 
   print "Preparing jar for $mod\n" if $verbose;
   # copy non-java "sources" to tmplib
@@ -270,7 +305,15 @@ sub build_module {
     mkdir "$tmpdist";
 
     chdir "$srcdir/$mod";
-    mysystem("tar cf - bin doc examples src data configs | (cd $tmpdist; tar xf -)");
+    my @shipped_subdirs = ("bin", "doc", "examples", "src", "data", "configs");
+    my @subdirs = ();
+    foreach $sub (@shipped_subdirs) {
+      if (-d "$srcdir/$mod/$sub") {
+	push @subdirs, $sub ;
+      }
+    }
+    my $subdirs = join(" ", @subdirs);
+    mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
 
     # only do javadoc if it is not part of the unified build
     if (! opt("$mod.unified")) {
@@ -288,28 +331,14 @@ sub build_module {
   return 1;
 }
 
-# figure out the right classpath for a given module
-#  This hacked version just grabs all the jars it can find.
-sub old_get_classpath {
-  local($mod) = @_;
-  # compute classpath (Hack version - all previous jars)
-  my @jars = findbypattern($libdir, "\.jar\$");
-
-  # find module jars
-  my @modlib = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
-
-  #put them together - module jars take precedence
-  my @libs = (@modlib, @jars);
-  my $cp = join(":",@libs);
-  $cp = ".:$cp:$augmented_classpath";
-  return $cp;
-}
-
 # try to find exactly the set of jars needed based on dependencies, etc
 #
 sub get_classpath {
   local($mod) = @_;
 
+  if ($mod eq "unified") {
+    return get_unified_classpath();
+  }
   # previously built jars
   my @buildjars = findbypattern($libdir, "\.jar\$");
 
@@ -342,6 +371,22 @@ sub get_classpath {
   my @libs = (@cp, @rtjars);
   my $cp = join(":",@libs);
   return ".:$cp";
+}
+
+sub get_unified_classpath {
+  my %member;
+  my @cp;
+  foreach $m (@modules) {
+    if (opt("$m.unified")) {
+      foreach $c (split(/:/,get_classpath($m))) {
+	if (! ($member{$c})) {
+	  $member{$c} = 1;
+	  push @cp, $c;
+	}
+      }
+    }
+  }
+  return join(":", @cp);
 }
 
 sub findjar {
@@ -467,6 +512,39 @@ sub build_runtime {
 
 # build the 3rdparty zip - mostly 3rd party jars.
 sub build_3rdparty {
+  my %member;
+  my $mod;
+  my $tmpdir = "/tmp/runtime.$$";
+  print "Building 3rdparty dist\n" if $verbose;
+  mkdir $tmpdir;
+  my $tl = "$tmpdir/sys";
+  mkdir $tl;
+
+  # grab the modules (checked-in) jars
+  foreach $mod (@modules) {
+    my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
+    my @alljars = (@libjars, @sysjars);
+
+    my $dep;
+    my @deps = ((split /\s*,\s*/, opt("$mod.jars")),
+		(split /\s*,\s*/, opt("$mod.runtime")));
+    foreach $dep (@deps) {
+      my $jar = findjar($dep, @alljars);
+      if ($jar && ! ($member{$jar})) {
+	  $member{$jar} = 1;
+	  mysystem("cp $jar $tl");
+	}
+    }
+  }
+
+  chdir $tmpdir;
+  zip("$product thirdparty jars", $tmpdir, "$distdir/$product-support.zip");
+  chdir $build_dir;
+  mysystem("rm -rf $tmpdir");
+  print "Done building 3rdparty dist\n" if $verbose;
+}
+
+sub old_build_3rdparty {
   my $mod;
   my $tmpdir = "/tmp/runtime.$$";
   print "Building 3rdparty dist\n" if $verbose;

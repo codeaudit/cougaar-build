@@ -1,9 +1,14 @@
 
+java = /usr/local/java/jdk1.3/bin/java
+javac = jikes -g
+#javac = javac -J-Xmx128m -J-Xms128m -g
+
 repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
 repository.default=cougaar
 tag.default=HEAD
 product.name=alp
 sys.lib=/home/mthome/.lib/jars
+sys.lib=/home/mthome/.lib/build.jars
 build.root=/tmp/V8_0
 
 modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent
@@ -29,6 +34,9 @@ glm.jars = xerces,fesi-111,omcore,jcchart451K
 aggagent.jars = xerces,xalan
 scalability.jars = xerces
 uiframework.jars = omcore,xerces,cuimap,j2ee,vgj
+
+#extra libs
+glm.runtime = oracle12
 
 # unified build
 core.unified = 1

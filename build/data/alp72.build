@@ -7,7 +7,7 @@ repository.default=cougaar
 tag.default=V7_2
 product.name=alp
 sys.lib=/home/mthome/.lib/build.jars
-build.root=/tmp/hourly
+build.root=/tmp/V7_2
 
 modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine
 
@@ -58,6 +58,9 @@ delta.jars = activation,jms,jndi,jsdk,mail,omcore,qslink,jess50,xml4j_2_0_11
 blackjack.jars = xml4j_2_0_11,jcchart451K,jsdk
 uiframework.jars = cuimap,xml4j_2_0_11,j2ee,vgj,xerces
 Marine.jars = xml4j_2_0_11
+
+#extra libs
+glm.runtime = oracle12
 
 # unified build
 core.unified = 1
