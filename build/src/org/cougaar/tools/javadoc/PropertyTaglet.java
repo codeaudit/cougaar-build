@@ -140,7 +140,7 @@ public class PropertyTaglet implements Taglet {
   public String toString(Tag tag) {
     Tuple t = new Tuple(tag);
     return "<DT><B>" + HEADER + "</B><DD>"
-      + "<table cellpadding=2 cellspacing=0><tr>"+
+      + "<table cellpadding=2 cellspacing=0><tr valign=\"top\">"+
       "<td>"+ t.param +"</td>"+
       "<td>"+ t.text +"</td>"+
       "</tr></table></DD>\n";
@@ -159,7 +159,7 @@ public class PropertyTaglet implements Taglet {
     result += "<table cellpadding=2 cellspacing=0>";
     for (int i = 0; i < tags.length; i++) {
       Tuple t = new Tuple((Tag)tags[i]);
-      result += "<tr><td>"+ t.param +"</td>"+
+      result += "<tr valign=\"top\"><td>"+ t.param +"</td>"+
         "<td>"+ t.text +"</td></tr>";
     }
     return result + "</table></DD>\n";
