@@ -137,21 +137,27 @@
     <target name="install.%{MODULE}" depends="%{install.depends}"
             description="Install the built jar file for %{MODULE} in the
                          appropriate lib directory">
+      <echo message="---------- Installing %{MODULE} ----------"/>
       <ant dir="${SOURCEBASE}/%{MODULE}" target="install"
 	   inheritAll="true">
       </ant>
+      <echo message="---------- Done installing %{MODULE} ----------"/>
     </target>
     <target name="clean.%{MODULE}" depends="%{clean.depends}"
             description="Compile the %{MODULE} module">
+      <echo message="---------- Cleaning %{MODULE} ----------"/>
       <ant dir="${SOURCEBASE}/%{MODULE}" target="clean"
 	   inheritAll="true">
       </ant>
+      <echo message="---------- Done cleaning %{MODULE} ----------"/>
     </target>
     <target name="test.%{MODULE}" depends="%{test.depends}"
             description="Compile the %{MODULE} module">
+      <echo message="---------- Testing %{MODULE} ----------"/>
       <ant dir="${SOURCEBASE}/%{MODULE}" target="test"
 	   inheritAll="true">
       </ant>
+      <echo message="---------- Done testing %{MODULE} ----------"/>
     </target>
 
 <!-- %{MODULE_END} End of per-module recipe -->    
