@@ -165,7 +165,7 @@ datagrabber.repository = internal
 
 # glm transportation 
 glmtrans.deps = core,glm,toolkit,vishnu
-glmtrans.jars = xerces
+glmtrans.jars = xerces,servlet
 glmtrans.repository = internal
 
 # delta
