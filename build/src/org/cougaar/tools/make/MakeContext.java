@@ -238,10 +238,10 @@ public class MakeContext {
             if (theModuleName != null && theModuleName.equals(aModuleName)) return;
             theModuleName = aModuleName;
             theModuleRoot = getModuleRoot(theModuleName).getCanonicalFile();
-            theSourceRoot = new File(theModuleRoot, SRC).getCanonicalFile();
-            theModuleTemp = new File(theModuleRoot, TMPDIR).getCanonicalFile();
-            theClassesRoot = new File(theModuleTemp, CLASSES).getCanonicalFile();
-            theGenCodeRoot = new File(theModuleTemp, GENCODE).getCanonicalFile();
+            theSourceRoot = getSourceRoot(theModuleRoot);
+            theModuleTemp = getModuleTemp(theModuleRoot);
+            theClassesRoot = getClassesRoot(theModuleRoot);
+            theGenCodeRoot = getGenCodeRoot(theModuleRoot);
             if (debug) {
                 System.out.println("Module Name: " + theModuleName);
                 System.out.println("Module Root: " + theModuleRoot);
@@ -260,6 +260,14 @@ public class MakeContext {
      **/
     public File getSourceRoot() {
         return theSourceRoot;
+    }
+
+    public File getSourceRoot(File aModuleRoot) throws MakeException {
+        try {
+            return new File(aModuleRoot, SRC).getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
     }
 
     /**
@@ -283,6 +291,15 @@ public class MakeContext {
         return theClassesRoot;
     }
 
+    public File getClassesRoot(File aModuleRoot) throws MakeException {
+        try {
+            return new File(getModuleTemp(aModuleRoot), CLASSES)
+                .getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
+    }
+
     /**
      * Get the temp directory of a module (in canonical form)
      **/
@@ -293,8 +310,12 @@ public class MakeContext {
     /**
      * Get the temp directory of a module (in canonical form)
      **/
-    public File getModuleTemp(File moduleRoot) {
-        return new File(moduleRoot, TMPDIR);
+    public File getModuleTemp(File aModuleRoot) throws MakeException {
+        try {
+            return new File(aModuleRoot, TMPDIR).getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
     }
 
     /**
@@ -302,6 +323,15 @@ public class MakeContext {
      **/
     public File getGenCodeRoot() {
         return theGenCodeRoot;
+    }
+
+    public File getGenCodeRoot(File aModuleRoot) throws MakeException {
+        try{
+            return new File(getModuleTemp(aModuleRoot), GENCODE)
+                .getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
     }
 
     /**
@@ -793,6 +823,12 @@ public class MakeContext {
         File genCodeRoot = getGenCodeRoot();
         if (genCodeRoot.isDirectory()) {
             elements.add(genCodeRoot);
+        }
+        String[] prerequisiteModules = getPrerequisites(getModuleName());
+        for (int i = 0; i < prerequisiteModules.length; i++) {
+            File root =
+                getClassesRoot(getModuleRoot(prerequisiteModules[i]));
+            elements.add(root);
         }
         elements.addAll(Arrays.asList(findFiles(getProjectLib(), ".jar", false, false)));
         elements.addAll(Arrays.asList(get3rdPartyJars()));
