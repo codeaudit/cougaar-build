@@ -1,4 +1,4 @@
-# COUGAAR release build driver for the HEAD (currently > 8.2)
+# COUGAAR release build driver for V8_4)
 
 product.name=cougaar
 
@@ -39,8 +39,8 @@ javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
 # default repository tag is "cougaar"
 #repository.default=cougaar
 
-# HEAD is the default
-#tag.default=HEAD
+# V8_4 is the default
+tag.default=V8_4
 
 # where should we get the basic (3rd party) jars from?
 sys.lib=/home/cougaar/build.jars
