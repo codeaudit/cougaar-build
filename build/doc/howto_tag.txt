@@ -1,0 +1,50 @@
+Procedure for tagging a build using the build script.
+
+(Note - this is primarily of use for maintainers of the Cambridge
+Cougaar CVS repository and build system, but could be useful for
+others interested in using the cougaar build system for maintaining
+other java projects)
+
+Example: we'll be tagging the exact software which was shipped as
+cougaar 9.2.0.  We'll tag it with "V9_2" and we'll make it a branch. 
+
+1. find the date (and, if appropriate, base tag) of the version you
+want to tag with the new name.
+  - I unpacked the shipped build and looked at build.out for the date
+	to use.  You could also unpack any of the zip files and then
+	look at any of the files in Manifest/* for the value of
+	REPOSITORY_TIME and REPOSITORY_TAG (if not HEAD).
+  - for our example:
+     DATE = "5/1/2002 15:00:07"
+     BASETAG = "HEAD"
+
+2. Run the build script in tag mode.
+the build script is in build.jar:build/bin/build, or you can get it
+from the build module in the main (cougaar) cvs repository.
+You can always run "build -h" to get some help information.
+
+  - our example:
+
+    build -v -D '5/1/2002 15:00:07' -t V9_2 -b
+
+    (	-v	verbose mode
+	-D <x>	tag/build the sources as of date/time <x>
+	-t <t>	tag with name <t> rather than build.
+	-b 	Branch rather than tag )
+  - If you are branching, it is a good idea to also do a point tag
+  to make sure that you can reconstruct that build.  We'll use the
+  following:
+
+    build -v -D '5/1/2002 15:00:07' -r V9_2 -t V9_2_0
+
+    (	-r <t>	tag/build relative to the named branch instead of
+		HEAD )
+
+Notes:
+ - the build scripts will take a while to run - don't worry.
+ - Although the build script ought to work on windows (with cygwin),
+I've never tried it.  linux is preferred here.
+ - you can use the "-F" flag with build to force the tag if you blew
+it and made a mistake.  This turns it into a destructive operation, so
+you'd better be completely certain that you are doing things right the
+second time!
