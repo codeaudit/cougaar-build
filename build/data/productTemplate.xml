@@ -12,6 +12,13 @@
 <!-- Autobuild-generated ANT script for building the whole "%{Name}" product. -->
 <!-- The source for this file is in build/data/productTemplate.xml -->
 
+<!--
+    This file with default settings expects to live in the same
+    directory as all of the modules, e.g. COUGAAR_INSTALL_PATH with 
+    unpacked sources.  There isn't currently a good way to deliver
+    it in this way, so for now it is part of the top level distribution.
+  -->
+
 <!-- autobuild might execute this with something like:
   ant -DTARGETBASE=/tmp/%{Name}/latest/target -DSOURCEBASE=/tmp/%{Name}/latest/src
       -DTMP=/tmp/tmpdir                                           -->
