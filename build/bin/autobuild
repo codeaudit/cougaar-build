@@ -86,6 +86,8 @@ $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
+chdir("/tmp");			# is it safe?
+
 &Getopts('vVm:a:t:d:hkT:H:po:n:j:Cg:S:E');
 if ($opt_h) {
   print STDOUT "Usage: autobuild [args]\n";
@@ -166,7 +168,7 @@ $buildspecfile;			# specfile
 $buildscript;			# buildscript
 
 # get the buildspecs
-($buildspecfile,$buildscript,$group) = grab_buildspec($tmpdir, $buildspec);
+($buildspecfile,$buildscript,$group,$tagdate) = grab_buildspec($tmpdir, $buildspec);
 $group = $default_group if ($group eq "");
 
 # install the signal handlers
@@ -213,6 +215,9 @@ if ($tag ne "") {
 }
 if ($javahome) {
   $extaargs = "$extraargs -ojava.home=$javahome";
+}
+if ($tagdate ne "") {
+  $extraargs = "$extraargs -D \"$tagdate\"";
 }
 mysystem("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $buildspecfile >$tmp/$group.out");
 
@@ -534,7 +539,7 @@ sub grab_buildspec {
     my $file = $hash->{file};
     $file = $defaults{file} if ($file eq "");
     my $command = "cvs -d $cvsroot $qarg co -p -r $tag $file";
-    print "Copying '$command' to '$specf'\n" if $verbose;
+    print "Getting '$command' to '$specf'\n" if $verbose;
     open(CVS, "$command|") || die "Could not check out spec with '$command'";
     while (<CVS>) {
       $content .= $_;
@@ -551,6 +556,7 @@ sub grab_buildspec {
   print F $content;
   close(F);
 
+  my $ddate;
   {
     my $brep;
     my $bmod = "build";
@@ -564,7 +570,8 @@ sub grab_buildspec {
       $brep = $1 if (/^\s*build\.repository\s*=\s*(.*)/);
       $bpath = $1 if (/^\s*build\.script\s*=\s*(.*)/);
       $bmod = $1 if (/^\s*build\.module\s*=\s*(.*)/);
-      $dtag = $1 if (/^\s*default\.tag\s*=\s*(.*)/);
+      $dtag = $1 if (/^\s*default\.tag\s*=\s*@?(.*)/);
+      $ddate = $1 if (/^\s*default\.date\s*=\s*(.*)/);
       $bgroup = $1 if (/^\s*build\.group\s*=\s*(.*)/);
     }
     $specTag = $dtag;
@@ -582,7 +589,9 @@ sub grab_buildspec {
       $brep = ":ext:$domain:$repository";
     }
 
-    my $command = "cvs -d $brep -Q co -p -r $btag $bmod/$bpath";
+    my $darg = "";
+    if ($ddate ne "") { $darg = " -D \"$ddate\""; }
+    my $command = "cvs -d $brep -Q co -p -r $btag$darg $bmod/$bpath";
     print "getting script with \"$command\"\n" if ($verbose>1);
     mysystem("$command > $buildf");
     if (! -r $buildf) {
@@ -591,7 +600,8 @@ sub grab_buildspec {
     mysystem("chmod a+x $buildf");
     $sgroup = $bgroup if (defined $bgroup);
   }
-  return ($specf, $buildf, $sgroup);
+
+  return ($specf, $buildf, $sgroup, $ddate);
 }
 
 
