@@ -371,6 +371,10 @@ public class Targets {
         rmicSome(theContext.getSourceRoot(), true);
     }
 
+    public void rmicDir() throws MakeException {
+        rmicSome(theContext.getCurrentDirectory(), false);
+    }
+
     private void rmicSome(File srcDirectory, boolean recurse)
         throws MakeException
     {
