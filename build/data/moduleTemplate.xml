@@ -60,8 +60,33 @@
     <property name="module" value="%{Name}"/>
     <property name="moduleUp" value="%{PrettyName}"/>
 
+    <!-- ====== Basic Directories, and user property over-rides  ====== -->
+    <!-- MODSOURCE is where the sources for the module are -->
+    <!-- IE typically TARGETBASE/(module), and the directory containing
+    this file. -->
+    <property name="MODSOURCE" value="." /> 
+    <!-- Set properties to values specific to this module, if any -->
+    <property file="${MODSOURCE}/module.properties" />  <!-- per-module properties file! -->
+
+    <!-- TARGETBASE is where we will install files -->
+    <!-- In a developer environment, this is usually
+    COUGAAR_INSTALL_PATH -->
+    <property name="TARGETBASE" value=".." />
+    <!-- Set any not-yet-set properties to values specific to this
+    installation -->
+    <property file="${TARGETBASE}/global.properties" />
+
+    <!-- You can also have a user-specific global properties file. -->
+    <!-- Windows users will have to set user.home, eg by invoking
+     ant with: -Duser.home=D:/MyHomeDir  -->
+    <!-- To use such a file, uncomment the following line. -->
+    <!--    <property file="${user.home}/.ant.properties" /> -->
+
     <!-- ================ Tool options ================ -->
     <!-- Individual users may choose to modify these settings. -->
+    <!-- These values are only used if not already set by the
+    module.properties or global.properties files. For all property
+    values, the first setting wins. -->
 
     <!-- Note that a popular alternative build.compiler is 'jikes' -->
     <property name="build.compiler" value="modern"/>
@@ -77,18 +102,6 @@
     <property name="build.sysclasspath" value="ignore"/>
 
     <!-- ================ Directories ================ -->
-
-    <!-- TARGETBASE is where we will install files -->
-    <!-- In a developer environment, this is usually
-    COUGAAR_INSTALL_PATH -->
-    <property name="TARGETBASE" value=".." />
-    <property file="${TARGETBASE}/global.properties" />
-
-    <!-- MODSOURCE is where the sources for the module are -->
-    <!-- IE typically TARGETBASE/(module), and the directory containing
-    this file. -->
-    <property name="MODSOURCE" value="." /> 
-    <property file="${MODSOURCE}/module.properties" />  <!-- per-module properties file! -->
 
     <!-- TMP is a temporary location for compiling, zipping, etc -->
     <!-- Generated classfiles will go in TMP/classes, so that would often
@@ -124,6 +137,8 @@
     <property name="zipbase" value="${TMP}/zip"/>
     
     <!-- where oh where oh where is java? Used to find tools.jar and such -->
+    <!-- Note that JAVA_HOME must have been set in a .properties file -->
+    <!-- Otherwise, the dynamically found version is used (usually OK). -->
     <property name="java.home" value="${JAVA_HOME}"/>
     
     <!-- ================ Parameters ================ -->
