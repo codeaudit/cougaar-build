@@ -96,7 +96,7 @@ modules=\
 	uiframework,\
 	base,\
 	csmart,\
-	quo, qos,\
+	quo, qos, ping,\
 	server,\
 	webserver, webtomcat,\
 	community, \
@@ -122,6 +122,7 @@ modules.unified =\
 	aggagent,\
 	uiframework,\
 	base,\
+	quo, qos, ping, mtsstd,\
 	server,\
 	webserver,webtomcat
 # not: javaiopatch, implementations of basic services, AL
@@ -153,8 +154,6 @@ jars.repository = :ext:cougaar.org:/cvsroot/core
 
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
-
-# Moved to Cougaarforge
 javaiopatch.repository = :ext:cougaar.org:/cvsroot/core
 
 # build tools requires the jdk tools jars
@@ -164,24 +163,20 @@ build.jars = tools
 build.extras = junit
 # compiletime means that it is installed as clib rather than lib
 build.compiletime = 1
-# Moved to Cougaarforge
 build.repository = :ext:cougaar.org:/cvsroot/build
 
 # bootstrap
 bootstrap.keystore.alias = bootstrapper
-# Moved to Cougaarforge
 bootstrap.repository = :ext:cougaar.org:/cvsroot/util
 
 # util
 util.deps = bootstrap
 util.jars = log4j, xercesImpl, xml-apis
-# Moved to Cougaarforge
 util.repository = :ext:cougaar.org:/cvsroot/util
 
 # core
 core.deps = bootstrap, util
 core.jars = log4j, servlet, concurrent
-# Moved to Cougaarforge
 core.repository = :ext:cougaar.org:/cvsroot/core
 
 # mtsstd
@@ -192,45 +187,38 @@ mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
 # yellow pages
 yp.deps = util, core
 yp.jars = uddi4j, juddi, hsqldb
-# Moved to Cougaarforge
 yp.repository = :ext:cougaar.org:/cvsroot/yp
 
 # planning
 planning.deps = util, core
 planning.jars = xercesImpl, xml-apis, servlet
-# Moved to Cougaarforge
 planning.repository = :ext:cougaar.org:/cvsroot/planning
 
 # contract
 contract.deps = util
 contract.jars = xercesImpl,xml-apis
-# Moved to Cougaarforge
 contract.repository = :ext:cougaar.org:/cvsroot/util
 
 # toolkit
 toolkit.deps = core, planning, util
 toolkit.jars = xercesImpl,xml-apis
-# Moved to Cougaarforge
 toolkit.repository = :ext:cougaar.org:/cvsroot/glm
 
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xercesImpl,xml-apis,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
-# Moved to Cougaarforge
 glm.repository = :ext:cougaar.org:/cvsroot/glm
 
 # aggregation agent
 aggagent.deps = core,planning,glm,util
 aggagent.jars = xercesImpl,xml-apis,jpython,silk,servlet
-# Moved to Cougaarforge
 aggagent.repository = :ext:cougaar.org:/cvsroot/aggagent
 
 # vishnu scheduler
 vishnu.deps = core,planning,toolkit,glm,util
 vishnu.jars = xercesImpl,xml-apis,vishnuServer
 #vishnu.repository = internal
-# Moved to Cougaarforge
 vishnu.module = vishnuClient
 vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 
@@ -251,7 +239,6 @@ csmart.jars = xercesImpl,xml-apis,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = mm-mysql-2, log4j
 #csmart.repository = internal
-# Moved to Cougaarforge
 csmart.repository = :ext:cougaar.org:/cvsroot/csmart
 # Set PrettyName for ANT script generation
 csmart.PrettyName = CSMART
@@ -259,13 +246,15 @@ csmart.PrettyName = CSMART
 # quo/qos
 qos.deps = core,util,mtsstd
 qos.jars = quoSumo,servlet
-# Moved to Cougaarforge
 qos.repository = :ext:cougaar.org:/cvsroot/qos
 
 quo.deps = core,planning,qos,util,mtsstd
 quo.jars = quoSumo
-# Moved to Cougaarforge
 quo.repository = :ext:cougaar.org:/cvsroot/qos
+
+ping.deps = core,planning,qos,quo,util,mtsstd
+ping.jars = quoSumo,servlet
+ping.repository = :ext:cougaar.org:/cvsroot/qos
 
 # App (Node) Server
 server.repository = :ext:cougaar.org:/cvsroot/util
@@ -273,18 +262,16 @@ server.repository = :ext:cougaar.org:/cvsroot/util
 # new PSP/web server
 webserver.deps = bootstrap,core,util
 webserver.jars = servlet
-# Moved to Cougaarforge
 webserver.repository = :ext:cougaar.org:/cvsroot/webserver
+
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
-# Moved to Cougaarforge
 webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
 
 # community
 # added bootstrap for junit tests.
 community.deps = util,core,planning,glm,webserver,bootstrap
 community.jars = log4j,xercesImpl,xml-apis,servlet,concurrent
-# Moved to Cougaarforge
 community.repository = :ext:cougaar.org:/cvsroot/community
 
 #
@@ -325,7 +312,6 @@ servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
 servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr
 #servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
-# Moved to Cougaarforge
 servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
 
 #
