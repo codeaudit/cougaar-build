@@ -160,7 +160,7 @@ tops.repository = internal
 
 # datagrabber
 datagrabber.deps = core,glm,toolkit,planserver
-datagrabber.jars = xerces,chart,openmap
+datagrabber.jars = xerces,chart,openmap,servlet
 datagrabber.repository = internal
 
 # glm transportation 
