@@ -186,74 +186,167 @@ class ParameterListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
       collect(docs[i]);
     }
   }
+}
 
-  public static class Tuple 
-    implements Comparable
-  {
-    public Doc doc;
-    public Tag tag;
-    public String param = null;
-    public String text = null;
-    public final static String white = " \t\n\r"; // whitespace chars
-    public Tuple(Doc doc, Tag tag) {
-      this.doc = doc; 
-      this.tag = tag;
+class EventListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
 
-      String tt = tag.text();
-      int i;
-      int l = tt.length();
-      int state =0;             // what are we looking for?
-      int p0=-1,p1=-1,t0=-1;
+  public final static String EVENTFILE = "CougaarEvents.html";
 
-      // scan the tag text
-      for (i=0;i<l;i++) {
-        char c = tt.charAt(i);
-        boolean isWhite = (white.indexOf(c)>=0);
-        switch (state) {
-        case 0:                 // looking for param start
-          if (!isWhite) {
-            p0=i;
-            state=1;
-          }
-          break;
-        case 1:                 // looking for param end
-          if (isWhite) {
-            p1 = i;
-            state=2;
-          }
-          break;
-        case 2:                 // looking for text start
-          if (!isWhite) {
-            t0 = i;
-            state=3;
-          }
-          break;
-        default:                // shouldn't get here
-          Standard.configuration().standardmessage.
-            error("doclet.parameter_syntax_error", 
-                  "StateError: "+doc.toString());
-          break;
+  public EventListWriter(ConfigurationStandard cs, String filename) throws IOException {
+    super(cs, filename);
+  }
+
+  /**
+   * Generate the package index.
+   *
+   * @param root the root of the doc tree.
+   */
+  public static void generate(ConfigurationStandard cs, RootDoc root) throws DocletAbortException {
+    EventListWriter packgen;
+    String filename = EVENTFILE;
+    try {
+      packgen = new EventListWriter(cs, filename);
+      packgen.generateEventListFile(root);
+      packgen.close();
+    } catch (IOException exc) {
+      Standard.configuration().standardmessage.error("doclet.exception_encountered", 
+                                                     exc.toString(), filename);
+      throw new DocletAbortException();
+    }
+  }
+
+  protected void generateEventListFile(RootDoc root) {
+    buildEventInfo(root);
+    
+    // Note that this line includes some SCRIPT tags that the default Java HTML renderer
+    // can't handle. Ugly.
+    printHeader("Cougaar Event List");
+    println("Catalog of Cougaar Events");
+    p();
+    
+    ul();
+    for (Iterator it = events.iterator(); it.hasNext(); ) {
+      Tuple t = (Tuple)it.next();
+      //String text = t.tag.text();
+      Doc d = t.doc;
+      String param = t.param;   // parse out param from text
+      String info = t.text;       // remainder of text
+      li();
+      bold();
+      println(param);
+      boldEnd();
+      println(info);
+      print(" (See ");
+      if (d instanceof ClassDoc) {
+        print("class ");
+        printClassLink((ClassDoc) d);            
+      } else if (d instanceof MemberDoc) {
+        MemberDoc md = (MemberDoc) d;
+        print(md.qualifiedName());
+        print(" in ");
+        printClassLink((ClassDoc) md.containingClass());
+      }
+      println(")");
+      //liEnd();
+    }
+    ulEnd();
+
+    printBodyHtmlEnd();
+  }
+
+  private List events = new ArrayList();
+
+  private void buildEventInfo(RootDoc root) {
+    ClassDoc[] classes = root.classes();
+    for (int i = 0; i < classes.length; i++) {
+      ClassDoc cd = classes[i];
+      collect(cd);
+      collect(cd.fields());
+      collect(cd.methods());
+      collect(cd.constructors());
+    }
+    Collections.sort(events);
+  }
+
+  private void collect(Doc doc) {
+    Tag[] pts = doc.tags("event");
+    for (int i=0;i<pts.length;i++) {
+      events.add(new Tuple(doc, pts[i]));
+    }
+  }
+  private void collect(Doc[] docs) {
+    for (int i=0;i<docs.length;i++) {
+      collect(docs[i]);
+    }
+  }
+}
+
+class Tuple 
+  implements Comparable
+{
+  public Doc doc;
+  public Tag tag;
+  public String param = null;
+  public String text = null;
+  public final static String white = " \t\n\r"; // whitespace chars
+  public Tuple(Doc doc, Tag tag) {
+    this.doc = doc; 
+    this.tag = tag;
+
+    String tt = tag.text();
+    int i;
+    int l = tt.length();
+    int state =0;             // what are we looking for?
+    int p0=-1,p1=-1,t0=-1;
+
+    // scan the tag text
+    for (i=0;i<l;i++) {
+      char c = tt.charAt(i);
+      boolean isWhite = (white.indexOf(c)>=0);
+      switch (state) {
+      case 0:                 // looking for param start
+        if (!isWhite) {
+          p0=i;
+          state=1;
         }
-        if (state==3) break;
+        break;
+      case 1:                 // looking for param end
+        if (isWhite) {
+          p1 = i;
+          state=2;
+        }
+        break;
+      case 2:                 // looking for text start
+        if (!isWhite) {
+          t0 = i;
+          state=3;
+        }
+        break;
+      default:                // shouldn't get here
+        Standard.configuration().standardmessage.
+          error("doclet.parameter_syntax_error", 
+                "StateError: "+doc.toString());
+        break;
       }
-
-      if (t0>=0) {
-        param = tt.substring(p0,p1);
-        text = tt.substring(t0);
-      } else {
-          Standard.configuration().standardmessage.
-            error("doclet.parameter_syntax_error", 
-                  doc.toString());
-      }
+      if (state==3) break;
     }
 
-    public int compareTo(Object o) {
-      if (!(o instanceof Tuple)) return -1;
-      Tuple t = (Tuple) o;
-      int v = param.compareTo(t.param);
-      if (v != 0) return v;
-
-      return doc.compareTo(t.doc);
-    }        
+    if (t0>=0) {
+      param = tt.substring(p0,p1);
+      text = tt.substring(t0);
+    } else {
+      Standard.configuration().standardmessage.
+        error("doclet.parameter_syntax_error", 
+              doc.toString());
+    }
   }
+
+  public int compareTo(Object o) {
+    if (!(o instanceof Tuple)) return -1;
+    Tuple t = (Tuple) o;
+    int v = param.compareTo(t.param);
+    if (v != 0) return v;
+
+    return doc.compareTo(t.doc);
+  }        
 }

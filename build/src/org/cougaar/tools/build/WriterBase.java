@@ -136,6 +136,7 @@ public class WriterBase {
                 " * </copyright>\n"+
                 " */");
     println(out);
+    if (source != null) source = source.replace('\\', '/'); // stupid windows!
     println(out,"/* @"+"generated "+new java.util.Date()+((source==null)?"":(" from "+source))+" - DO NOT HAND EDIT */");
   }
 }

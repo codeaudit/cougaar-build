@@ -532,7 +532,14 @@ sub checkout {
     } else {
       checkout_module($mod,$srcdir);
     }
+    # Permit removing particular files
+    foreach $rem (split /\s*,\s*/, opt("$mod.rems")) {
+	# assume we can rm the pattern specified
+	print "Removing $mod/$rem\n";
+	mysystem("rm -rf $mod/$rem");
+    }
   }
+
   my ($time1) = time;
   addtime("cvs",$time1-$time0);
   print "Checkout complete\n" if $verbose;

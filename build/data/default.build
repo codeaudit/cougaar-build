@@ -59,7 +59,8 @@ default.javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
 default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
 	org.cougaar.tools.javadoc.ToDoTaglet,\
 	org.cougaar.tools.javadoc.NoteTaglet,\
-	org.cougaar.tools.javadoc.GeneratedTaglet
+	org.cougaar.tools.javadoc.GeneratedTaglet, \
+	org.cougaar.tools.javadoc.EventTaglet
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/
@@ -91,7 +92,6 @@ modules=\
         planning,contract,toolkit,\
 	yp,\
 	glm,aggagent,\
-	vishnu,\
 	uiframework,\
 	base,\
 	tutorial,\
@@ -101,7 +101,8 @@ modules=\
 	webserver, webtomcat,\
 	community, \
 	albbn, stoplight, datagrabber,\
-	servicediscovery
+	servicediscovery, vishnu,\
+	ulconfigs
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -191,7 +192,7 @@ vishnu.jars = xerces,vishnuServer
 vishnu.repository = internal
 
 # uiframework
-uiframework.repository = :pserver:anonymous@cougaarforge.cougaar.org:/cvsroot/cui
+uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
 uiframework.deps = core,planning,glm,aggagent,datagrabber,util
 uiframework.jars = xerces,openmap,vgj,xerces
 uiframework.extras = mm-mysql-2
@@ -199,7 +200,7 @@ uiframework.extras = mm-mysql-2
 # tutorials
 tutorial.deps = core,planning,glm,util
 tutorial.jars = xerces
-tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorial
+tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
@@ -234,22 +235,25 @@ community.jars = log4j,xerces,servlet,concurrent
 # AL BBN
 albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 albbn.module = bbn
-albbn.tag = COUGAAR_*
+#albbn.tag = COUGAAR_*
+albbn.tag = HEAD
 #albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
-albbn.deps = core,planning,util,toolkit,glm,vishnu
+albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
 albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.runtime = bin,configs
 
 # AL datagrabber
 datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
-datagrabber.tag = COUGAAR_*
+#datagrabber.tag = COUGAAR_*
+datagrabber.tag = HEAD
 #datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 datagrabber.deps = core,planning,glm,toolkit,util,albbn
 datagrabber.jars = xerces,chart,openmap,servlet
 
 # AL stoplight
 stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
-stoplight.tag = COUGAAR_*
+#stoplight.tag = COUGAAR_*
+stoplight.tag = HEAD
 #stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent,uiframework
 stoplight.jars = xerces,servlet
@@ -262,6 +266,13 @@ servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xerces,jena,servlet,uddi4j
 servicediscovery.extras = icu4j
 #servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
+
+#
+# UL-only overlay
+#
+ulconfigs.tag = HEAD
+ulconfigs.runtime = configs,csmart,servicediscovery,dbms
+ulconfigs.repository = :ext:cvs.ultralog.net:/cvs/commons/bbn
 
 #
 # distribution settings
