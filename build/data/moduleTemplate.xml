@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="ASCII" standalone="yes" ?> 
 <!DOCTYPE ant1.5 SYSTEM "ant-1.5.dtd">
-<!-- comment out the dtd reference if you want to avoid ant validating -->
-<!-- For simplest use, build.xml and module.properties should be in the
-module base directory (e.g. with src, doc, etc).
--->
+<!-- Comment out the DTD reference if you want to avoid ANT validating. -->
 <!--
-  Template compiling is performed by searching for "percent { VAR }" patterns and
-  replacing the matched string with:
-	Name  name of the module.
-	BEGIN	all lines upto and including this one are skipped.
+     Template compiling (by the build script) is performed by searching
+     for "percent { VAR }" patterns and replacing the matched string with:
+	Name - name of the module.
+	BEGIN - all lines upto and including this one are skipped.
  -->
 
 <!-- %{BEGIN} Everything after this line will be included in the generated module build.xml files -->
-<!-- autobuild-generated ANT script -->
+<!-- Autobuild-generated ANT script for building Cougaar modules. -->
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
 <!-- autobuild might execute this with something like:
-  ant -DTARGETBASE=/tmp/target -DMODSOURCE=/tmp/cougaar/latest/src/util -DTMP=/tmp/tmpdir
- -->
+  ant -DTARGETBASE=/tmp/target -DMODSOURCE=/tmp/cougaar/latest/src/%{Name} 
+      -DTMP=/tmp/tmpdir               -->
 
 <!-- Instructions for individual users:
 
@@ -57,27 +54,50 @@ module base directory (e.g. with src, doc, etc).
          (ie typically COUGAAR_INSTALL_PATH/lib/%{Name}-date.jar)
      -->
 
+     <!-- Note use of JAVA_HOME, java.class.path, jikes.class.path -->
+
+  <!-- -----------------------------------------------------------   -->
 <project name="%{Name}" default="compile">
     <property name="module" value="%{Name}"/>
     <property name="moduleUp" value="%{PrettyName}"/>
 
+    <!-- ================ Tool options ================ -->
+    <!-- Individual users may choose to modify these settings. -->
+
+    <!-- Note that a popular alternative build.compiler is 'jikes' -->
+    <property name="build.compiler" value="modern"/>
+    <!-- Include extra debug info in compilations -->
+    <property name="build.compiler.debug" value="on"/>
+    <!-- Do not include deprecation warnings -->
+    <property name="build.compiler.deprecation" value="off"/>
+    <!-- Don't exclude basic debug info -->
+    <property name="build.compiler.optimize" value="off"/>
+
     <!-- ================ Directories ================ -->
 
     <!-- TARGETBASE is where we will install files -->
+    <!-- In a developer environment, this is usually
+    COUGAAR_INSTALL_PATH -->
     <property name="TARGETBASE" value=".." />
     <property file="${TARGETBASE}/global.properties" />
 
-    <!-- MODSOURCE is where the sources are -->
+    <!-- MODSOURCE is where the sources for the module are -->
+    <!-- IE typically TARGETBASE/(module), and the directory containing
+    this file. -->
     <property name="MODSOURCE" value="." /> 
     <property file="${MODSOURCE}/module.properties" />  <!-- per-module properties file! -->
 
     <!-- TMP is a temporary location for compiling, zipping, etc -->
+    <!-- Generated classfiles will go in TMP/classes, so that would often
+    be the setting for COUGAAR_DEV_PATH in a developer environment -->
     <property name="TMP" value="${MODSOURCE}/tmp" />
+
+    <!-- Individuals should not need to modify below here. -->
 
     <!-- These are target base directories -->
     <property name="target.lib" value="${TARGETBASE}/lib" />
     <property name="target.sys" value="${TARGETBASE}/sys" />
-    <!-- Single module Javadocs go in doc/javadoc.  Not used if is.unified.javadoc -->
+    <!-- Single module Javadocs go in doc/api.  Not used if is.unified.javadoc -->
     <property name="javadoc.target" value="${TARGETBASE}/${module}/doc/api" />
     <!-- Target tree for modules which contribute to the unified javadoc  -->
     <property name="unified.target" value="${TARGETBASE}/unified" />    
@@ -111,17 +131,6 @@ module base directory (e.g. with src, doc, etc).
     <!-- javadoc package spec for building javadocs -->
     <property name="javadoc.packages" value="%{javadoc.packages}"/>
     
-    <!-- ================ Tool options ================ -->
-
-    <!-- Note that a popular alternative build.compiler is 'jikes' -->
-    <property name="build.compiler" value="modern"/>
-    <!-- Include extra debug info in compilations -->
-    <property name="build.compiler.debug" value="on"/>
-    <!-- Include deprecation warnings -->
-    <property name="build.compiler.deprecation" value="off"/>
-    <!-- Don't exclude basic debug info -->
-    <property name="build.compiler.optimize" value="off"/>
-
     <!-- ================ Classpaths ================ -->
 
     <!-- What are the dependencies of this module at compile time -->
@@ -287,10 +296,10 @@ module base directory (e.g. with src, doc, etc).
       </uptodate>
     </target>
     
+    <!-- See if files already RMICed, before re-RMICing -->
     <!-- FIXME: The identity mapper is not right!!! -->
     <!-- FIXME: In the meantime, do not use this!  -->
     <target name="prepare-rmic" depends="prepare" if="has.build">
-      <!-- Check if rmic is required -->
       <uptodate property="rmic.notRequired">
 	<srcfiles dir="${build}"
 		  includes="**/*Impl.java"/>
@@ -303,7 +312,7 @@ module base directory (e.g. with src, doc, etc).
     <!-- Compiles the Module Code			                -->
     <!-- ========================================================== -->	
     <target name="compile" depends="prepare, defrunner, really-compile, rmic-source"
-	    description="Compiles the Code"> </target>
+	    description="Compile the source Code"> </target>
 
     <!-- This really does the compilation. The above just calls this -->
     <target name="really-compile" depends="prepare, defrunner" if="has.src">
@@ -347,6 +356,7 @@ module base directory (e.g. with src, doc, etc).
     <target name="clean" depends="clean-gencode" description="Delete compiled code">
       <delete dir="${build}" />
       <delete>
+      <!-- FIXME: What about the -(date) jar files? -->
 	<fileset dir="${target.lib}" includes="**/${module}.jar" />
       </delete>
     </target>
@@ -413,6 +423,7 @@ module base directory (e.g. with src, doc, etc).
     <!-- ====================================================================== -->
     <!-- Generates the JavaDocs for the one module			          -->
     <!-- ====================================================================== -->	
+    <!-- FIXME: Handle unified javadoc -->
     <target name="javadocs" depends="prepare, defrunner, clean-docs" description="Create javadocs for this module" if="has.src">
       <mkdir dir="${javadoc.target}"/>
       <javadoc packagenames="${javadoc.packages}"
@@ -423,8 +434,8 @@ module base directory (e.g. with src, doc, etc).
 	       doclet="org.cougaar.tools.javadoc.CougaarDoclet"
 	       docletpath="${target.lib}/build.jar"
 	       additionalparam="-breakiterator -source 1.4 -tagletpath ${target.lib}/build.jar -taglet org.cougaar.tools.javadoc.PropertyTaglet -taglet org.cougaar.tools.javadoc.NoteTaglet -taglet org.cougaar.tools.javadoc.ToDoTaglet -taglet org.cougaar.tools.javadoc.GeneratedTaglet"
-	       windowtitle="${module} API"
-	       doctitle="${module} API"
+	       windowtitle="${moduleUp} API"
+	       doctitle="${moduleUp} API"
 	       bottom="Copyright &#169; 2002 by BBNT Solutions LLC, all rights reserved.">
 	<classpath refid="compile.classpath" />
       </javadoc>
@@ -434,6 +445,7 @@ module base directory (e.g. with src, doc, etc).
     <!-- Zip up the built JavaDocs				          -->
     <!-- ====================================================================== -->	
     <target name="zip-docs" depends="javadocs, set-zip-dirs, zip-copy-docs" description="Zip up built javadocs" if="has.src">
+    <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
       <zip zipfile="../${module}-api.zip" basedir="${zipbase}" />
       <delete dir="${zipdir.javadocs}"/>
     </target>
@@ -450,6 +462,7 @@ module base directory (e.g. with src, doc, etc).
     <!-- ====================================================================== -->	
     <target name="zip-dev" depends="clean-gencode, set-zip-dirs, zip-prep, zip-copy-src, zip-copy-ex, zip-copy-test"
 	    description="Create -dev zip file">
+    <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
       <zip zipfile="../${module}-dev.zip" basedir="${zipbase}" />
       <delete dir="${zipdir.src}"/>
       <delete dir="${zipdir.examples}"/>
@@ -496,8 +509,11 @@ module base directory (e.g. with src, doc, etc).
     <target name="zip-runtime" depends="clean-docs, compile, dist-module,
 	    set-zip-dirs, zip-prep, zip-copy-bin, zip-copy-data, zip-copy-configs, zip-copy-doc" description="Create runtime zip file">
       <copy todir="${zipdir.lib}">
+      <!-- FIXME: This will get possibly multiple dated version of the
+	jar? And get glmtrans when want just glm -->
 	<fileset dir="${target.lib}" includes="${module}*.jar"/>
       </copy>
+    <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
       <zip zipfile="../${module}.zip" basedir="${zipbase}"/>
       <delete dir="${zipdir.lib}"/>
       <delete dir="${zipdir.bin}"/>
