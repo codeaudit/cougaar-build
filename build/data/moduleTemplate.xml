@@ -1,3 +1,17 @@
+<?xml version="1.0" encoding="ASCII" standalone="yes" ?> 
+<!DOCTYPE ant1.5 SYSTEM "ant-1.5.dtd">
+<!-- comment out the dtd reference if you want to avoid ant validating -->
+<!-- For simplest use, build.xml and module.properties should be in the
+module base directory (e.g. with src, doc, etc).
+-->
+<!--
+  Template compiling is performed by searching for "percent { VAR }" patterns and
+  replacing the matched string with:
+	Name  name of the module.
+	BEGIN	all lines upto and including this one are skipped.
+ -->
+
+<!-- %{BEGIN} Everything after this line will be included in the generated foo.xml files -->
 <!-- autobuild-generated ANT script -->
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
@@ -18,9 +32,9 @@ above settings point directly as specific directories. e.g.:
   MODSOURCE=$COUGAAR_INSTALL_PATH/module-name
  -->
 
-<project name="build" default="compile">
-    <property name="module" value="build"/>
-    <property name="moduleUp" value="build"/>
+<project name="%{Name}" default="compile">
+    <property name="module" value="%{Name}"/>
+    <property name="moduleUp" value="%{PrettyName}"/>
 
     <!-- ================ Directories ================ -->
 
@@ -62,11 +76,11 @@ above settings point directly as specific directories. e.g.:
     <property name="zipbase" value="${TMP}/zip"/>
     
     <!-- ================ Parameters ================ -->
-    <property name="javadoc.packages" value=""/>
-    <property name="rmicfiles.list" value=""/>
-    <property name="libjars.list" value=""/>
-    <property name="sysjars.list" value="tools.jar"/>
-    <!-- <property name="locjars.list" value=""/> -->
+    <property name="javadoc.packages" value="%{javadoc.packages}"/>
+    <property name="rmicfiles.list" value="%{rmifiles.list}"/>
+    <property name="libjars.list" value="%{libjars.list}"/>
+    <property name="sysjars.list" value="%{sysjars.list}"/>
+    <!-- <property name="locjars.list" value="%{locjars.list}"/> -->
     
     <!-- ================ Tool options ================ -->
 

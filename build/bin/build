@@ -750,6 +750,8 @@ sub build_module {
     $builtjar = &build_module_main($mod,$mymod,"");
   }
 
+  generateAntRecipe($mod);
+
   $moduleFailed{$mod} = !$builtjar;
 
   # now create the product-module.zip file
@@ -873,22 +875,33 @@ sub get_classpath {
   # fill this up with required jars
   my @cp;
 
+  my @mjs;
   foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
     my $jar = findjar($dep, @alljars);
     if ($jar eq "") {
       print "Warning: could not find $dep module for $mod\n";
     } else {
+      if ($jar =~ /.*\/([^\/]+.(jar|zip))/) {
+	push @mjs, $1;
+      }
       push @cp, $jar;
     }
   }
+  sopt($mod, "libjars.list", join(",",@mjs));
+
+  my @sjs;
   foreach $dep (split /\s*,\s*/, opt("$mod.jars")) {
     my $jar = findjar($dep, @alljars);
     if ($jar eq "") {
       print "Warning: could not find $dep jar for $mod\n";
     } else {
+      if ($jar =~ /.*\/([^\/]+.(jar|zip))/) {
+	push @sjs, $1;
+      }
       push @cp, $jar;
     }
   }
+  sopt($mod, "sysjars.list", join(",",@sjs));
 
   if ($xp) {
     foreach $dep (split /\s*,\s*/, opt("$mod.extras")) {
@@ -1240,6 +1253,11 @@ sub javadoc {
 
   close(ARG);
 
+  # remember packages for ant
+  if (gopt($mod, "javadoc.packages") eq "") {
+    sopt($mod,"javadoc.packages", join(",", sort keys %pmap));
+  }
+
   my $javadoc_arguments = gopt($mod, "javadoc.arguments");
   $lineargs .= " $javadoc_arguments" if $javadoc_arguments;
   my ($time0) = time;
@@ -1553,6 +1571,17 @@ sub gopt {
     return listify($value);
   } else {
     return $value;
+  }
+}
+
+sub sopt {
+  my ($mod, $key, $value) = @_;
+  my ($old) = gopt($mod,$key);
+  if ($old eq "") {
+    $opts{"$mod.$key"}=$value;
+  }
+  else {
+    print STDERR "Skipping set of $mod.$key from $old to $value\n";
   }
 }
 
@@ -1893,8 +1922,12 @@ sub compile_dir {
     if ($cok) {
       my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
       if ($#rmicfiles>=0) {
+	my @rmicfl;
 	foreach $rf (@rmicfiles) {
 	  chomp $rf;
+	  if ( ($rf =~ /\.\/(.*)/) ) {
+	    push @rmicfl, $1;
+	  }
 	  $rf =~ /\.\/(.*)\.java/;
 	  $rf=$1;
 	  $rf =~ s/\//\./g;
@@ -1902,6 +1935,8 @@ sub compile_dir {
 	}
       }
     }
+
+    sopt($mod,"rmifiles.list", join (",",@rmicfl));
 
     # copy non-java "sources" to tmplib
     add_module_files($from, $to);
@@ -2082,4 +2117,43 @@ sub fixbat {
   close(O);
   close(I);
   unlink($tmp);
+}
+
+# generate the ANT recipe for a module
+sub generateAntRecipe {
+  my ($mod) = @_;
+
+  print "Generating Ant recipe for $mod\n" if $verbose;
+
+  sopt($mod, "Name", $mod);
+  sopt($mod, "PrettyName", $mod); # build file can override.
+
+  my $template = "$srcdir/build/data/moduleTemplate.xml";
+  my $recipe = "$srcdir/$mod/build.xml";
+
+  if (-e $recipe) {
+    my $backup = "$srcdir/$mod/build.bak";
+    unlink $backup;
+    rename $recipe, $backup;
+  }
+
+  open(I, "<$template");
+  open(O, ">$recipe");
+  my ($began) = 0;
+  while (<I>) {
+    if (/%\{BEGIN\}/) {
+      $began++;
+    } else {
+      if ($began) {
+	my ($old)=$_;
+	# perl is cooler than, well....
+	s/%\{([^\}]+)\}/gopt($mod,$1)/ge;
+	print O "$_";
+      }
+    }
+  }
+  close(O);
+  close(I);
+
+  # maybe we should check to see if the old one has changed.
 }
