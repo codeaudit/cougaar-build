@@ -33,14 +33,15 @@ modules=\
 	glm,scalability,server,aggagent,\
 	vishnu,tops,glmtrans,delta,blackjack,uiframework,\
 	base,\
-	tutorial
+	tutorial,\
+	csmart
 
 # leave out Marine for now - it is broken
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
 	glm,scalability,server,aggagent,uiframework,base,tutorial,\
-	tops,glmtrans,vishnu
+	tops,glmtrans,vishnu,csmart
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -67,8 +68,9 @@ glmtrans.deps = core,glm,toolkit,vishnu
 delta.deps = core,glm,toolkit,planserver
 blackjack.deps = core,glm,planserver,toolkit,vishnu
 Marine.deps = core,glm
-uiframework.deps = core,glm,planserver,aggagent, tops
+uiframework.deps = core,glm,planserver,aggagent,tops
 tutorial.deps = core,glm
+csmart.deps = core,server,glm,planserver,scalability
 
 # module libs (in addition to module deps)
 core.jars = xerces
@@ -86,6 +88,7 @@ blackjack.jars = xerces,jcchart451K,jsdk
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
+csmart.jars = xerces,jcchart451K,grappa1_2_bbn
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
@@ -100,6 +103,7 @@ delta.repository = internal
 blackjack.repository = internal
 vishnu.repository = internal
 Marine.repository = internal
+csmart.repository = internal
 
 # runtime specs. Runtime always gets built libs, too.
 core.runtime = doc
