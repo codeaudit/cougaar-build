@@ -1,10 +1,15 @@
 package org.cougaar.tools.make;
 
 import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Defines the standard targets. Each public method is a target.
@@ -332,5 +337,40 @@ public class Targets {
         } else {
             System.out.println(theContext.getModuleName() + ".tags is up to date");
         }
+    }
+
+    private void readRMICFile(Set classes, File rmicFile)
+        throws MakeException
+    {
+        try {
+            BufferedReader reader =
+                new BufferedReader(new FileReader(rmicFile));
+            try {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    classes.add(line.trim());
+                }
+            } finally {
+                reader.close();
+            }
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
+    }
+
+    public void rmic() throws MakeException {
+        rmicSome(theContext.getSourceRoot(), true);
+    }
+
+    private void rmicSome(File srcDirectory, boolean recurse)
+        throws MakeException
+    {
+        File[] rmicFiles =
+            theContext.findFiles(srcDirectory, ".rmic", recurse, false);
+        Set classNames = new TreeSet();
+        for (int i = 0; i < rmicFiles.length; i++) {
+            readRMICFile(classNames, rmicFiles[i]);
+        }
+        theContext.rmic((String[]) classNames.toArray(new String[0]));
     }
 }

@@ -65,6 +65,7 @@ public class MakeContext {
     private final String[] JAVA  = {"java"};
     private final String[] JAVAC = {"javac"};
     private final String[] JIKES = {"jikes", "+D"};
+    private final String[] RMIC  = {"rmic"};
     private final String[] ETAGS = {"etags",
                                     "-r",
                                     "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/"
@@ -955,5 +956,15 @@ public class MakeContext {
                              filesToCheck[i].lastModified());
             }
         }
+    }
+
+    public void rmic(String[] classNames) throws MakeException {
+        List command = new ArrayList();
+        command.addAll(Arrays.asList(RMIC));
+        command.add("-d");
+        command.add(getClassesRoot().getPath());
+        command.add("-classpath");
+        command.add(getClassesRoot().getPath());
+        runExecutable(command, classNames, 0, classNames.length);
     }
 }
