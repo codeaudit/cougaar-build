@@ -303,7 +303,7 @@ exit 0;
 sub mysystem {
   local($command)= @_;
 
-  print STDOUT "$command\n"; if ($verbose>1);
+  print STDOUT "$command\n" if ($verbose>1);
   if ($pretend) {
     return 0;
   }
