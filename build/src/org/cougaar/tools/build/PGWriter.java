@@ -1576,8 +1576,21 @@ public class PGWriter extends WriterBase {
                         "Schedule("+context+" prototype) {");
             println(out,"    return new PropertyGroupSchedule(new"+context+"(prototype));");
             println(out,"  }");
-          }
+            println(out);
 
+            println(out,"  // instance from prototype schedule");
+            println(out,"  public static PropertyGroupSchedule new"+context+
+                        "Schedule(PropertyGroupSchedule prototypeSchedule) {");
+            println(out,"    if (!prototypeSchedule.getPGClass().equals("+context+
+                    ".class)) {");
+            println(out,"      throw new IllegalArgumentException(\"new"+context+
+                    "Schedule requires that getPGClass() on the PropertyGroupSchedule argument return "+
+                    context+".class\");");
+            println(out,"    }");
+            println(out,"    return new PropertyGroupSchedule(prototypeSchedule);");
+            println(out,"  }");
+            println(out);
+          }
         }
       }
       println(out,"  /** Abstract introspection information.");

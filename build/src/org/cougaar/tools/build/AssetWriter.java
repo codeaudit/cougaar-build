@@ -499,7 +499,7 @@ public class AssetWriter extends WriterBase {
 
               } else {
                 vname = vname+"Schedule";
-                println(out,"    if ("+vname+"!=null) _thing.set"+sname+"Schedule((PropertyGroupSchedule) "+vname+".clone());");
+                println(out,"    if ("+vname+"!=null) _thing.set"+sname+"Schedule((PropertyGroupSchedule) "+vname+".lock());");
               }
             }
           }
@@ -593,6 +593,7 @@ public class AssetWriter extends WriterBase {
               } else {
                 println(out,"      "+var+" : ("+sname+")resolvePG("+sname+".class);");
               }
+
               println(out,"    return (_tmp == "+sname+".nullPG)?null:_tmp;");
             }
             println(out,"  }");
@@ -602,30 +603,20 @@ public class AssetWriter extends WriterBase {
               String fname = "get"+sname+"Schedule";
 
               println(out,"  public PropertyGroupSchedule "+fname+"() {");
-
-              println(out,"    if ("+var+"==null) {\n"+
-                          "      if (myPrototype != null) {");
-
               if (exact) {
-                println(out,"         // exact slots must delegate to same class proto");
-                println(out,"         if (myPrototype instanceof "+name+")");
-                println(out,"           return (("+name+")myPrototype)."+fname+"();");
-                println(out,"         else");
-                println(out,"           return null;");
+                println(out,"    if ("+var+" != null) return "+var+";");
+
+                println(out,"    // exact slots must delegate to same class proto");
+                println(out,"    if (myPrototype instanceof "+name+")");
+                println(out,"      return (("+name+")myPrototype)."+fname+"();");
+                println(out,"    return null;");
               } else {
-                println(out,"         if (myPrototype instanceof "+name+") {\n"+
-                            "           return (("+name+")myPrototype)."+fname+"();\n"+
-                            "         } else {\n"+
-                            "           return myPrototype.searchForPropertyGroupSchedule("+stype+".class);\n"+
-                            "         }");
+                println(out,"    PropertyGroupSchedule _tmp = ("+var+" != null) ?");
+                println(out,"         "+var+" : "+"resolvePGSchedule("+stype+".class);");
+                println(out,"    return _tmp;");
+                println(out,"  }");
+                println(out);
               }
-              println(out,"      } else {\n"+
-                          "         "+var+" = "+sd.getInit()+";\n"+
-                          "      }\n"+
-                          "    }");
-              println(out,"    return ("+var+" instanceof Null_PG)?null:"+var+";");
-              println(out,"  }");
-              println(out);
             }
 
             String arg = "arg_"+sname;
@@ -648,7 +639,7 @@ public class AssetWriter extends WriterBase {
                           sname+" requires a "+stype+" argument.\");");
               if (stimephased) {
                 println(out,"    if ("+var+" == null) {");
-                println(out,"      "+var+" = get"+sname+"Schedule();");
+                println(out,"      "+var+" = "+sd.getInit()+";");
                 println(out,"    }");
                 println(out);
                 println(out,"    "+var+".add("+arg+");");
@@ -674,22 +665,6 @@ public class AssetWriter extends WriterBase {
           }
 
           println(out,"  // generic search methods");
-
-          println(out,"  public PropertyGroupSchedule searchForPropertyGroupSchedule(Class c) {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            String sname = sd.getName();
-            String init = sd.getInit();
-            // for time phased, want snameSchedule
-            if (!sd.getExact() && sd.getTimePhased()) {
-              println(out,"    if ("+sname+".class.equals(c)) return get"+sname+
-                          "Schedule();");
-            }
-          }
-          println(out,"    return super.searchForPropertyGroupSchedule(c);");
-          println(out,"  }");
-          println(out);
-
 
           println(out,"  public PropertyGroup getLocalPG(Class c, long t) {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
@@ -720,13 +695,28 @@ public class AssetWriter extends WriterBase {
           println(out,"  }");
           println(out);
 
+          println(out,"  public PropertyGroupSchedule getLocalPGSchedule(Class c) {");
+          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+            SlotD sd = (SlotD) sls.nextElement();
+            String sname = sd.getName();
+            String init = sd.getInit();
+            // for time phased, want snameSchedule
+            if (!sd.getExact() && sd.getTimePhased()) {
+              println(out,"    if ("+sname+".class.equals(c)) {");
+              println(out,"      return my"+sname+"Schedule;");
+              println(out,"    }");
+            }
+          }
+          println(out,"    return super.getLocalPGSchedule(c);");
+          println(out,"  }");
+          println(out);
+
 
           println(out,"  public void setLocalPG(Class c, PropertyGroup pg) {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             if (!sd.getExact()) {
               String sname = sd.getName();
-              // for time phased, want snameSchedule
               String var = "my"+sname;
               println(out,"    if ("+sname+".class.equals(c)) {");
               if (!sd.getTimePhased()) {
@@ -736,8 +726,7 @@ public class AssetWriter extends WriterBase {
                 println(out,"      if ("+var+"==null) {");
                 println(out,"        "+var+"="+sd.getInit()+";");
                 println(out,"      } else {");
-                println(out,"        "+var+".removeAll("+var+
-                        ".intersectingSet((TimePhasedPropertyGroup) pg));");
+                println(out,"        "+var+".removeAll("+var+".intersectingSet((TimePhasedPropertyGroup) pg));");
                 println(out,"      }");
                 println(out,"      "+var+".add(pg);");
               }
@@ -760,8 +749,6 @@ public class AssetWriter extends WriterBase {
               println(out,"    } else");
             }
           }
-
-            
           println(out,"      super.setLocalPGSchedule(pgSchedule);");
           println(out,"  }");
           println(out); 
