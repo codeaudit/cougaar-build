@@ -254,7 +254,7 @@ quo.deps = core,planning,qos,util
 quo.jars = quoSumo, jacorb, xerces
 
 # new PSP/web server
-webserver.deps = core,util
+webserver.deps = bootstrap,core,util
 webserver.jars = servlet
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
