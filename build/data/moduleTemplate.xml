@@ -607,7 +607,7 @@
 	       additionalparam="-breakiterator -source 1.4 -tagletpath ${target.clib}/build.jar -taglet org.cougaar.tools.javadoc.PropertyTaglet -taglet org.cougaar.tools.javadoc.NoteTaglet -taglet org.cougaar.tools.javadoc.ToDoTaglet -taglet org.cougaar.tools.javadoc.GeneratedTaglet"
 	       windowtitle="${moduleUp} API"
 	       doctitle="${moduleUp} API"
-	       bottom="Copyright &#169; 2003 by BBNT Solutions LLC, all rights reserved.">
+	       bottom="Copyright &#169; 2004 by BBNT Solutions LLC, all rights reserved.">
 	<classpath refid="javadoc.path" />
       </javadoc>
     </target>
