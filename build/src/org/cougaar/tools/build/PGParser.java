@@ -123,8 +123,15 @@ class PGParser {
           if (i > 0) {
             String fileName = line.substring(i + 1, line.length()).trim();
             InputStream stream = getClass().getClassLoader().getResourceAsStream(fileName);
-            parse(stream, false);
-            stream.close();
+	    try {
+	      parse(stream, false);
+	    } catch (Exception e) {
+	      System.err.println ("Could not find resource " + fileName + 
+				  " referenced by includedefs on classpath.  Aborting.");
+	      System.exit (-1); // something better to do here than exit?  should we continue?
+	    }
+	    if (stream != null)
+	      stream.close();
           } else {
             debug("Bad line \""+line+"\"");
           }
