@@ -377,8 +377,28 @@ sub get_classpath {
   # current module's lib jars
   my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
 
-  #put them together - module jars take precedence
-  my @alljars = (@libjars, @buildjars, @sysjars);
+  #put them together - module jars never take precedence
+  my @alljars = (@buildjars, @sysjars, @libjars);
+
+  # check the libjars carefully just in case someone is doing something stupid.
+  {
+    my @goodjars = (@buildjars, @sysjars);
+    foreach $loclib (@libjars) {
+      if ( ($loclib =~ /([^\/]+)\.(zip|jar)/) ) {
+	my $match = $1;
+	my @goods = grep /$1\.(zip|jar)$/, @goodjars;
+	if ($#goods>=0) {
+	  my $rc = mysystem("cmp $loclib $goods[0]");
+	  print STDERR "Warning: Module $mod specifies $match as:\n\t$loclib\nwhich is also in:\n\t@goods\n\tmodule-local version will be ignored!\n";
+	  if ($rc) {
+	    print STDERR "Warning: $loclib and $goods[0] actually differ!\n";
+	  } else {
+	    print STDERR "The good news is that the $loclib and $goods[0] are the same.\n" if $verbose;
+	  }
+	}
+      }
+    }
+  }
 
   # fill this up with required jars
   my @cp;
@@ -560,7 +580,7 @@ sub build_3rdparty {
   # grab the modules (checked-in) jars
   foreach $mod (@modules) {
     my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
-    my @alljars = (@libjars, @sysjars);
+    my @alljars = (@sysjars, @libjars);	# prefer sysjars
 
     my @deps = ((split /\s*,\s*/, opt("$mod.jars")),
 		(split /\s*,\s*/, opt("$mod.extras")));
@@ -574,32 +594,6 @@ sub build_3rdparty {
 	  $member{$jar} = 1;
 	  mysystem("cp $jar $tl");
 	}
-    }
-  }
-
-  chdir $tmpdir;
-  zip("$product thirdparty jars", $tmpdir, "$distdir/$product-support.zip");
-  chdir $build_dir;
-  mysystem("rm -rf $tmpdir");
-  print "Done building 3rdparty dist\n" if $verbose;
-}
-
-sub old_build_3rdparty {
-  my $mod;
-  my $tmpdir = "/tmp/runtime.$$";
-  print "Building 3rdparty dist\n" if $verbose;
-  mkd $tmpdir;
-  my $tl = "$tmpdir/sys";
-  mkd $tl;
-  # grab the static sys lib
-  my $sysjars = join(" ",findbypattern(opt("sys.lib"), "\.(jar|zip)\$"));
-  mysystem("cp $sysjars $tl");
-
-  # grab the modules (checked-in) jars
-  foreach $mod (@modules) {
-    if (-e "$srcdir/$mod/lib") {
-      chdir "$srcdir/$mod/lib";
-      mysystem("cp *.jar $tl");
     }
   }
 
