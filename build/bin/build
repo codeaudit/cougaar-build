@@ -1096,32 +1096,52 @@ sub javadoc {
     }
   }
   close(LIST);
-  my $pkgs = join(" ", sort keys %pmap);
+
   my $cp = cpWrap(get_classpath($mod));
   $ENV{CLASSPATH} = $cp;
-  my($args) = "";
+  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+
+  my $lineargs = "";
+  my($jdmemory) = gopt($mod, "javadoc.memory");
+  $lineargs .= " $jdmemory" if ($jdmemory);
+
+  my $argf = "$tmp/jdarg-$mod$$.txt";
+  open(ARG, ">$argf");
 
   my($jdoptions) = gopt($mod, "javadoc.options");
-  $args .= " $jdoptions" if ($jdoptions);
+  print ARG "$jdoptions\n" if ($jdoptions);
 
-  my($jdmemory) = gopt($mod, "javadoc.memory");
-  $args .= " $jdmemory" if ($jdmemory);
 
   if (opt("useDoclet", 1)) {
     my(@jddoclets) = gopt($mod, "javadoc.doclets");
     my(@jdtaglets) = gopt($mod, "javadoc.taglets");
     if ($#jddoclets>=0) {
-      $args .= " -docletpath $libdir/build.jar -doclet ";
-      $args .= join(" -doclet ", @jddoclets);
+      print ARG "-docletpath $libdir/build.jar\n";
+      foreach $doclet (@jddoclets) {
+	print ARG "-doclet $doclet\n";
+      }
     }
     if ($#jdtaglets>=0) {
-      $args .= " -tagletpath $libdir/build.jar -taglet ";
-      $args .= join(" -taglet ", @jdtaglets);
+      print ARG "-tagletpath $libdir/build.jar\n";
+      foreach $taglet (@jdtaglets) {
+	print ARG "-taglet $taglet\n";
+      }
     }
   }
-  my $javadoc_arguments = gopt($mod, "javadoc.arguments");
-  mysystem("$javadoc_command $javadoc_arguments $args -d $dst -sourcepath . $pkgs");
+  print ARG "-d $dst\n";
+  print ARG "-sourcepath .\n";
 
+  foreach $p (sort keys %pmap) {
+    print ARG "$p\n";
+  }
+
+  close(ARG);
+
+  my $javadoc_arguments = gopt($mod, "javadoc.arguments");
+  $lineargs .= " $javadoc_arguments" if $javadoc_arguments;
+  mysystem("$javadoc_command $lineargs \@$argf");
+
+  #unlink($argf);
   undef $ENV{CLASSPATH};
 }
 
@@ -1516,8 +1536,13 @@ sub find_errors {
       $nl = max($nl,5);
     }
     if (/^Note: /) {		# dep warnings
-      $wc++;
-      $nl = max($nl,1);
+      if (/Recompile with / ||
+	  /Some input files/ ) {
+	#ignore - not really specific enough to count
+      } else {
+	$wc++;
+	$nl = max($nl,1);
+      }
     }
 
     # catch junit errors
