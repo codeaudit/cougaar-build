@@ -1095,24 +1095,7 @@ public class PGWriter extends WriterBase {
       println(out);
 
       // clone method
-      println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
-                  //"    "+implclassName+" o = ("+implclassName+") super.clone();\n"+
-                  //"    return new "+implclassName+"(this);\n"+
-                  "    "+implclassName+" _tmp = new "+implclassName+"(this);");
-      {
-        Vector vs = getAllDelegateSpecs(context);
-        if (vs != null) {
-          for (int i =0; i<vs.size(); i++) {
-            Argument dv = (Argument) vs.elementAt(i);
-            println(out,"    _tmp."+dv.name+" = ("+dv.type+") "+dv.name+".copy(_tmp);");
-          }
-        }
-      }
-      println(out,"    return _tmp;\n"+
-                  "  }");
-
-
-
+      writeCloneMethod(out, context, implclassName, "  ");
       println(out);
 
       println(out,"  public PropertyGroup copy() {\n"+
@@ -1228,13 +1211,21 @@ public class PGWriter extends WriterBase {
       println(out,"         throw new IllegalAccessException(\"unlock: mismatched internal and provided keys!\");");
       println(out,"    }");
       println(out);
+      /*
       println(out,"    public PropertyGroup copy() {\n"+
                   "      return new "+implclassName+"("+implclassName+".this);\n"+
                   "    }");
-      println(out);
-      println(out,"    public Object clone() throws CloneNotSupportedException {\n"+
-                  "      return new "+implclassName+"("+implclassName+".this);\n"+
+      */
+      println(out,"    public PropertyGroup copy() {\n"+
+                  "      try {\n"+
+                  "        return (PropertyGroup) clone();\n"+
+                  "      } catch (CloneNotSupportedException cnse) { return null;}\n"+
                   "    }");
+      println(out);
+
+      println(out);
+
+      writeCloneMethod(out, context, implclassName, "    ");
       println(out);
 
       if (timephased) {
@@ -1343,6 +1334,26 @@ public class PGWriter extends WriterBase {
       println(out);
 
       println(out,"}");
+    }
+
+    protected void writeCloneMethod(PrintWriter out, String context, 
+                                    String implclassName, 
+                                    String leadingSpaces) {
+      println(out,leadingSpaces+"public Object clone() throws CloneNotSupportedException {");
+      Vector delegateSpecs = getAllDelegateSpecs(context);
+      if ((delegateSpecs == null) ||
+          (delegateSpecs.size() == 0)) {
+        println(out, leadingSpaces+"  return new "+implclassName+"("+implclassName+".this);");
+      } else {
+        println(out, leadingSpaces+"  "+implclassName+" _tmp = new "+implclassName+"(this);");
+        for (int i = 0; i < delegateSpecs.size(); i++) {
+          Argument delegate = (Argument) delegateSpecs.elementAt(i);
+          println(out,leadingSpaces+"  _tmp."+delegate.name+" = ("+delegate.type+") "+
+                  delegate.name+".copy(_tmp);");
+        }
+        println(out, leadingSpaces+"  return _tmp;");
+      }
+      println(out, leadingSpaces+"}");
     }
 
     void writeBeanInfoBody( PrintWriter out, String context, String className ) {

@@ -560,20 +560,7 @@ public class AssetWriter extends WriterBase {
             }
 
             if (sd.getHasRelationships()) {
-              println(out,"  public RelationshipSchedule getRelationshipSchedule() {");
-              println(out,"    return get" + sname + 
-                      "().getRelationshipSchedule();");
-              println(out,"  }");
-
-              String arg = "_arg" + sname;
-              println(out,"  public void setRelationshipSchedule(RelationshipSchedule schedule) {");
-              println(out,"    New" + sname + " " + arg + " = (New" + 
-                      sname + ") get" + sname + "().copy();");
-              println(out,"    " + arg + ".setRelationshipSchedule(schedule);");
-              println(out,"    set" + sname + "(" + arg + ");");
-              println(out,"  }");
-              
-              println(out, "");
+              addHasRelationshipsImpl(out, sname);
             }
               
             println(out,"  public "+stype+" get"+sname+"("+argStr+") {");
@@ -943,6 +930,45 @@ public class AssetWriter extends WriterBase {
           System.err.println("Caught "+e);
         }
       }
+    }
+
+    public void addHasRelationshipsImpl(PrintWriter out, String slotName) {
+      String var = "my"+slotName;
+      String arg = "_arg" + slotName;
+      
+      println(out,"  public RelationshipSchedule getRelationshipSchedule() {");
+      println(out,"    return get" + slotName + 
+              "().getRelationshipSchedule();");
+      println(out,"  }");
+      
+      
+      println(out,"  public void setRelationshipSchedule(RelationshipSchedule schedule) {");
+      println(out,"    New" + slotName + " " + arg + " = (New" + 
+              slotName + ") get" + slotName + "().copy();");
+      println(out,"    " + arg + ".setRelationshipSchedule(schedule);");
+      println(out,"    set" + slotName + "(" + arg + ");");
+      println(out,"  }");
+      
+      println(out, "");
+      println(out,"  public boolean isLocal() {");
+      println(out,"    return get" + slotName + 
+              "().getLocal();");
+      println(out,"  }");
+      
+      println(out,"  public void setLocal(boolean localFlag) {");
+      println(out,"    New" + slotName + " " + arg + " = (New" + 
+              slotName + ") get" + slotName + "().copy();");
+      println(out,"    " + arg + ".setLocal(localFlag);");
+      println(out,"    set" + slotName + "(" + arg + ");");
+      println(out,"  }");
+      
+      println(out, "");
+      println(out,"  public boolean isSelf() {");
+      println(out,"    return get" + slotName + 
+              "().getLocal();");
+      println(out,"  }");
+      
+      println(out, "");
     }
 
   }
