@@ -1,3 +1,13 @@
+2001-03-13  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* fixconfig
+	This package contains one or more small applications to "fix"
+	configuration files by reading and rewriting the cluster ini files
+	and removing plugins and plugin parameters. Fix.java is the base
+	class that implements the actual fixing. FixFood.java is an
+	extension that specifies the fixes needed to strip all by
+	subsistence from the configuration.
+
 2001-01-30  Michael Thome  <mthome@bbn.com>
 
 	* all
