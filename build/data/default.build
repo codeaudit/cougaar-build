@@ -145,15 +145,15 @@ vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
 datagrabber.jars = xerces,chart,openmap
 glmtrans.jars = xerces
-delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
-blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
-uiframework.jars = xerces,openmap,j2ee,vgj,xerces
+delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
+blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
+uiframework.jars = xerces,openmap,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
 csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk
 quo.jars = quoSumo, jacorb
 qos.jars = quoSumo
-deltaeport.jars = jsdk,jbcl,xmlparserv2,oracle12
+deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
