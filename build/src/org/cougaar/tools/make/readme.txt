@@ -41,6 +41,13 @@ cleanClassFiles-- deletes all the class files
 generateCode   -- generates code from all the .def files of the module
 jar            -- jars all the class files into a jar file in the
                   project lib directory
+jax            -- creates executable jars for corresponding to every
+                  .ejm (executable jar manifest) file. The executable
+                  jar contains all the class files and files having
+                  extensions listed by "extensionsToJar" in and below
+                  the directory containing the .ejm file. It also
+                  includes all the jarable files from all prerequisite
+                  modules.
 tags           -- makes a TAGS file using etags of all the source and
                   generated code for the module.
 projectTags    -- makes all.tags and the project tags file

@@ -40,6 +40,7 @@ public class MakeContext {
     public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
     public static final String PROP_DEFAULT_TARGET   = PROP_PREFIX + "default.target";
     public static final String PROP_NO_PREREQUISITES = PROP_PREFIX + "no.prerequisites";
+    public static final String PROP_DEPRECATION      = PROP_PREFIX + "deprecation";
     public static final String PROP_OMIT             = PROP_PREFIX + "omit.module.";
 
     public static final String DEFAULT_TARGET = "compileDir";
@@ -49,6 +50,7 @@ public class MakeContext {
     private File theCurrentDirectory;
     private File theProjectRoot;
     private File theProjectLib;
+    private File theProjectBin;
     private File theModuleRoot;
     private File theSourceRoot;
     private File theClassesRoot;
@@ -60,10 +62,14 @@ public class MakeContext {
     private File theJDKToolsJar;
     private File[] theModuleRoots;
     private Targets theTargets = new Targets(this);
-    private final String JAVA = "java";
-    private final String JAVAC = "javac";
-    private final String JIKES = "jikes";
-    private final String ETAGS = "etags";
+    private final String[] JAVA  = {"java"};
+    private final String[] JAVAC = {"javac"};
+    private final String[] JIKES = {"jikes", "+D"};
+    private final String[] ETAGS = {"etags",
+                                    "-r",
+                                    "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/"
+    };
+    private final String[] JAR   = {"jar"};
     private Class[] targetMethodParameterTypes = new Class[0];
     private Object[] targetMethodParameters = new Class[0];
     private Properties theProperties;
@@ -105,6 +111,7 @@ public class MakeContext {
             theJDKToolsJar = new File(jdkToolsJar);
         }
 	theProjectLib = new File(theProjectRoot, "lib").getCanonicalFile();
+	theProjectBin = new File(theProjectRoot, "bin").getCanonicalFile();
         theCurrentDirectory = new File(".").getCanonicalFile();
 	theCodeGeneratorJar = new File(theProjectLib, BUILD_JAR);
 	theCodeGeneratorJar = new File(theProjectRoot, BUILD_CLASSES);
@@ -202,6 +209,7 @@ public class MakeContext {
                 if (targetException instanceof MakeException) {
                     throw (MakeException) targetException;
                 }
+                targetException.printStackTrace();
                 throw new MakeException(targetException.toString());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -236,6 +244,7 @@ public class MakeContext {
             if (targetException instanceof MakeException) {
                 throw (MakeException) targetException;
             }
+            targetException.printStackTrace();
             throw new MakeException(targetException.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -301,6 +310,13 @@ public class MakeContext {
      **/
     public File getProjectLib() {
         return theProjectLib;
+    }
+
+    /**
+     * Get the project bin directory (has executable jars) (in canonical form)
+     **/
+    public File getProjectBin() {
+        return theProjectBin;
     }
 
     /**
@@ -448,25 +464,17 @@ public class MakeContext {
         MakeException e = null;
         while (offset < sources.length) {
             int nfiles = Math.min(sources.length - offset, 200);
-            String[] command;
+            List command = new ArrayList();
             if (jikes && jikesClassPath != null) {
-                command = new String[] {
-                    JIKES,
-                    "+D",
-                    "-classpath",
-                    getClassPath(),
-                    "-d",
-                    getClassesRoot().getPath()
-                };
+                command.addAll(Arrays.asList(JIKES));
             } else {
-                command = new String[] {
-                    JAVAC,
-                    "-classpath",
-                    getClassPath(),
-                    "-d",
-                    getClassesRoot().getPath()
-                };
+                command.addAll(Arrays.asList(JAVAC));
             }
+            if (isDeprecation()) command.add("-deprecation");
+            command.add("-classpath");
+            command.add(getClassPath());
+            command.add("-d");
+            command.add(getClassesRoot().getPath());
             try {
                 runExecutable(command, sources, offset, nfiles);
             } catch (MakeException me) {
@@ -481,15 +489,14 @@ public class MakeContext {
      * Run an executable program in a subprocess. The standard out and
      * error streams are copied.
      **/
-    private void runExecutable(String[] command, Object[] xargs, int offset, int nargs)
+    private void runExecutable(List command, Object[] xargs, int offset, int nargs)
         throws MakeException
     {
-        String[] args = new String[command.length + nargs];
-        System.arraycopy(command, 0, args, 0, command.length);
-        int i = command.length;
-        for (int j = 0; j < nargs; j++, i++) {
-            args[i] = xargs[j + offset].toString();
+        List argList = new ArrayList(command);
+        for (int i = 0; i < nargs; i++) {
+            argList.add(xargs[i + offset].toString());
         }
+        String[] args = (String[]) argList.toArray(new String[argList.size()]);
         if (debug) {
             printCommand(args);
         }
@@ -538,7 +545,12 @@ public class MakeContext {
      **/
     public void jar(File jarFile, File manifestFile, JarSet[] jarSets) throws MakeException {
         List args = new ArrayList();
-        args.add("-cf");
+        if (manifestFile != null) {
+            args.add("-cmf");
+            args.add(manifestFile.getPath());
+        } else {
+            args.add("-cf");
+        }
         args.add(jarFile.getPath());
         for (int j = 0; j < jarSets.length; j++) {
             JarSet jarSet = jarSets[j];
@@ -556,11 +568,7 @@ public class MakeContext {
             }
         }
         String[] argStrings = (String[]) args.toArray(new String[args.size()]);
-        if (false && haveJDKTools()) {
-            runJavaMain(JAR_CLASS, argStrings);
-        } else {
-            runExecutable(new String[] {"jar"}, argStrings, 0, argStrings.length);
-        }
+        runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length);
     }
 
     /**
@@ -585,7 +593,8 @@ public class MakeContext {
 
     /**
      * Change the root of a file. The resultant file has the same tail
-     * relative to the root, but has the tgtRoot.
+     * relative to the root, but has the tgtRoot. The suffix
+     * (extension) can also be changed.
      **/
     public File reroot(File src, File srcRoot, File tgtRoot, String newSuffix) throws MakeException {
 	String srcRootPath = srcRoot.getPath();
@@ -619,12 +628,10 @@ public class MakeContext {
         if (true) {
             runJavaMain(DEFRUNNER_CLASS, args);
         } else {
-            String[] command = new String[] {
-                JAVA,
-                "-classpath",
-                getClassPath(),
-                DEFRUNNER_CLASS
-            };
+            List command = new ArrayList(Arrays.asList(JAVA));
+            command.add("-classpath");
+            command.add(getClassPath());
+            command.add(DEFRUNNER_CLASS);
             runExecutable(command, args, 0, args.length);
         }
     }
@@ -651,21 +658,11 @@ public class MakeContext {
     {
         int offset = 0;
         MakeException e = null;
-        String[] writeCmd = new String[] {
-            ETAGS,
-            "-r",
-            "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/",
-            "-o",
-            tagsFile.getPath()
-        };
-        String[] appendCmd = new String[] {
-            ETAGS,
-            "-r",
-            "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/",
-            "-o",
-            tagsFile.getPath(),
-            "-a"
-        };
+        List writeCmd = new ArrayList(Arrays.asList(ETAGS));
+        writeCmd.add("-o");
+        writeCmd.add(tagsFile.getPath());
+        List appendCmd = new ArrayList(writeCmd);
+        appendCmd.add("-a");
         if (sources != null) {
             while (offset < sources.length) {
                 int nfiles = Math.min(sources.length - offset, 20);
@@ -706,7 +703,7 @@ public class MakeContext {
      * means to find all files.
      * @recurse descend into subdirectories recursively if true.
      **/
-    public File[] findFiles(File base, String suffix, boolean recurse, boolean includeDirectories)
+    public static File[] findFiles(File base, String suffix, boolean recurse, boolean includeDirectories)
 	throws MakeException
     {
 	if (!base.isDirectory()) {
@@ -720,7 +717,7 @@ public class MakeContext {
     /**
      * Find files and add them to a List.
      **/
-    private void findFiles(List files, File dir, final String suffix,
+    private static void findFiles(List files, File dir, final String suffix,
 			   boolean recurse, boolean includeDirectories)
 	throws MakeException
     {
@@ -880,6 +877,10 @@ public class MakeContext {
         return theProperties.getProperty(PROP_NO_PREREQUISITES, "false").equals("true");
     }
 
+    public boolean isDeprecation() {
+        return theProperties.getProperty(PROP_DEPRECATION, "false").equals("true");
+    }
+
     /**
      * Inner class for sucking on the output streams of a subprocess.
      **/
@@ -910,16 +911,49 @@ public class MakeContext {
         return new JarSet(root, null);
     }
 
-    public JarSet createJarSet(File root, String suffix, boolean recurse) throws MakeException {
-        return new JarSet(root, findFiles(root, suffix, recurse, false));
+    public JarSet createJarSet(File root, File dir, String suffix)
+        throws MakeException
+    {
+        if (dir == null) dir = root;
+        File[] files = findFiles(dir, suffix, true, false);
+        if (debug)
+            System.out.println(files.length + " " + suffix + " files in " + dir);
+        return new JarSet(root, files);
     }
 
     public static class JarSet {
         public File root;
         public File[] files;
+        private int fileCount = -1; // Haven't counted yet
+        private long maxModificationTime = Long.MIN_VALUE;
         public JarSet(File root, File[] files) {
             this.root = root;
             this.files = files;
+        }
+        public long getMaxModificationTime() throws MakeException {
+            if (fileCount < 0) processFiles();
+            return maxModificationTime;
+        }
+
+        public int getFileCount() throws MakeException {
+            if (fileCount < 0) processFiles();
+            return fileCount;
+        }
+
+        private void processFiles() throws MakeException {
+            File[] filesToCheck;
+            if (files == null) {
+                filesToCheck = findFiles(root, null, true, false);
+            } else {
+                filesToCheck = files;
+            }
+            fileCount = filesToCheck.length;
+            maxModificationTime = Long.MIN_VALUE;
+            for (int i = 0; i < filesToCheck.length; i++) {
+                maxModificationTime =
+                    Math.max(maxModificationTime,
+                             filesToCheck[i].lastModified());
+            }
         }
     }
 }

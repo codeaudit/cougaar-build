@@ -71,6 +71,10 @@ public class Make {
 		addProperty(MakeContext.PROP_NO_PREREQUISITES, "true");
 		continue;
 	    }
+	    if (arg.equals("-deprecation")) {
+		addProperty(MakeContext.PROP_DEPRECATION, "true");
+		continue;
+	    }
 	    if (arg.equals("-jikesClassPath")) {
 		addProperty(MakeContext.PROP_JIKES_CLASS_PATH, "true");
 		continue;

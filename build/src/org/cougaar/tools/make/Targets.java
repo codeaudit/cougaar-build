@@ -20,6 +20,10 @@ public class Targets {
 	theContext.insureDirectory(theContext.getProjectLib());
     }
 
+    public void projectBin() throws MakeException {
+	theContext.insureDirectory(theContext.getProjectBin());
+    }
+
     public void moduleClasses() throws MakeException {
 	theContext.insureDirectory(theContext.getClassesRoot());
 
@@ -122,6 +126,7 @@ public class Targets {
     }
 
     public void clean() throws MakeException {
+        getModuleJarFile().delete();
         cleanDirectory(theContext.getModuleTemp(), null, true, true);
     }
         
@@ -174,29 +179,125 @@ public class Targets {
         return max;
     }
 
+    private File getModuleJarFile() {
+        return new File(theContext.getProjectLib(), theContext.getModuleName() + ".jar");
+    }
+
     public void jar() throws MakeException {
         theContext.makeTarget("projectLib");
         theContext.makeTarget("compile");
-        File jarFile = new File(theContext.getProjectLib(), theContext.getModuleName() + ".jar");
+        File jarFile = getModuleJarFile();
+        MakeContext.JarSet[] jarSets =
+            getJarSets(theContext.getClassesRoot(), theContext.getSourceRoot(), null, null);
+        jarCommon(jarFile, null, jarSets);
+    }
+
+    private MakeContext.JarSet[] getJarSets(File classesRoot, File sourceRoot,
+                                            File sourceDir,
+                                            MakeContext.JarSet[] others)
+        throws MakeException
+    {
         String[] extensionsToJar = theContext.getExtensionsToJar();
-        MakeContext.JarSet[] jarSets = new MakeContext.JarSet[1 + extensionsToJar.length];
-        jarSets[0] = theContext.createJarSet(theContext.getClassesRoot());
-	File[] classFiles = theContext.findFiles(theContext.getClassesRoot(), null, true, false);
-	int fileCount = classFiles.length;
-        long maxTime =
-            getMaxModificationTime(classFiles);
+        int thisSize = 1 + extensionsToJar.length;
+        int totalSize = thisSize;
+        if (others != null) totalSize += others.length;
+        MakeContext.JarSet[] jarSets = new MakeContext.JarSet[totalSize];
+        if (sourceDir == null) {
+            jarSets[0] = theContext.createJarSet(classesRoot);
+        } else {
+            File classesDir =
+                theContext.reroot(sourceDir,
+                                  sourceRoot,
+                                  classesRoot,
+                                  null);
+            System.out.println("classesDir=" + classesDir);
+            jarSets[0] = theContext.createJarSet(classesRoot, classesDir, ".class");
+        }
         for (int i = 0; i < extensionsToJar.length; i++) {
             jarSets[1 + i] =
-                theContext.createJarSet(theContext.getSourceRoot(), extensionsToJar[i], true);
-            maxTime = Math.max(maxTime, getMaxModificationTime(jarSets[1 + i].files));
-	    fileCount += jarSets[1 + i].files.length;
+                theContext.createJarSet(sourceRoot, sourceDir, extensionsToJar[i]);
+        }
+        if (others != null) {
+            System.arraycopy(others, 0, jarSets, thisSize, others.length);
+        }
+        return jarSets;
+    }
+
+    private void jarCommon(File jarFile, File manifestFile,
+                           MakeContext.JarSet[] jarSets)
+        throws MakeException
+    {
+        long maxTime = Long.MIN_VALUE;
+        int fileCount = 0;
+        for (int i = 0; i < jarSets.length; i++) {
+            maxTime = Math.max(maxTime, jarSets[i].getMaxModificationTime());
+            fileCount += jarSets[i].getFileCount();
+        }
+        if (manifestFile != null) {
+            maxTime = Math.max(maxTime, manifestFile.lastModified());
         }
         if (maxTime <= jarFile.lastModified()) {
-            System.out.println(theContext.getModuleName() + ".jar is up to date");
+            System.out.println(jarFile.getName() + " is up to date");
             return;
         }
-        System.out.println(theContext.getModuleName() + ".jar" + MakeContext.COLON + fileCount + " files");
-        theContext.jar(jarFile, null, jarSets);
+        System.out.println(jarFile.getName() + MakeContext.COLON + fileCount + " files");
+        theContext.jar(jarFile, manifestFile, jarSets);
+    }
+
+    /**
+     * Make an executable jar from all ejm files in a module
+     **/
+    public void jax() throws MakeException {
+        theContext.makeTarget("projectBin");
+        theContext.makeTarget("compile");
+        // Find all the .ejm (executable jar manifest) files
+        jaxSome(theContext.findFiles(theContext.getSourceRoot(), ".ejm", true, false));
+    }
+
+    /**
+     * Make an executable jars from ejm files in a directory
+     **/
+    public void jaxDir() throws MakeException {
+        theContext.makeTarget("projectBin");
+        theContext.makeTarget("compileDir");
+        // Find all the .ejm (executable jar manifest) files
+        jaxSome(theContext.findFiles(theContext.getCurrentDirectory(), ".ejm", false, false));
+    }
+
+    private void jaxSome(File[] manifests) throws MakeException {
+        String[] prerequisiteModules =
+            theContext.getPrerequisites(theContext.getModuleName());
+        MakeContext.JarSet[] jarSets = null;
+        for (int i = 0; i < prerequisiteModules.length; i++) {
+            String moduleName = prerequisiteModules[i];
+            File moduleDirectory = theContext.getModuleRoot(moduleName);
+            if (moduleDirectory.isDirectory()) {
+                jarSets = getJarSets(theContext.getClassesRoot(moduleDirectory),
+                                     theContext.getSourceRoot(moduleDirectory),
+                                     null, jarSets);
+            }
+        }
+        for (int i = 0; i < manifests.length; i++) {
+            File mf = manifests[i];
+            File jarFile =
+                new File(theContext.getProjectBin(),
+                         replaceExtension(mf.getName(), ".jax"));
+            File sourceDir = mf.getParentFile();
+            jarCommon(jarFile, mf,
+                      getJarSets(theContext.getClassesRoot(),
+                                 theContext.getSourceRoot(),
+                                 sourceDir,
+                                 jarSets));
+        }
+    }
+
+    public static String replaceExtension(String name, String newExtension) {
+        int pos = name.lastIndexOf('.');
+        if (pos < 0) {
+            return name + newExtension;
+        } else {
+            return name.substring(0, pos) + newExtension;
+        }
     }
 
     public void projectTags() throws MakeException {
