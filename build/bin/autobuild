@@ -313,6 +313,7 @@ sub cleanRemote {
   if ($lsucc || $lfail) {
     my $sc = 0;
     my $fc = 0;
+    ssh("$host cd $auto \\; rm -f latest_success latest_failure");
     foreach $dir (reverse @alldirs) {
       chomp $dir;
       my $status = $status{$dir};
@@ -321,7 +322,7 @@ sub cleanRemote {
 	$fc = 100;		# don't keep any older failures!
 	# first is latest
 	if ($sc == 1) {
-	  ssh("$host cd $auto \\; rm -f latest_success \\; ln -s $dir latest_success");
+	  ssh("$host cd $auto \\; ln -s $dir latest_success");
 	}
 	if ($sc > 2) {
 	  rrm($dir);
@@ -330,7 +331,7 @@ sub cleanRemote {
       if ($status eq "FAILED") {
 	$fc++;
 	if ($fc == 1) {
-	  ssh("$host cd $auto \\; rm -f latest_failure \\; ln -s $dir latest_failure");
+	  ssh("$host cd $auto \\; ln -s $dir latest_failure");
 	}
 	if ($fc > $keep) {
 	  rrm($dir);
