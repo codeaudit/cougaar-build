@@ -197,7 +197,7 @@ public class Targets {
 
     public void jar() throws MakeException {
         theContext.makeTarget("projectLib");
-        theContext.makeTarget("compile");
+        theContext.makeTarget("rmic");
         File jarFile = getModuleJarFile();
         MakeContext.JarSet[] jarSets =
             getJarSets(theContext.getClassesRoot(), theContext.getSourceRoot(), null, null);
@@ -313,6 +313,7 @@ public class Targets {
     }
 
     public void projectTags() throws MakeException {
+        theContext.makeTarget("all.tags");
         File tagsFile = new File(theContext.getProjectRoot(), "TAGS");
         File[] modules = theContext.getAllModuleRoots();
         for (int i = 0; i < modules.length; i++) {
@@ -355,7 +356,10 @@ public class Targets {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    classes.add(line.trim());
+                    line = line.trim();
+                    if (line.startsWith("#")) continue;
+                    if (line.startsWith("//")) continue;
+                    classes.add(line);
                 }
             } finally {
                 reader.close();
@@ -366,10 +370,12 @@ public class Targets {
     }
 
     public void rmic() throws MakeException {
+        theContext.makeTarget("compile");
         rmicSome(theContext.getSourceRoot(), true);
     }
 
     public void rmicDir() throws MakeException {
+        theContext.makeTarget("compileDir");
         rmicSome(theContext.getCurrentDirectory(), false);
     }
 
