@@ -248,7 +248,7 @@ bol.repository = external
 bol.deps = util,core,glm,planserver
 bol.jars = servlet,hsql,jess50,graph
 # Split bol packages into sub packages of src
-bol.split = lesson1,lesson2,lesson3
+bol.split = lesson1,lesson2,lesson3,lesson4
 # bol is an add-on, don't make it part of the runtime
 bol.standalone = 1
 # might want to do the following at some point.
