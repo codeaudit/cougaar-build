@@ -6,13 +6,18 @@ java = /usr/local/java/jdk1.3/bin/java
 #java = /usr/local/java/jdk1.4/bin/java
 #javadoc = /usr/local/java/jdk1.4/bin/javadoc
 javac = jikes -g
-#javac = javac -J-Xmx128m -J-Xms128m -g
+#javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/
-repository.default=cougaar
+
+# default repository tag is "cougaar"
+#repository.default=cougaar
+
 # HEAD is the default
 #tag.default=HEAD
+
+# where should we get the basic (3rd party) jars from?
 sys.lib=/home/cougaar/build.jars
 
 # build.root defaults to /tmp/{product.name}
@@ -61,12 +66,12 @@ core.jars = xerces
 contract.jars = xerces
 toolkit.jars = xerces
 planserver.jars = xerces
-glm.jars = xerces,fesi-111,openmap,jcchart451K
+glm.jars = xerces,fesi-111,jcchart451K
 aggagent.jars = xerces,xalan
 scalability.jars = xerces
 vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
-delta.jars = xerces,activation,jms,jndi,jsdk,mail,qslink,jess50
+delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50
 blackjack.jars = xerces,jcchart451K,jsdk
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
