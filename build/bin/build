@@ -136,9 +136,10 @@ if (-e $opt_file) {
   parse_config($opt_file);
 } else {
   my($of)="/tmp/$$.build";
-  my($t) = $tag;
-  $t = "HEAD" if (! $t);
-  my($rarg) = "-r $t" if (! ($t eq "HEAD"));
+  my($t) = $opt_r;
+  $t = "HEAD" if ($t eq "");
+  my($rarg);
+  $rarg = "-r $t" if (! ($t eq "HEAD"));
   mysystem("cvs -Q co -p $rarg build/data/$opt_file>$of");
   parse_config($of);
   unlink($of);
