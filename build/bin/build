@@ -820,7 +820,7 @@ sub get_classpath {
     foreach $loclib (@libjars) {
       if ( ($loclib =~ /([^\/]+)\.(zip|jar)/) ) {
 	my $match = $1;
-	my @goods = grep /$1\.(zip|jar)$/, @goodjars;
+	my @goods = grep /\/$1\.(zip|jar)$/, @goodjars;
 	if ($#goods>=0) {
 	  my $rc = mysystem("cmp $loclib $goods[0]");
 	  print STDERR "Warning: Module $mod specifies $match as:\n\t$loclib\nwhich is also in:\n\t@goods\n\tmodule-local version will be ignored!\n";
