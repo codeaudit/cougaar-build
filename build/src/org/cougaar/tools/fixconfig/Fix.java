@@ -12,10 +12,10 @@ package org.cougaar.tools.fixconfig;
 import java.io.*;
 import java.util.*;
 
-public abstract class Fix {
+public class Fix {
     public static class ClusterOptionSet {
         String option;
-        String[] clusters;
+        private String[] clusters;
         public ClusterOptionSet(String option, String[] clusters) {
             this.option = option;
             this.clusters = clusters;
@@ -91,50 +91,68 @@ public abstract class Fix {
             return line;
         }
     }
-    protected abstract File[] getFiles();
 
-    protected abstract Fixer[] getFixes();
+    private File[] files;
+
+    protected Fixer[] getFixes() {
+        return new Fixer[0];
+    }
+
+    public void setClusters(String[] clusters) {
+        System.out.println("[ Clusters ]");
+        files = new File[clusters.length];
+        for (int i = 0; i < clusters.length; i++) {
+            files[i] = new File(clusters[i] + ".ini");
+            System.out.println("cluster = " + clusters[i]);
+        }
+    }
+
+    protected final File[] getFiles() {
+        return files;
+    }
 
     public void fix() {
-        File[] files = getFiles();
         Fixer[] fixers = getFixes();
-        for (int i = 0; i < files.length; i++) {
-            try {
-                File file = files[i];
-                BufferedReader reader = new BufferedReader(new FileReader(file));
-                File out = new File(file.getParentFile(), "#" + file.getName() + "#");
-                File bak = new File(file.getParentFile(), file.getName() + "~");
-                boolean changed = false;
+        if (fixers.length > 0) {
+            File[] files = getFiles();
+            for (int i = 0; i < files.length; i++) {
                 try {
-                    PrintWriter writer = new PrintWriter(new FileWriter(out));
+                    File file = files[i];
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    File out = new File(file.getParentFile(), "#" + file.getName() + "#");
+                    File bak = new File(file.getParentFile(), file.getName() + "~");
+                    boolean changed = false;
                     try {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            String fixed = null;
-                            for (int j = 0; line != null && j < fixers.length; j++) {
-                                fixed = fixers[j].fix(line);
-                                if (!line.equals(fixed)) {
-                                    changed = true;
-                                    line = fixed;
+                        PrintWriter writer = new PrintWriter(new FileWriter(out));
+                        try {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                String fixed = null;
+                                for (int j = 0; line != null && j < fixers.length; j++) {
+                                    fixed = fixers[j].fix(line);
+                                    if (!line.equals(fixed)) {
+                                        changed = true;
+                                        line = fixed;
+                                    }
                                 }
+                                if (line != null) writer.println(line);
                             }
-                            if (line != null) writer.println(line);
+                        } finally {
+                            writer.close();
                         }
                     } finally {
-                        writer.close();
+                        reader.close();
                     }
-                } finally {
-                    reader.close();
+                    if (changed) {
+                        bak.delete();
+                        file.renameTo(bak);
+                        out.renameTo(file);
+                    } else {
+                        out.delete();
+                    }
+                } catch (IOException ioe) {
+                    System.err.println(ioe + ": " + files[i]);
                 }
-                if (changed) {
-                    bak.delete();
-                    file.renameTo(bak);
-                    out.renameTo(file);
-                } else {
-                    out.delete();
-                }
-            } catch (IOException ioe) {
-                System.err.println(ioe + ": " + files[i]);
             }
         }
     }
@@ -145,8 +163,9 @@ public abstract class Fix {
         }
     }
 
-    protected static void fix(ClusterOptionSet[] options, String[] args, String[] roles) {
+    protected static void fix(ClusterOptionSet[] options, String[] args, String[] roles, Fix fix) {
         Relationships ships;
+        Set roleSet = new HashSet(Arrays.asList(roles));
         try {
             ships = new Relationships(new File("."));
         } catch (IOException ioe) {
@@ -158,17 +177,23 @@ public abstract class Fix {
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             if (arg.startsWith("-")) {
-                boolean matched = false;
+                if (arg.equals("-role")) {
+                    roleSet.add(args[++i]);
+                    continue;
+                }
+                String[] names = null;
                 for (int j = 0; j < options.length; j++) {
                     if (options[j].option.startsWith(arg)) {
-                        String[] names = options[j].clusters;
-                        matched = true;
+                        names = options[j].clusters;
                         break;
                     }
                 }
-                if (!matched) {
+                if (names == null) {
                     System.err.println("Unrecognized option: " + arg);
                     System.exit(1);
+                }
+                for (int j = 0; j < names.length; j++) {
+                    clusters.add(ships.findOrMakeOrg(names[j]));
                 }
             } else {
                 clusters.add(ships.findOrMakeOrg(arg));
@@ -184,8 +209,8 @@ public abstract class Fix {
             for (Iterator i = clusters.iterator(); i.hasNext(); ) {
                 Relationships.Org org = (Relationships.Org) i.next();
                 needed.addAll(ships.getClosure(org, Relationships.SUPERIOR));
-                for (int j = 0; j < roles.length; j++) {
-                    needed.addAll(ships.getClosure(org, roles[j]));
+                for (Iterator iter = roleSet.iterator(); iter.hasNext(); ) {
+                    needed.addAll(ships.getClosure(org, (String) iter.next()));
                 }
             }
             needed.removeAll(clusters);
@@ -203,6 +228,11 @@ public abstract class Fix {
         for (Iterator i = clusters.iterator(); i.hasNext(); ) {
             clusterNames[j++] = i.next().toString();
         }
-        new FixFood(clusterNames).fix();
+        fix.setClusters(clusterNames);
+        fix.fix();
+    }
+
+    public static void main(String[] args) {
+        fix(new ClusterOptionSet[0], args, new String[0], new Fix());
     }
 }
