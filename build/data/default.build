@@ -93,7 +93,6 @@ modules=\
         planning,contract,toolkit,\
 	yp,\
 	glm,aggagent,\
-	uiframework,\
 	base,\
 	csmart,\
 	quo, qos, ping,\
@@ -120,7 +119,6 @@ modules.unified =\
 	yp,\
 	glm,\
 	aggagent,\
-	uiframework,\
 	base,\
 	quo, qos, ping, mtsstd,\
 	server,\
@@ -223,10 +221,10 @@ vishnu.module = vishnuClient
 vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 
 # uiframework
-uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
-uiframework.deps = core,planning,glm,util
-uiframework.jars = xercesImpl,xml-apis,openmap,vgj
-uiframework.extras = mm-mysql-2
+#uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
+#uiframework.deps = core,planning,glm,util
+#uiframework.jars = xercesImpl,xml-apis,openmap,vgj
+#uiframework.extras = mm-mysql-2
 
 # tutorials
 tutorial.deps = core,planning,glm,util
@@ -301,7 +299,7 @@ stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 #stoplight.tag = COUGAAR_*
 #stoplight.tag = HEAD
 #stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
-stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent,uiframework
+stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent
 stoplight.jars = xercesImpl,xml-apis,servlet
 
 #
