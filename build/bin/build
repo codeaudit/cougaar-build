@@ -267,9 +267,8 @@ $sysclasspath;
 # classpath, possibly with rt.jar added for use by jikes
 $augmented_classpath = $sysclasspath;
 @rtjars;
-# hack for jikes until it is Java2 complient
-if ( $compiler_command =~ /jikes/ ) {
-  my $javahome;
+$javahome;
+{
   if ( $java_command =~ /^(.+)\/bin\/java$/ ) {
     $javahome = $1;
   } else {
@@ -283,12 +282,15 @@ if ( $compiler_command =~ /jikes/ ) {
     }
   }
   if ($javahome) {
-    $rtjar = "$javahome/jre/lib/rt.jar";
-    @rtjars = ($rtjar);
-    my @exts = findbypattern("$javahome/jre/lib/ext", "\.jar\$");
-    push @rtjars, @exts;
-    my $rtx = join(":",$rtjars);
-    $augmented_classpath = "$augmented_classpath:$rtx";
+
+    if ( $compiler_command =~ /jikes/ ) { # find rt.jar for jikes
+      $rtjar = "$javahome/jre/lib/rt.jar";
+      @rtjars = ($rtjar);
+      my @exts = findbypattern("$javahome/jre/lib/ext", "\.jar\$");
+      push @rtjars, @exts;
+      my $rtx = join(":",$rtjars);
+      $augmented_classpath = "$augmented_classpath:$rtx";
+    }
   }
 }
 
@@ -564,8 +566,13 @@ sub get_classpath {
   # current module's lib jars
   my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
 
+  # add tools
+  my @tooljars;
+  if (-e "$javahome/lib/tools.jar") {
+    @tooljars = ("$javahome/lib/tools.jar");
+  }
   #put them together - module jars never take precedence
-  my @alljars = (@buildjars, @sysjars, @libjars);
+  my @alljars = (@buildjars, @sysjars, @libjars, @tooljars);
 
   # check the libjars carefully just in case someone is doing something stupid.
   {
@@ -862,7 +869,11 @@ sub javadoc {
   close(LIST);
   my $pkgs = join(" ", keys %pmap);
   my $cp = get_classpath($mod);
-  mysystem("$javadoc_command -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+  if (opt("useDoclet", 1)) {
+    mysystem("$javadoc_command -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+  } else {
+    mysystem("$javadoc_command -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+  }
 }
 
 # zip up a directory, adding appropriate comments, sums, etc.
