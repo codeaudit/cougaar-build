@@ -2256,7 +2256,7 @@ sub generateProductAntRecipe {
   sopt($prod, "PrettyName", $product); # build file can override.
 
   my ($allmods) = join ",",@modules;
-  foreach $pass (split /\s*,\s*/, "build,compile,install,test") {
+  foreach $pass (split /\s*,\s*/, "build,compile,install,test,clean") {
     sopt($prod, "$pass.depends", joinopt($pass, split /\s*,\s*/, $allmods));
   }
 
