@@ -917,7 +917,7 @@ public class MakeContext {
      * found
      * @param suffix the suffix with which the files must end. Null
      * means to find all files.
-     * @recurse descend into subdirectories recursively if true.
+     * @param recurse descend into subdirectories recursively if true.
      **/
     public static File[] findFiles(File base, String suffix, boolean recurse, boolean includeDirectories)
 	throws MakeException
