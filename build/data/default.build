@@ -252,6 +252,7 @@ csmart.PrettyName = CSMART
 # quo/qos
 qos.deps = core,util,mtsstd
 qos.jars = quoSumo,servlet
+qos.runtime = configs,csmart
 qos.repository = :ext:cvs.cougaar.org:/cvsroot/qos
 
 quo.deps = core,planning,qos,util,mtsstd
