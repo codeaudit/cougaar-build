@@ -244,7 +244,7 @@ webtomcat.jars = servlet, tomcat_40
 # bol module
 bol.repository = external
 bol.deps = util,core,glm,planserver
-bol.jars = servlet,hsql,jess50
+bol.jars = servlet,hsql,jess50,graph
 # Split bol packages into sub packages of src
 bol.split = lesson1,lesson2,lesson3
 # bol is an add-on, don't make it part of the runtime
