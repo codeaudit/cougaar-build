@@ -76,7 +76,7 @@ sys.lib=module:jars
 
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
-	glm,scalability,server,aggagent,\
+	glm,scalability,aggagent,\
 	vishnu,glmtrans,datagrabber,\
 	delta,uiframework,blackjack,\
 	base,\
@@ -86,9 +86,8 @@ modules=\
 	qos,\
 	deltaeport,\
 	dbms,\
+	server, manager,\
 	webserver, webtomcat
-
-# leave out Marine for now - it is broken
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -120,6 +119,9 @@ core.jars = xerces, log4j, servlet
 
 # app server
 server.deps = core
+
+# society manager
+manager.deps = core, server
 
 # contract
 contract.deps = core
