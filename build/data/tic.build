@@ -1,17 +1,8 @@
 # COUGAAR release build driver for the HEAD (currently > 8.2)
-# 
-# !!! THIS IS ONLY AN EXAMPLE !!!
-#
-# Note that this build script driver is unlikely to do anything useful
-# on any machine/repository other than the original build script
-# development machine.  While is is very close to what another site
-# might use, you are unlikely to be happy with the results until
-# you've made appropriate changes to the below.
-#
 
 product.name=cougaar
 
-java = /usr/local/java/jdk1.3/bin/java
+java = /usr/local/jdk1.3.1/bin/java
 
 # which compiler to use.  valid options are "javac" and "jikes" and
 # the actual command executed will depend on the $javac.command
@@ -36,32 +27,26 @@ compiler.debug = 1
 #javac.arguments = -J-Xmx128m -J-Xms128m
 #jikes.arguments =
 
-javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
+javadoc = /usr/local/jdk1.3.1/bin/javadoc -J-Xmx128m -J-Xms128m
 
 # java = /usr/local/java/jdk1.3/bin/java
 # #java = /usr/local/java/jdk1.4/bin/java
 # #javadoc = /usr/local/java/jdk1.4/bin/javadoc
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
-#repository.base=/cvs/alp/
+repository.base=/cvs/
 
 # default repository tag is "cougaar"
-#repository.default=cougaar
+repository.default=cougaar
 
 # HEAD is the default
 #tag.default=HEAD
 
 # where should we get the basic (3rd party) jars from?
-# this lets us point to a specific directory
-#   sys.lib=/local/cougaar/build.jars
-#
-# the syntax "module:foo" means get the sys libs from the lib
-# directory of the "foo" module.  Note that the foo module should
-# not be one of the built modules (e.g. should not listed in modules=)
-sys.lib=module:jars
+sys.lib=/home/mthome/lib
 
 # build.root defaults to /tmp/{product.name}
-# build.root=/tmp/head
+build.root=/var/tmp/cougaar
 
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
@@ -93,9 +78,6 @@ modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggage
 #core.compiler.pedantic = 1
 #core.compiler.deprecation = 1
 
-#Don't generate javadoc for the jdk patches
-javaiopatch.javadoc = 0
-
 # module deps
 #bogon
 server.deps = core
@@ -119,7 +101,6 @@ qos.deps = core
 deltaeport.deps = core,glm,toolkit,planserver,delta
 
 # module libs (in addition to module deps)
-build.jars = tools
 core.jars = xerces, log4j
 contract.jars = xerces
 toolkit.jars = xerces
@@ -136,7 +117,7 @@ blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
-csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk
+csmart.jars = xerces,jcchart451K,grappa1_2_bbn
 qos.jars = QuoKernel
 deltaeport.jars = jsdk,jbcl,xmlparserv2,oracle12
 
@@ -151,15 +132,6 @@ uiframework.extras = mm-mysql-2
 build.extras = junit
 
 # flag other repositories
-tops.repository = internal
-datagrabber.repository = internal
-glmtrans.repository = internal
-delta.repository = internal
-blackjack.repository = internal
-vishnu.repository = internal
-Marine.repository = internal
-csmart.repository = internal
-deltaeport.repository = internal
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
