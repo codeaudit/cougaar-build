@@ -1,0 +1,57 @@
+# Below is a typical make.properties file for building cougaar
+# modules. Most developers should make a copy of the directory into
+# which they check out source code and set the basedir property below
+# to the full path to that directory. Edit other properties to
+# correspond to your jdk and jikes installation. Consult the
+# readme.txt (in this directory) for more details on what the various
+# properties control.
+
+# Installation options
+org.cougaar.tools.make.basedir=/cougaar
+org.cougaar.tools.make.jikes=false
+org.cougaar.tools.make.deprecation=false
+org.cougaar.tools.make.jdk=/jdk1.3.1
+org.cougaar.tools.make.omit.module.whatif=true
+org.cougaar.tools.make.omit.module.antex=true
+
+# Module dependencies (prerequisites)
+org.cougaar.tools.make.examples.prerequisites=core
+org.cougaar.tools.make.Marine.prerequisites=core glm
+org.cougaar.tools.make.aggagent.prerequisites=core planserver glm
+org.cougaar.tools.make.blackjack.prerequisites=\
+    core glm planserver toolkit aggagent vishnu uiframework
+org.cougaar.tools.make.contract.prerequisites=core
+org.cougaar.tools.make.csmart.prerequisites=core server glm planserver scalability
+org.cougaar.tools.make.datagrabber.prerequisites=core glm toolkit planserver
+org.cougaar.tools.make.delta.prerequisites=core glm toolkit planserver
+org.cougaar.tools.make.glm.prerequisites=core planserver toolkit
+org.cougaar.tools.make.glmtrans.prerequisites=core glm toolkit vishnu
+org.cougaar.tools.make.planserver.prerequisites=core
+org.cougaar.tools.make.qos.prerequisites=core
+org.cougaar.tools.make.scalability.prerequisites=core glm
+org.cougaar.tools.make.server.prerequisites=core
+org.cougaar.tools.make.toolkit.prerequisites=core
+org.cougaar.tools.make.tops.prerequisites=core glm toolkit planserver vishnu
+org.cougaar.tools.make.tutorial.prerequisites=core glm
+org.cougaar.tools.make.uiframework.prerequisites=core glm planserver aggagent datagrabber tops
+org.cougaar.tools.make.vishnu.prerequisites=core toolkit glm
+
+# module libs (in addition to module dependencies)
+org.cougaar.tools.make.core.libs=xerces,log4j
+org.cougaar.tools.make.contract.libs=xerces
+org.cougaar.tools.make.toolkit.libs=xerces
+org.cougaar.tools.make.planserver.libs=xerces
+org.cougaar.tools.make.glm.libs=xerces,fesi-111,jcchart451K
+org.cougaar.tools.make.aggagent.libs=xerces,xalan
+org.cougaar.tools.make.scalability.libs=xerces
+org.cougaar.tools.make.vishnu.libs=xerces
+org.cougaar.tools.make.tops.libs=xerces,topsga,openmap,chart
+org.cougaar.tools.make.datagrabber.libs=xerces,chart,openmap
+org.cougaar.tools.make.glmtrans.libs=xerces
+org.cougaar.tools.make.delta.libs=xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
+org.cougaar.tools.make.blackjack.libs=xerces,jcchart451K,jsdk,j2ee,silk,jpython
+org.cougaar.tools.make.uiframework.libs=xerces,openmap,j2ee,vgj,xerces
+org.cougaar.tools.make.Marine.libs=xerces
+org.cougaar.tools.make.tutorial.libs=xerces
+org.cougaar.tools.make.csmart.libs=xerces,jcchart451K,grappa1_2_bbn
+org.cougaar.tools.make.qos.libs=QuoKernel
