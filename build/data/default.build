@@ -307,8 +307,8 @@ stoplight.jars = xerces,servlet
 #
 # contract
 servicediscovery.deps = core, util, glm, planning, yp
-servicediscovery.jars = xerces,jena,interprolog,wasp,uddiclient,soap,servlet,uddi4j
-servicediscovery.extras = activation,mail,icu4j
+servicediscovery.jars = xerces,jena,servlet,uddi4j
+servicediscovery.extras = icu4j
 #servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
 
 #
