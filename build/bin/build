@@ -60,7 +60,7 @@ sub parse_args {
 	  $verbose++;
 	} elsif ($c eq "Q") {
 	  $nodoc = 1;
-	  $isSigning = 0;
+	  #$isSigning = 0;
 	} elsif ($c eq "S") {
 	  $skip = 1;
 	} elsif ($c eq "c") {
@@ -103,7 +103,7 @@ Usage: build [options] [ReleaseDescriptionFile]
 	-m mod[,...]	Specify a module or modules to build instead of all.  The script
 	        will figure out the right order and all dependencies.
         -p      Assume building from a point-tag rather than a branch (avoid use of -D)
-	-k	Dont sign any jars (implied by -Q)
+	-k	Dont sign any jars
 
 The default ReleaseDescriptionFile is "default.build".  If the file is not
 found as specified, it will try to check from cvs using the current CVSROOT from
