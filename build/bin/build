@@ -156,19 +156,25 @@ $product = opt("product.name");
 
 $latest_dir = "$build_root/latest";
 
+sub mkd {
+  my($p) = @_;
+  mkdir $p, 0777;
+}
+
+
 # create the build dirs
-mkdir "$build_root";
-mkdir $build_dir;
+mkd "$build_root";
+mkd $build_dir;
 unlink "$latest_dir";
 print "ln -s $build_dir $latest_dir\n" if $verbose;
 symlink "$build_dir", "$latest_dir";
-mkdir $srcdir;
+mkd $srcdir;
 # libdir is where we store built jars
 $libdir = "$build_dir/lib";
-mkdir $libdir;
+mkd $libdir;
 # distdir is where we put end products
 $distdir = "$build_dir/dist";
-mkdir $distdir;
+mkd $distdir;
 
 # redirect streams to file
 $errout = "$distdir/build.out";
@@ -221,7 +227,7 @@ exit(0);
 # moby checkout
 sub checkout {
   print "Starting checkout\n" if $verbose;
-  mkdir $srcdir;
+  mkd $srcdir;
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
   foreach $mod (@modules) {
@@ -271,7 +277,7 @@ sub build_module {
 
   my $tmplib = "/tmp/build-lib$$";
   mysystem("rm -rf $tmplib");
-  mkdir $tmplib;
+  mkd $tmplib;
 
   my $cp = get_classpath($mod);
 
@@ -307,12 +313,14 @@ sub build_module {
   # now create the product-module.zip file
   if (!opt("$mod.internal")) {
     my $tmpdir = "/tmp/build-$mod.$$";
-    mkdir $tmpdir;
+    mkd $tmpdir;
     my $tmpdist = "$tmpdir/$mod";
-    mkdir "$tmpdist";
+    mkd "$tmpdist";
 
     chdir "$srcdir/$mod";
-    my @shipped_subdirs = ("bin", "doc", "examples", "src", "data", "configs");
+    # bin,data,configs are now shipped as runtime parts.
+    #my @shipped_subdirs = ("bin", "doc", "examples", "src", "data", "configs");
+    my @shipped_subdirs = ("doc", "examples", "src");
     my @subdirs = ();
     foreach $sub (@shipped_subdirs) {
       if (-d "$srcdir/$mod/$sub") {
@@ -324,7 +332,7 @@ sub build_module {
 
     # only do javadoc if it is not part of the unified build
     if (! opt("$mod.unified")) {
-      mkdir "$tmpdist/api";
+      mkd "$tmpdist/api";
       javadoc($mod, $mysrc, "$tmpdist/api") if (!$nodoc);
     }
 
@@ -466,8 +474,8 @@ sub unify {
   my $mysrc = "$srcdir/$mod/src";
 
   print "Building unified sources\n" if $verbose;
-  mkdir "$srcdir/$mod";
-  mkdir "$mysrc";
+  mkd "$srcdir/$mod";
+  mkd "$mysrc";
 
   foreach $m (@modules) {
     if (opt("$m.unified")) {
@@ -487,9 +495,9 @@ sub build_runtime {
   my $mod;
   my $tmpdir = "/tmp/runtime.$$";
   print "Building runtime dist\n" if $verbose;
-  mkdir $tmpdir;
+  mkd $tmpdir;
   my $tl = "$tmpdir/lib";
-  mkdir $tl;
+  mkd $tl;
   foreach $mod (@modules) {
     mysystem("cp $build_dir/lib/$mod.jar $tl");
     my $extraspec = opt("$mod.runtime");
@@ -501,12 +509,15 @@ sub build_runtime {
 	mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
       }
     }
-    # copy data dir
-    if (-e "$moddir/data") {
-      chdir "$moddir";
-      mkdir "$tmpdir/$mod";
-      mkdir "$tmpdir/$mod/data";
-      mysystem("tar cf - data | (cd $tmpdir/$mod ; tar xf -)");
+    my @runtime_subdirs = ("bin", "data", "configs");
+    foreach $rs (@runtime_subdirs) {
+      # copy data dir
+      if (-e "$moddir/$rs") {
+	chdir "$moddir";
+	mkd "$tmpdir/$mod";
+	mkd "$tmpdir/$mod/$rs";
+	mysystem("tar cf - $rs | (cd $tmpdir/$mod ; tar xf -)");
+      }
     }
   }
 
@@ -523,20 +534,23 @@ sub build_3rdparty {
   my $mod;
   my $tmpdir = "/tmp/runtime.$$";
   print "Building 3rdparty dist\n" if $verbose;
-  mkdir $tmpdir;
+  mkd $tmpdir;
   my $tl = "$tmpdir/sys";
-  mkdir $tl;
+  mkd $tl;
 
   # grab the modules (checked-in) jars
   foreach $mod (@modules) {
     my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
     my @alljars = (@libjars, @sysjars);
 
-    my $dep;
     my @deps = ((split /\s*,\s*/, opt("$mod.jars")),
-		(split /\s*,\s*/, opt("$mod.runtime")));
+		(split /\s*,\s*/, opt("$mod.extras")));
     foreach $dep (@deps) {
       my $jar = findjar($dep, @alljars);
+      if (!$jar) {
+	my $foo = join(":",@alljars);
+	print STDERR "Warning: could not find $dep in $foo\n";
+      }
       if ($jar && ! ($member{$jar})) {
 	  $member{$jar} = 1;
 	  mysystem("cp $jar $tl");
@@ -555,9 +569,9 @@ sub old_build_3rdparty {
   my $mod;
   my $tmpdir = "/tmp/runtime.$$";
   print "Building 3rdparty dist\n" if $verbose;
-  mkdir $tmpdir;
+  mkd $tmpdir;
   my $tl = "$tmpdir/sys";
-  mkdir $tl;
+  mkd $tl;
   # grab the static sys lib
   my $sysjars = join(" ",findbypattern(opt("sys.lib"), "\.(jar|zip)\$"));
   mysystem("cp $sysjars $tl");
@@ -586,8 +600,8 @@ sub build_javadoc {
 
   # generate javadoc from unified source
   my $tmpdir = "/tmp/javadoc.$$";
-  mkdir $tmpdir;
-  mkdir "$tmpdir/api";
+  mkd $tmpdir;
+  mkd "$tmpdir/api";
   javadoc($mod, "$srcdir/$mod/src", "$tmpdir/api");
 
   chdir $tmpdir;
@@ -784,3 +798,4 @@ sub opt {
   }
   return $value;
 }
+
