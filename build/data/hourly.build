@@ -7,23 +7,25 @@ javac = jikes -g
 
 repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
 repository.default=cougaar
-tag.default=V8_2
+tag.default=HEAD
 product.name=cougaar
 sys.lib=/home/mthome/.lib/build.jars
-build.root=/tmp/V82
+build.root=/tmp/hourly
 
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,delta,blackjack,uiframework,Marine,\	# plugins
-	base
+	vishnu,tops,delta,blackjack,uiframework,Marine,\
+	base,\
+	tutorial
+
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
-	glm,scalability,server,aggagent,uiframework,base
+	glm,scalability,server,aggagent,uiframework,base,tutorial
 
 # modules which contribute to unified api (javadoc)
-modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent
+modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
 
 ##
 ## module-specific flags
@@ -46,6 +48,7 @@ delta.deps = core,glm,toolkit,planserver
 blackjack.deps = core,glm,planserver,toolkit,vishnu
 Marine.deps = core,glm
 uiframework.deps = core,glm,planserver,aggagent
+tutorial.deps = core,glm
 
 # module libs (in addition to module deps)
 core.jars = xerces
@@ -62,6 +65,7 @@ delta.jars = xerces,activation,jms,jndi,jsdk,mail,omcore,qslink,jess50
 blackjack.jars = xerces,jcchart451K,jsdk
 uiframework.jars = xerces,cuimap,j2ee,vgj,xerces
 Marine.jars = xerces
+tutorial.jars = xerces
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
