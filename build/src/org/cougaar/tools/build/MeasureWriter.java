@@ -245,38 +245,38 @@ public class MeasureWriter extends WriterBase {
     /** return the value factor required to convert a value from the base unit of
      * the context to the requested unit.
      **/
-    double computeToFactor(String context, String unit) {
+    String computeToFactor(String context, String unit) {
       String base = getBaseUnit(context);
-      if (base.equals(unit)) return 1.0;
+      if (base.equals(unit)) return "1.0";
       String tobase = p.get(context, "to_"+unit);
       if (tobase != null) {
-        return Double.valueOf(tobase).doubleValue();
+        return tobase;
       } else {
         String frombase = p.get(context, "from_"+unit);
         if (frombase == null) {
           // no info here!  Try what we extend:
           return computeToFactor(p.get(context,"extends"), unit);
         }
-        return 1.0/Double.valueOf(frombase).doubleValue();
+        return "(1.0/"+frombase+")";
       }
     }
 
     /** return the value factor required to convert a value from the requested unit
      * to the base unit of the context.
      **/
-    double computeFromFactor(String context, String unit) {
+    String computeFromFactor(String context, String unit) {
       String base = getBaseUnit(context);
-      if (base.equals(unit)) return 1.0;
+      if (base.equals(unit)) return "1.0";
       String frombase = p.get(context, "from_"+unit);
       if (frombase != null) {
-        return Double.valueOf(frombase).doubleValue();
+        return frombase;
       } else {
         String tobase = p.get(context, "to_"+unit);
         if (tobase == null) {
           // no info here!  Try what we extend:
           return computeFromFactor(p.get(context,"extends"), unit);
         }
-        return 1.0/Double.valueOf(tobase).doubleValue();
+        return "(1.0/"+tobase+")";
       }
     }
 
@@ -337,10 +337,10 @@ public class MeasureWriter extends WriterBase {
         if (! unit.equals(base)) {
           // f is the factor of (1 unit) = f * (1 baseunit);
           String fact1 = toConstantName(base+"_PER_"+unit);
-          double fromf = computeFromFactor(context,unit);
+          String fromf = computeFromFactor(context,unit);
           println(out,"  public static final double "+fact1+" = "+fromf+";");
           String fact2 = toConstantName(unit+"_PER_"+base);
-          double tof = computeToFactor(context,unit);
+          String tof = computeToFactor(context,unit);
           println(out,"  public static final double "+fact2+" = "+tof+";");
         }
       }
@@ -509,7 +509,8 @@ public class MeasureWriter extends WriterBase {
         String unitName = toClassName(unit);
         String fexpr="";
         if (!unit.equals(base)) {
-          fexpr = "*"+toConstantName(unit+"_PER_"+base);
+          //fexpr = "*"+toConstantName(unit+"_PER_"+base);
+          fexpr = "/"+toConstantName(base+"_PER_"+unit);
         }
         println(out,"  public double get"+unitName+"() {");
         println(out,"    return (theValue"+fexpr+");");
@@ -574,14 +575,14 @@ public class MeasureWriter extends WriterBase {
         String num;
         String den;
         String sden;
-        double factor;
+        String factor;
         UnitTuple(String n, String d) {
           num = n;
           den = d;
           sden = unpluralize(den);
-          double nF = computeToFactor(dC,n);
-          double dF = computeToFactor(dtC, d);
-          factor = nF/dF;
+          String nF = computeToFactor(dC,n);
+          String dF = computeToFactor(dtC, d);
+          factor = "("+nF+"/"+dF+")";
         }
       }
       
@@ -683,7 +684,7 @@ public class MeasureWriter extends WriterBase {
 
         String unit = ut.num+"_per_"+ut.sden;
         String unitName = toClassName(unit);
-        String fexpr="*"+(1.0/ut.factor)+"";
+        String fexpr="*(1.0/"+ut.factor+")";
 
         println(out,"  public static final "+className+" new"+unitName+"(double v) {");
         println(out,"    return new "+className+"(v"+fexpr+");");
