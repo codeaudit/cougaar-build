@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII" standalone="yes" ?> 
-<!DOCTYPE ant1.5 SYSTEM "ant-1.5.dtd">
+<!DOCTYPE ant1.6 SYSTEM "ant-1.6.dtd">
 <!-- Comment out the DTD reference if you want to avoid ANT validating. -->
 <!--
      Template compiling (by the build script) is performed by searching
