@@ -22,6 +22,8 @@
 
 # run a full release build
 
+# eventually get it right
+
 use Cwd;
 use File::Copy;
 use File::Path;
