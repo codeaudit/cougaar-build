@@ -1,0 +1,206 @@
+#!/usr/bin/perl
+# -*- Perl -*-
+
+# updatecr reads a list of files from the standard input, updating
+# any copyright notices it finds which conform to a standard format:
+
+# <copyright>
+#  Copyright 2000-2001 Defense Advanced Research Projects
+#  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
+#  Raytheon Systems Company (RSC) Consortium).
+#  This software to be used only in accordance with the
+#  COUGAAR licence agreement.
+# </copyright>
+
+# Default behavior is to update a "standard" format copyright notice
+# to include the current year.
+#
+# optionally, also report on files without a standard CR notice and/or
+# add standard CR notices.
+#
+# takes a list of files to check/update
+
+$tag0 = "<copyright>";
+$tag1 = "</copyright>";
+$crx = "copyright";
+
+# the string RANGE is replaced by the actual year or year range.
+@stdlines = split(/\n/,"Copyright RANGE Defense Advanced Research Projects\
+Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and\
+Raytheon Systems Company (RSC) Consortium).\
+This software to be used only in accordance with the\
+COUGAAR licence agreement.");
+
+
+$tmp = "/tmp/cr.$$";
+$spin = 0;
+
+$total = 0;
+$std = 0;
+$nonstd = 0;
+$missing = 0;
+$added = 0;
+
+($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+$yyyy = $year+1900;
+
+open(STANDARD, ">/tmp/cr-standard");
+open(NONSTANDARD, ">/tmp/cr-nonstandard");
+open(MISSING, ">/tmp/cr-missing");
+open(FIXED, ">/tmp/cr-added");
+
+while (<>) {
+  chop;
+  $file = $_;
+  if (/CVS/ ||
+      /\.jar/ ||
+      /\.zip/ ||
+      /\.gif/ ||
+      /\.jpg/
+     ) {
+    next;
+  }
+  $total++;
+
+  $state = &process($file);
+  if ($state eq "standard") {
+    print STANDARD "$file\n";
+    $std++;
+  } elsif ($state eq "nonstandard") {
+    print NONSTANDARD "$file\n";
+    $nonstd++;
+  } elsif ($state eq "fixed") {
+    print FIXED "$file\n";
+    $fixed++;
+  } else {
+    print MISSING "$file\n";
+    $missing++;
+  }
+}
+
+print "Examined $total files\n";
+print "\tStandard\t$std\n";
+print "\tNonstandard\t$nonstd\n";
+print "\tAdded\t$fixed\n";
+print "\tMissing\t$missing\n";
+
+close(STANDARD);
+close(NONSTANDARD);
+close(MISSING);
+close(FIXED);
+exit(0);
+
+sub process {
+  local($file) = @_;
+  $spin = ($spin+1)&3;
+  my $c = substr '-/|\\',$spin,1;
+  print STDERR "$c\010";
+  local($found)=0;		# if != 0, copy the file back
+
+  local($parsing)=0;		# if != 0, reading a CR notice
+  local($lead) = "";		# leading text before a CR tag
+  local($trail) = "";		# trailing text after a CR tag
+  local($std)=0;
+  local($nonstd)=0;
+  local($t0) = $yyyy;
+  local($t1) = "";
+
+  open(IN, "<$file");
+  unlink($tmp);
+  open(OUT, ">$tmp");
+  while (<IN>) {
+    if (!$parsing) {		# not currently parsing a std notice?
+      if (/(.*)$tag0(.*)/i) {
+	$parsing = 1;
+	$lead = $1;
+	$trail = $2;
+      } else {
+	if (/$crx/i) {
+	  $nonstd++;
+	}
+	print OUT $_;
+      }
+    } else {			# currently parsing std notice
+      if (/Copyright ([0-9]{4}) /i) { # single date
+	$t0 = $1;
+      } elsif (/Copyright ([0-9]{4})-([0-9]{4}) /i) {
+	$t0 = $1;
+	$t1 = $2;
+      } elsif (/$tag1/i) {
+	$std = 1;
+	$parsing = 0;
+	if (!$t1 eq "") {
+	  if ($t1 < $yyyy){
+	    $t1 = $yyyy;
+	  }
+	  $range = "$t0-$t1";
+	} else {
+	  if ($t0 < $yyyy) {
+	    $range = "$t0-$yyyy";
+	  } else {
+	    $range = "$t0";
+	  }
+	}
+	print OUT "$lead$tag0$trail\n";
+	foreach $l (@stdlines) {
+	  $l =~ s/RANGE/$range/;
+	  print OUT "$lead$l$trail\n";
+	}
+	print OUT "$lead$tag1$trail\n";
+	$found++;
+      }
+    }
+  }
+  close(OUT);
+  close(IN);
+
+  local($missing) = (!$std && !$nonstd);
+  local($fixed) =0;
+  if ($missing) {
+    local($how);
+    if ( ($file =~ /\.java$/)) {
+      $found=1;
+      $fixed = 1;
+      open(IN, "<$file");
+      open(OUT,">$tmp");
+      $lead = " * ";
+      $trail = "";
+      print OUT "/*\n";
+	print OUT "$lead$tag0$trail\n";
+	foreach $l (@stdlines) {
+	  $l =~ s/RANGE/$range/;
+	  print OUT "$lead$l$trail\n";
+	}
+	print OUT "$lead$tag1$trail\n";
+      print OUT " */\n";
+      while(<IN>)  {
+	print OUT "$_";
+      }
+      close(IN);
+      close(OUT);
+    } else {
+    }
+    # other recipe detection can go here
+  }
+#  $found=0;
+  if ($found) {
+    unlink($file);
+    open(IN, "<$tmp");
+    open(OUT, ">$file");
+    while(<IN>)  {
+      print OUT "$_";
+    }
+    close(OUT);
+    close(IN);
+  }
+
+  #unlink($tmp);
+
+  return "standard" if $std;
+  return "nonstandard" if $nonstd;
+  return "fixed" if $fixed;
+  return "missing";
+}
+
+
+
