@@ -43,7 +43,7 @@ javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
 #tag.default=HEAD
 
 # where should we get the basic (3rd party) jars from?
-sys.lib=/home/cougaar/build.jars
+sys.lib=/local/cougaar/build.jars
 # Expected third-party jars:
 # activation
 # fesi-111
@@ -126,6 +126,7 @@ qos.deps = core
 deltaeport.deps = core,glm,toolkit,planserver,delta
 
 # module libs (in addition to module deps)
+build.jars = tools
 core.jars = xerces, log4j
 contract.jars = xerces
 toolkit.jars = xerces
