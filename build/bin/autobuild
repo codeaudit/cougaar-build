@@ -21,6 +21,13 @@
 # properly set so that the build module can be checked out directly.
 #
 
+# examples:
+# build the head (normal hourly build):
+#   autobuild
+# build V7_2
+#   autobuild -v -t V7_2 -d alp72.build
+
+
 use Cwd;
 use File::Copy;
 use File::Path;
@@ -28,9 +35,31 @@ use File::Find;
 
 require "getopts.pl";
 
-&Getopts('v');
 $verbose = 1;
+$auto = "auto";
+$tag = "HEAD";
+$data = "default.build";
+$host = "eiger";
+
+&Getopts('va:t:d:h');
+if ($opt_h) {
+  print STDERR "Usage: autobuild [args]\n";
+  print STDERR "\t-v\tVerbose mode\n";
+  print STDERR "\t-a name\tDirectory name instead of 'auto'\n";
+  print STDERR "\t-t tag\tTag to use instead of 'HEAD'\n";
+  print STDERR "\t-d file\tData file to use instead of 'default.build'\n";
+  print STDERR "\t-h\tThis usage commend\n";
+  exit(-1);
+}
+
 $verbose++ if $opt_v;
+$auto = $opt_a if ($opt_a);
+$tag = $opt_t if ($opt_t);
+$data = $opt_d if ($opt_d);
+
+if ($opt_t && !$opt_a) {
+  $auto = $opt_t;
+}
 
 # handle signals
 sub sighandler {
@@ -42,18 +71,24 @@ $SIG{INT} = 'sighandler';
 $SIG{QUIT} = 'sighandler';
 
 # bootstrap the build process
-$tmpdir = "/tmp/auto-build.$$";
+$tmpdir = "/tmp/$auto-build.$$";
 mysystem("rm -rf $tmpdir");
 mkd($tmpdir);
 mysystem("cd $tmpdir ; cvs -Q export -D now build/bin build/data");
 $basedir = "$tmpdir/build";
 
 # this is where build will build into
-$builddir = "/tmp/auto";
+$builddir = "/tmp/$auto";
 
 
 $buildscript = "$basedir/bin/build";
-$builddata = "$basedir/data/default.build";
+# if data has any pathname components, use it instead of relative to checked-out
+# version
+if ($data =~ /\//) {
+  $builddata = $data;
+} else {
+  $builddata = "$basedir/data/$data";
+}
 $keep = 4;
 
 # clean up any waxy yellow buildup
@@ -61,7 +96,9 @@ mysystem("rm -rf $builddir");
 mkdir($builddir);
 
 # start a fresh build
-mysystem("$buildscript -v -obuild.root=$builddir $builddata >/tmp/auto.out");
+$rarg = "";
+$rarg = "-r $tag" if (! ($tar eq "HEAD"));
+mysystem("$buildscript -v $rarg -obuild.root=$builddir $builddata >/tmp/$auto.out");
 
 # what did we build?
 opendir D, $builddir;
@@ -69,13 +106,13 @@ opendir D, $builddir;
 closedir D;
 $built = $allfiles[0];
 
-# copy whatever is there to eiger
-mysystem("ssh eiger mkdir -p auto/$built");
-mysystem("scp $builddir/$built/dist/* eiger:auto/$built");
-mysystem("ssh eiger cd auto \\; rm -f latest \\; ln -s $built latest");
+# copy whatever is there to $host
+mysystem("ssh $host mkdir -p $auto/$built");
+mysystem("scp $builddir/$built/dist/* $host:$auto/$built");
+mysystem("ssh $host cd $auto \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
-open(B, "ssh eiger ls auto|");
+open(B, "ssh $host ls $auto|");
 @alldirs = <B>;
 close(B);
 
@@ -90,12 +127,12 @@ while ($i < $keep && ($_= pop @alldirs)) {
 
 while ( ($_ = pop @alldirs)) {
   chomp;
-  mysystem("ssh eiger rm -rf auto/$_");
+  mysystem("ssh $host rm -rf $auto/$_");
 }
 
-exit 0;
-
 mysystem("rm -rf $tmpdir");
+
+exit 0;
 
 
 sub mysystem {
