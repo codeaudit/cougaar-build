@@ -72,22 +72,6 @@ public class FixMedical extends Fix {
         "61-ASMEDBN-MEDCO",
     };
 
-    private File[] files;
-
-    public FixMedical(String[] clusters) {
-        System.out.println("[ Clusters ]");
-        files = new File[clusters.length];
-        for (int i = 0; i < clusters.length; i++) {
-            files[i] = new File(clusters[i] + ".ini");
-            System.out.println("cluster = " + clusters[i]);
-        }
-    }
-
-    protected File[] getFiles() {
-        return files;
-    }
-
-
     protected Fixer[] getFixes() {
 
         String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
@@ -130,6 +114,6 @@ public class FixMedical extends Fix {
 
     public static void main(String[] args) {
         String[] roles = {"MedicalSupplyProvider","Level1HealthCareProvider","Level2HealthCareProvider","Level3HealthCareProvider"};
-        fix(clusterSetOptions, args, roles);
+        fix(clusterSetOptions, args, roles, new FixMedical());
     }
 }

@@ -61,8 +61,6 @@ public class FixFood extends Fix {
         "SubsistenceICP",
     };
 
-    private File[] files;
-
     protected Fixer[] getFixes() {
         String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
         String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
