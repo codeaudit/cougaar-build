@@ -56,7 +56,7 @@ sys.lib=/home/cougaar/build.jars
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,glmtrans,delta,blackjack,uiframework,\
+	vishnu,tops,glmtrans,delta,uiframework,blackjack,\
 	base,\
 	tutorial,\
 	csmart
@@ -91,14 +91,14 @@ vishnu.deps = core,toolkit,glm
 tops.deps = core,glm,toolkit,planserver,vishnu
 glmtrans.deps = core,glm,toolkit,vishnu
 delta.deps = core,glm,toolkit,planserver
-blackjack.deps = core,glm,planserver,toolkit,vishnu
+blackjack.deps = core,glm,planserver,toolkit,vishnu,uiframework
 Marine.deps = core,glm
 uiframework.deps = core,glm,planserver,aggagent,tops
 tutorial.deps = core,glm
 csmart.deps = core,server,glm,planserver,scalability
 
 # module libs (in addition to module deps)
-core.jars = xerces
+core.jars = xerces, log4j
 contract.jars = xerces
 toolkit.jars = xerces
 planserver.jars = xerces
