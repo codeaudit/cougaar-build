@@ -227,8 +227,8 @@ vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 
 # uiframework
 uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
-uiframework.deps = core,planning,glm,aggagent,datagrabber,util
-uiframework.jars = xerces,openmap,vgj,xerces
+uiframework.deps = core,planning,glm,util
+uiframework.jars = xerces,openmap,vgj
 uiframework.extras = mm-mysql-2
 
 # tutorials
