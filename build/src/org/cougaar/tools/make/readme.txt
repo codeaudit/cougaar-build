@@ -93,32 +93,50 @@ Properties
 
 Make has few options. Those that it has are controlled by properties.
 Properties may be specified on the command line (using -D...), in a
-property file or by command line options (e.g. -debug). Make looks for
-property files in the following order:
-~/.make.properties
-.../make.properties (the first such file found by searching the parent
-chain from the current directory)
-files specified with the -properties option
+property file specified on the command line using -property, by
+certain command line options (e.g. -debug), from ~/.make.property, and
+from the first file named "make.property" found by searching up the
+directory chain from the current or working directory.
+
+The properties from all these sources are accumulated and used to make
+the specified targets. If a property is specified in multiple places
+the value found in the first place listed above prevails. That is,
+command line prevails over home directory which prevails over project
+directory. A good plan is to specify properties particular to your
+project such as module prerequisites in the project directory,
+properties particular to your machine's setup such as the location of
+the jikes compiler in your home directory, and one-off variations on
+the command line.
+
+As a convenience, if the org.cougaar.tools.make.basedir property is
+not defined by the process the directory containing the make.property
+found by searching up the directory chain is used.
 
 The following options may be specified:
 
 org.cougaar.tools.make.basedir
-       the project directory
+       the project directory (defaults to the directory containing the
+       make.properties found by searching up from the current
+       directory.
 org.cougaar.tools.make.jikes.class.path
-       the additional classpath need to run jikes
-org.cougaar.tools.make.jikes
-       true to use jikes instead of javac (typically
+       the additional classpath need to run jikes (typically
        $(JDK)/jre/lib/rt.jar)
+org.cougaar.tools.make.jikes
+       true to use jikes instead of javac
 org.cougaar.tools.make.jdk.tools
        The location of the jdk tools jar (typically
-       $(JDK)/lib/tools.jar)
+       $(JDK)/lib/tools.jar). Used to run the code generator.
 org.cougaar.tools.make.debug
        true to turn on debugging printout
 org.cougaar.tools.make.3rd.party.jars
        the location of the third party jar files. Defaults to
        <project>/sys
 org.cougaar.tools.make.omit.module.<module>
-       set to true to leave <module> out of the list of all modules
+       set to true to leave <module> out of the list of all modules.
+       Note that a module named "build" is always excluded from the
+       list of all modules. This is done to avoid problems with
+       deleting or accidentally overwriting the build.jar or otherwise
+       disturbing the make tool itself.
 org.cougaar.tools.make.default.target
        the default target when no targets are given on the command
        line. The default default target is compileDir -- compile all
