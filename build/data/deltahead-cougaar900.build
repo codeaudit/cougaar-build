@@ -1,0 +1,141 @@
+# COUGAAR release build driver for the HEAD (currently > 8.2)
+# 
+# !!! THIS IS ONLY AN EXAMPLE !!!
+#
+# Note that this build script driver is unlikely to do anything useful
+# on any machine/repository other than the original build script
+# development machine.  While is is very close to what another site
+# might use, you are unlikely to be happy with the results until
+# you've made appropriate changes to the below.
+#
+
+product.name=delta
+
+# where to put temporary files and build trees (by default)
+tmp = /tmp
+
+# if set, java.home will be used to find java, jar, javadoc, rmi
+java.home = /usr/local/java/jdk1.3
+# java.command may be used to figure out java.home if not otherwise
+java.command = java
+# old syntax (still grudginly accepted)
+# java = /usr/local/java/jdk1.3/bin/java
+
+# which compiler to use.  valid options are "javac" and "jikes" and
+# the actual command executed will depend on the $javac.command
+# options below
+compiler = jikes
+
+# these may be modified to have full path names, or they will be found
+# either via java.home or on the path.
+#javac.command = javac
+#jikes.command = jikes
+#jar.command = jar
+#javadoc.command = javadoc
+#rmic.command = rmic
+
+# other compiler options.  May be module prefixed (e.g. core.compiler.pedantic=1)
+# pedantic compilation - issue lots of style/usage warnings (jikes only)
+#compiler.pedantic = 1
+# include as much debugging info as possible (local vars)
+compiler.debug = 1
+# report uses of deprecated features.
+#compiler.deprecation = 1
+# optimize bytecode
+#compiler.optimize = 1
+
+# arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
+#javac.arguments = -J-Xmx128m -J-Xms128m
+#jikes.arguments =
+
+# javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
+# javadoc.command = javadoc
+# default memory settings are not enough to build the unified javadoc
+# javadoc.arguments = -J-Xmx128m -J-Xms128m
+
+# repository.base defaults to CVSROOT without the trailing "cougaar"
+#repository.base=/cvs/alp/
+
+# default repository tag is "cougaar"
+#repository.default=cougaar
+
+# HEAD is the default
+#tag.default=HEAD
+
+# where should we get the basic (3rd party) jars from?
+# this lets us point to a specific directory
+#   sys.lib=/local/cougaar/build.jars
+#
+# the syntax "module:foo" means get the sys libs from the lib
+# directory of the "foo" module.  Note that the foo module should
+# not be one of the built modules (e.g. should not listed in modules=)
+sys.lib=module:jars
+
+# build.root defaults to /tmp/{product.name}
+# build.root=/tmp/head
+
+modules=\
+	delta,deltaeport
+
+
+# default publicness to true - disable with mod.private=1
+default.public=1
+# modules which are public - that is, fully released
+
+# modules which contribute to unified api (javadoc)
+modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
+
+##
+## module-specific flags
+##
+
+# per-module compiler selection:
+# all of the compiler.* options may be prefixed by a module name:
+#core.compiler.pedantic = 1
+#core.compiler.deprecation = 1
+
+#Don't generate javadoc for the jdk patches
+javaiopatch.javadoc = 0
+
+# build tools requires the jdk tools jars
+build.jars = tools
+# include junit.jar in dist, even though it is only needed for
+# build/release
+build.extras = junit
+
+
+# delta
+delta.deps = core,glm,toolkit,planserver
+delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
+delta.repository = internal
+delta.private=1
+
+deltaeport.deps = core,glm,toolkit,planserver,delta
+deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
+deltaeport.repository = internal
+deltaeport.private=1
+
+
+
+#
+# distribution settings
+#
+
+# runtime specs. Runtime always gets built libs, too.
+# The build process will also try to exclude these guys
+# from the "standard" locations to avoid duplication/confusion.
+base.runtime = doc,bin,configs
+
+# for each module, copy these files directly to the dist directory.
+# This is really intended to be a one-shot for pointers to the 
+# release notes and installation instructions.
+# Leading directories disappear... e.g. so the following:
+#   base.dist = doc/README.txt
+# would copy README.txt from the doc subdirectory of core to 
+# the top level dist.  If the last file is actually a directory, then
+# the whole directory is copied.. e.g. :
+#   base.dist = doc
+# would copy the whole doc subdirectory into to top level dist as a
+# new doc subdirectory.
+base.dist = README
+
