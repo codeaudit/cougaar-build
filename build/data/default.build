@@ -79,6 +79,10 @@ default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
 # not be one of the built modules (e.g. should not listed in modules=)
 sys.lib=module:jars
 
+# these don't get shipped in cougaar-support.zip, usually because of
+# licence restrictions.
+sys.lib.dontship = wasp
+
 # build.root defaults to /tmp/{product.name}
 # build.root=/tmp/head
 
