@@ -520,7 +520,7 @@ sub findjar {
 sub add_module_files {
   local ($mysrc, $tmplib) = @_;
   chdir $mysrc;
-  my $files = join(" ", findbypattern(".", "\.(def|gif|jpg|png)\$"));
+  my $files = join(" ", findbypattern(".", "\.(def|gif|jpg|png|html|htm)\$"));
   if (! $files eq "") {
     mysystem("tar cf - $files | (cd $tmplib ; tar xf -)");
   }
