@@ -156,7 +156,7 @@ deltaeport.jars = jsdk,jbcl,xmlparserv2,oracle12
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
-glm.extras = oracle12
+glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
 tops.extras = mm-mysql-2
 uiframework.extras = mm-mysql-2
 
