@@ -96,7 +96,7 @@ modules=\
 	manager,\
 	webserver, webtomcat,\
 	community, bol,\
-	albbn, alsra
+	albbn, alsra, stoplight
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
