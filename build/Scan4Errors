@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl -w
 
+use strict;
+
 # Program to scan the output from the nightly build for errors.
 #  The complete output from the build script is read, and an
 #  error log, and a brief error log are created.
@@ -10,45 +12,47 @@
 # Mark Damish (Originally base on a Jim Glockling script)
 
 # Revision History:
-# 98 Sum - Initial version.
-# 98 Fal - Added support for 'jikes' messages in the 'error' log. 
-# 990212 - Created a usefull 'brief' error log (javac & shell messages only).
-#        - Mail only a 'pass'/'fail' message.
+# 1998 Sum - Initial version.
+# 1998 Fal - Added support for 'jikes' messages in the 'error' log. 
+# 19990212 - Created a usefull 'brief' error log (javac & shell messages only).
+#          - Mail only a 'pass'/'fail' message.
+# 20000606 - A couple more regex's.
+#          - Send html email, pointing to log files, when build fails.
+#          - use strict
+# 20000612 - 'Too many errors' didn't increment the number of errors.
+#            It now adds 100.
 #
 
 # TTD 
-#  - Only send errors on failure
 #  - Catch errors when javac blows up and leaves a stack trace.
 #  - Catch 'jikes' errors in the 'brief' log.
-#  - Learn about 'my' and localize variables.
 #
-#  - Swap the 'error' and 'brief' logs.
 
 
 # ---------- Editable stuff ----------------
 #
 # Notify the proper authorities.
 #
-$MAILRECEPIENTS     = "alpine-software-detail\@bbn.com" ;
-#$MAILRECEPIENTS     = "mdamish\@bbn.com,rtomlinson\@bbn.com" ;
+my $MAILRECEPIENTS     = "alpine-software-detail\@bbn.com" ;
+#my $MAILRECEPIENTS     = "mdamish\@bbn.com" ;
 
 # ----------End of editable stuff -----------
 
 # Directory locations.
 #
-$CRONLOGNAME    = "$ARGV[0]";
-$ERRORLOGNAME	= "$CRONLOGNAME" . "-error"; 
-$BRIEFLOGNAME	= "$CRONLOGNAME" . "-brief"; 
+my $CRONLOGNAME    = "$ARGV[0]";
+my $ERRORLOGNAME	= "$CRONLOGNAME" . "-error"; 
+my $BRIEFLOGNAME	= "$CRONLOGNAME" . "-brief"; 
 
 # Name of build.
 #
 @_ = split(/\//,$CRONLOGNAME);
-$BUILDNAME = pop(@_);
+my $BUILDNAME = pop(@_);
 ($BUILDNAME,undef) = split(/\./,$BUILDNAME);
 
 # Number of errors.
 #
-$num_errors = 0;
+my $num_errors = 0;
 
 
 
@@ -56,7 +60,7 @@ $num_errors = 0;
 
 # ---------- Main --------
 &openfiles ;         # Open files for read/write.
-@lines = <CRONLOG>;  # Read all lines from the file to memory.
+my @lines = <CRONLOG>;  # Read all lines from the file to memory.
 &CreateErrorLog;     # Find interesting stuff, and write it to synopsis files.
 &CreateBriefLog;     # Find interesting stuff, and write it to synopsis files.
 &closefiles;         # Close the files.
@@ -99,11 +103,13 @@ sub notify {
         }
         # if
 	else {
-	   open  SENDMAIL, "| /usr/lib/sendmail -F build -t" or die "Something went wrong with sendmail. $!";
+	   open  SENDMAIL, "| /usr/lib/sendmail -F 'Nightly Cron Build' -t" or die "Something went wrong with sendmail. $!";
 	   print SENDMAIL "To: $MAILRECEPIENTS \n";
 	   print SENDMAIL "Reply-to: mdamish\@bbn.com \n";
 	   print SENDMAIL "Subject: $BUILDNAME: Build Failed.  $num_errors errors found. \n";
+	   print SENDMAIL "MIME-Version: 1.0\n";
 	   print SENDMAIL "Content-type: text/html; charset=us-ascii\n";
+	   print SENDMAIL "Content-Transfer-Encoding: 7bit\n";
 	   print SENDMAIL "\n";
 	   print SENDMAIL "<!doctype html public \"//w3c//dtd html 4.0 transitional//en\">\n";
 	   print SENDMAIL "<html>\n";
@@ -118,7 +124,7 @@ sub notify {
         } # else
 	
 	# Mail for people who like to receive error logs.
-	`/usr/bin/mailx -s "Build Summary: $BUILDNAME" "cerys\@bbn.com,mdamish\@bbn.com"     < "$ERRORLOGNAME"`;
+	`/usr/bin/mailx -s "Build Summary: $BUILDNAME" "cerys\@bbn.com"     < "$ERRORLOGNAME"`;
 
 } # END sub notify()
 
@@ -129,8 +135,12 @@ sub CreateErrorLog {
                          # 1,2 = pass number.
 		         # remains on 2 when javac completes.
 
-    for ($line_num = 0;  $line_num <= $#lines;  $line_num++) {
+    my $compiling_dir;
+    my $line_num;
 
+    for ($line_num = 0;  $line_num <= $#lines;  $line_num++) {
+       
+	my $line;
 	$line = $lines[$line_num];
 
         # Pick out when different types of processes begin/end.
@@ -211,6 +221,7 @@ sub CreateErrorLog {
         if ($line =~ /^Too many errors/) {
 	    print BRIEF $compiling_dir;
 	    print BRIEF $line;
+	    $num_errors += 100;
         }
 
 
@@ -296,8 +307,12 @@ sub CreateErrorLog {
 
 sub CreateBriefLog {
 
+    my $compiling_dir;
+    my $line_num;
+
     for ($line_num = 0;  $line_num <= $#lines;  $line_num++) {
 
+        my $line;
 	$line = $lines[$line_num];
 
 	if ($line =~ /^ERROR!!/) {
@@ -328,6 +343,7 @@ sub CreateBriefLog {
         if ($line =~ /^Too many errors/) {
 	    print BRIEF $compiling_dir;
 	    print BRIEF $line;
+	    $num_errors += 100;
         } # if
 
     } # for

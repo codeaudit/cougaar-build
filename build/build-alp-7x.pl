@@ -149,6 +149,41 @@ create_jar($LIB, "$BUILD_PREFIX.jar", "$CLASS/$BUILD_PREFIX")      if ($BUILD_SK
 update_jar($LIB, "$BUILD_PREFIX.jar", "$SRC/$BUILD_PREFIX/src")    if ($BUILD_SKIP_BUILD eq "FALSE");
 sign_jar("$LIB/$BUILD_PREFIX.jar", "/usr/local/etc/.keystore")     if ($BUILD_SKIP_BUILD eq "FALSE");
 
+
+###
+### a tops specific request 20010221
+### Create a jar file, from specific files, specified by Todd Wright or Ben Lubin.
+###
+if ($BUILD_PREFIX eq "tops") {
+   print("\n=> Creating tops specific  hierarchyPSP.jar...  \n") if ($BUILD_VERBOSE eq "TRUE");
+   my $src_path = "$CLASS/$BUILD_PREFIX";
+   my $dest_path = $LIB;
+   my $name = "hierarchyPSP.jar";
+   my $hierarchyPSP_files = 
+     'org/cougaar/domain/mlm/ui/psp/transit/data/Failure.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/hierarchy/HierarchyData.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/hierarchy/Organization\$OrgRelation.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/hierarchy/Organization.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/xml/DeXMLable.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/xml/UnexpectedXMLException.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/xml/XMLable.class \
+      org/cougaar/domain/mlm/ui/psp/transit/data/xml/XMLWriter.class \
+      org/cougaar/domain/mlm/ui/psp/transit/PSP_Hierarchy\$1.class \
+      org/cougaar/domain/mlm/ui/psp/transit/PSP_Hierarchy\$MyPSPState.class \
+      org/cougaar/domain/mlm/ui/psp/transit/PSP_Hierarchy\$XMLtoHTMLOutputStream.class \
+      org/cougaar/domain/mlm/ui/psp/transit/PSP_Hierarchy.class';
+   my $cmd;
+   chdir $src_path;
+   $cmd = "jar -cf ${dest_path}/${name} $hierarchyPSP_files ";
+   print ("\n=> $cmd \n");
+   system($cmd); 
+   #
+   sign_jar("$LIB/hierarchyPSP.jar", "/usr/local/etc/.keystore");    
+} # if
+
+
+
+
 # Jar/Sign the 'Writers' too.
 ##6x##create_jar($LIB, "build.jar", "$SRC/build/src")            if ($BUILD_PREFIX eq "core");
 ##6x##sign_jar("$LIB/build.jar", "/usr/local/etc/.keystore")     if ($BUILD_PREFIX eq "core");
