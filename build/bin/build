@@ -1199,14 +1199,14 @@ sub zip {
   local($comment, $dir, $destdir, $destfile) = @_;
   chdir $dir;
   my ($dest) = "$destdir/$destfile.zip";
-  add_info("$destfile.zip",$comment, $dir, $destfile);
+  add_info($destfile,$comment, $dir, $destfile);
   mysystem("zip -qr $dest *");
 }
 
 sub jar {
   local($comment, $dir, $destdir, $destfile, $mf) = @_;
   chdir $dir;
-  add_info("$destfile.jar",$comment, $dir, $destfile);
+  add_info($destfile,$comment, $dir, $destfile);
   my ($dest) = "$destdir/$destfile.jar";
   if (-r $mf) {
     mysystem("$jar_command cmf $mf $dest *");
@@ -1216,11 +1216,11 @@ sub jar {
 }
 
 sub add_info {
-  local($arch,$comment, $dir, $destfile) = @_;
+  local($name,$comment, $dir, $destfile) = @_;
   my($mandir) = "$dir/Manifest";
   mkd($mandir);
   open(OUT, ">$mandir/$destfile.version");
-  print OUT "NAME=$arch\n";
+  print OUT "NAME=$name\n";
   print OUT "COMMENT=$comment\n";
   print OUT "REPOSITORY_TAG=$rtag\n";
   print OUT "REPOSITORY_TIME=$rdate\n";
