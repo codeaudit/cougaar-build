@@ -77,7 +77,7 @@ sys.lib=module:jars
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,glmtrans,datagrabber,\
+	vishnu,glmtrans,datagrabber,\
 	delta,uiframework,blackjack,\
 	base,\
 	tutorial,\
@@ -152,10 +152,10 @@ vishnu.jars = xerces
 vishnu.repository = internal
 
 # tops
-tops.deps = core,glm,toolkit,planserver,vishnu
-tops.jars = xerces,topsga,openmap,chart
-tops.extras = mm-mysql-2
-tops.repository = internal
+#tops.deps = core,glm,toolkit,planserver,vishnu
+#tops.jars = xerces,topsga,openmap,chart
+#tops.extras = mm-mysql-2
+#tops.repository = internal
 
 # datagrabber
 datagrabber.deps = core,glm,toolkit,planserver
@@ -190,7 +190,7 @@ Marine.jars = xerces
 Marine.repository = internal
 
 # uiframework
-uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
+uiframework.deps = core,glm,planserver,aggagent,datagrabber
 uiframework.jars = xerces,openmap,vgj,xerces
 uiframework.extras = mm-mysql-2
 
