@@ -268,24 +268,28 @@ dbms.repository = dbms
 # Adaptive Logistics jars
 #
 # AL BBN
+#albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+#albbn.module = bbn
+albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 albbn.deps = core,planserver,util,toolkit,glm,vishnu
 albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
-albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
-albbn.module = bbn
 albbn.runtime = bin,configs
 
 
 # AL SRA
+#alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
+#alsra.module = sra
+alsra.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 alsra.deps = core,planserver,util,toolkit,glm,vishnu,albbn
 alsra.jars = xerces,openmap,fesi-111,jcchart,servlet
-alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
-alsra.module = sra
 alsra.runtime = configs
 
 # AL datagrabber
+#datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 datagrabber.deps = core,glm,toolkit,planserver,util,albbn
 datagrabber.jars = xerces,chart,openmap,servlet
-datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+
 
 #
 # distribution settings
