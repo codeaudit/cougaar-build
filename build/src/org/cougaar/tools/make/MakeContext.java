@@ -973,7 +973,7 @@ public class MakeContext {
         command.add("-d");
         command.add(getClassesRoot().getPath());
         command.add("-classpath");
-        command.add(getClassesRoot().getPath());
+        command.add(getClassPath());
         runExecutable(command, classNames, 0, classNames.length);
     }
 }
