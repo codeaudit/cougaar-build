@@ -30,6 +30,8 @@ sub parse_args {
       $opt_r = shift @ARGV;
     } elsif (/^-D/) {
       $opt_D = shift @ARGV;
+    } elsif (/^-t/) {
+      $tag = shift @ARGV;
     } elsif ( /^-(.+)/) {
       foreach $c (split //, $1) {
 	if ($c eq "h") {
@@ -39,13 +41,18 @@ sub parse_args {
 	} elsif ($c eq "q") {
 	  $verbose--;
 	} elsif ($c eq "n") {
-	  $opt_n = 1;
+	  $pretend = 1;
+	  $verbose++;
 	} elsif ($c eq "Q") {
 	  $nodoc = 1;
 	} elsif ($c eq "S") {
 	  $skip = 1;
 	} elsif ($c eq "c") {
 	  $checkoutP = 1;
+	} elsif ($c eq "b") {
+	  $branchP = 1;
+	} elsif ($c eq "F") {
+	  $forceP = 1;
 	} else {
 	  usage();
 	}
@@ -64,8 +71,20 @@ sub usage {
   print STDERR "\t-Q\tQuick build (no documentation)\n";
   print STDERR "\t-v\tbe verbose\n";
   print STDERR "\t-q\tbe quiet\n";
+  print STDERR "\t-n\tshow what would be done, but dont do it.  Implies -v.\n";
   print STDERR "\t-c\tcheckout cvs sources from head of tag rather than export from timestamp point\n";
   print STDERR "\t-okey=value\tset parameters on the command line\n";
+  print STDERR "\t-D date\tSpecify a repository date to build/tag relative to\n";
+  print STDERR "\t-r tag\tSpecify a repository tag to build/tag relative to\n";
+  print STDERR "\t-t name\tTag (with name) instead of building (also uses -r and -D)\n";
+  print STDERR "\t-b\tWhen tagging, branch instead of simple tag\n";
+  print STDERR "\t-F\tWhen tagging, Force the tag (move the tag if it previously existed)\n";
+  print STDERR "\n";
+  print STDERR "Examples:\n";
+  print STDERR "Standard vebose build of the HEAD:\n";
+  print STDERR "\tbuild -v default.build\n";
+  print STDERR "Retroactively point-tag the repositories at a specific date:\n";
+  print STDERR "\tbuild  -D '7/31/2001 10:00:11' -t V8_3_0 default.build\n";
   exit(1);
 }
 
@@ -199,11 +218,15 @@ $product = opt("product.name");
 
 $latest_dir = "$build_root/latest";
 
-sub mkd {
-  my($p) = @_;
-  mkdir $p, 0777;
+if ($tag) {
+  tag($tag);
+  exit(0);
 }
 
+sub mkd {
+  my($p) = @_;
+  mkdir $p, 0777 if (!$pretend);
+}
 
 # create the build dirs
 mkd "$build_root";
@@ -279,23 +302,8 @@ sub checkout {
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
   foreach $mod (@modules) {
-    my $repb = opt("repository.base");
-    # if repository.base isn't set, get it from CVSROOT which should be set to
-    # something like "/cvs/alp/cougaar"
-    if (! $repb) {
-      $repb = $ENV{'CVSROOT'};
-      if ($repb) {
-	$repb =~ s/\/cougaar$/\//;
-      } else {
-	die("Couldn't figure out repository.base!\n");
-      }
-    }
+    my $rep = getCVSROOT($mod);
 
-    my $rep = opt("$mod.repository");
-    if (!$rep) {
-      $rep = opt("repository.default");
-      $rep = "cougaar" if (!$rep);
-    }
     my $tag = opt("$mod.tag");
     $tag = $rtag if (!$tag);
 
@@ -306,9 +314,9 @@ sub checkout {
     $rarg = "-r $tag" if (! ($tag eq "HEAD"));
     if ($checkoutP) {
       # leave it in development mode
-      mysystem ("cvs $arg -d '$repb$rep' checkout $rarg -d $mod $mod");
+      mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $mod");
     } else {
-      mysystem ("cvs $arg -d '$repb$rep' export $rarg -D '$rdate' -d $mod $mod");
+      mysystem ("cvs $arg -d '$rep' export $rarg -D '$rdate' -d $mod $mod");
     }
   }
 
@@ -1032,4 +1040,54 @@ sub find_errors {
 sub max {
   my($x,$y) = @_;
   ($x>$y)?$x:$y;
+}
+
+
+sub getCVSROOT {
+  my($mod) = @_;
+
+  my $rept = opt("$mod.repository");
+  if (!$rept) {
+    $rept = opt("repository.default");
+    $rept = "cougaar" if (!$rept);
+  }
+
+  if ($rept =~ /\//) {
+    return $rept;
+  } else {
+    my $repb = opt("repository.base");
+    # if repository.base isn't set, get it from CVSROOT which should be set to
+    # something like "/cvs/alp/cougaar"
+    if (! $repb) {
+      $repb = $ENV{'CVSROOT'};
+      if ($repb) {
+	$repb =~ s/\/cougaar$/\//;
+      } else {
+	die("Couldn't figure out repository.base!\n");
+      }
+    }
+    return "$repb$rept";
+  }
+}
+
+sub tag {
+  my($newtag) = @_;		# name to use for tagging
+  # if($branchP) branch
+  # $rtag relative tag (or HEAD)
+  # $rdate relative date (or "now")
+
+  foreach $mod (@modules) {
+    my $rep = getCVSROOT($mod);
+
+    my $tag = opt("$mod.tag");
+    $tag = $rtag if (!$tag);
+
+    my $arg = "";
+    $arg = "-Q" if ($verbose<=1);
+    my $rarg="";
+    # special case for HEAD - bogon.
+    $rarg = "-r $tag" if (! ($tag eq "HEAD"));
+    my $Farg = $forceP?"-F":"";
+    mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' -F $barg $Farg $newtag $mod");
+  }
 }
