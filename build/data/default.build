@@ -91,8 +91,8 @@ modules=\
         planning,contract,toolkit,\
 	yp,\
 	glm,scalability,aggagent,\
-	vishnu,datagrabber,\
-	uiframework,blackjack,\
+	vishnu,\
+	uiframework,\
 	base,\
 	tutorial,\
 	csmart,\
@@ -102,7 +102,7 @@ modules=\
 	manager,\
 	webserver, webtomcat,\
 	community, \
-	albbn, alsra, stoplight,\
+	albbn, stoplight, datagrabber,\
 	servicediscovery
 
 # default publicness to true - disable with mod.private=1
@@ -141,7 +141,7 @@ javaiopatch.javadoc = 0
 # build tools requires the jdk tools jars
 build.jars = tools
 # include junit.jar in dist, even though it is only needed for
-# build/release.
+# build/release
 build.extras = junit
 # compiletime means that it is installed as clib rather than lib
 build.compiletime = 1
@@ -202,35 +202,6 @@ vishnu.deps = core,planning,toolkit,glm,util
 vishnu.jars = xerces,vishnuServer
 vishnu.repository = internal
 
-# tops
-#tops.deps = core,planning,glm,toolkit,vishnu,util
-#tops.jars = xerces,topsga,openmap,chart
-#tops.extras = mm-mysql-2
-#tops.repository = internal
-
-# delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
-delta.deps = core,planning,glm,toolkit,javaiopatch,util
-delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
-delta.repository = internal
-delta.private=1
-
-deltaeport.deps = core,planning,glm,toolkit,javaiopatch,util
-deltaeport.jars = NetComponents,activation,jbcl,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
-deltaeport.repository = internal
-deltaeport.private=1
-
-
-# blackjack
-blackjack.deps = core,planning,glm,toolkit,aggagent,vishnu,uiframework,util
-blackjack.jars = xerces,jcchart,servlet,silk,jpython,ejb,jdbc2_0-stdext
-blackjack.repository = internal
-blackjack.private=1
-
-# Marines
-Marine.deps = core,planning,glm,util
-Marine.jars = xerces
-Marine.repository = internal
-
 # uiframework
 uiframework.deps = core,planning,glm,aggagent,datagrabber,util
 uiframework.jars = xerces,openmap,vgj,xerces
@@ -263,7 +234,7 @@ webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
 
 # community
-community.deps = util,core,planning,glm,manager,webserver
+community.deps = util,core,planning,glm,webserver
 community.jars = log4j,xerces,servlet,concurrent
 
 # dbms module
