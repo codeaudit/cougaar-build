@@ -79,28 +79,35 @@ sub parse_args {
 
 
 sub usage {
-  print STDERR "Usage: build [options] ReleaseDescriptionFile\n";
-  print STDERR "\t-S\tSkip checkout, rebuild from last try\n";
-  print STDERR "\t-Q\tQuick build (no documentation)\n";
-  print STDERR "\t-v\tbe verbose\n";
-  print STDERR "\t-q\tbe quiet\n";
-  print STDERR "\t-n\tshow what would be done, but dont do it.  Implies -v.\n";
-  print STDERR "\t-c\tcheckout cvs sources from head of tag rather than export from timestamp point\n";
-  print STDERR "\t-okey=value\tset parameters on the command line\n";
-  print STDERR "\t-D date\tSpecify a repository date to build/tag relative to\n";
-  print STDERR "\t-r tag\tSpecify a repository tag to build/tag relative to\n";
-  print STDERR "\t-t name\tTag (with name) instead of building (also uses -r and -D)\n";
-  print STDERR "\t-b\tWhen tagging, branch instead of simple tag\n";
-  print STDERR "\t-F\tWhen tagging, Force the tag (move the tag if it previously existed)\n";
-  print STDERR "\t-m mod[,...]\tSpecify a module or modules to build instead of all.\n";
-  print STDERR "\n";
-  print STDERR "Examples:\n";
-  print STDERR "Standard vebose build of the HEAD:\n";
-  print STDERR "\tbuild -v default.build\n";
-  print STDERR "Retroactively point-tag the repositories at a specific date:\n";
-  print STDERR "\tbuild  -D '7/31/2001 10:00:11' -t V8_3_0 default.build\n";
-  print STDERR "Build blackjack (and all required parts):\n";
-  print STDERR "\tbuild -m blackjack default.build\n";
+  print STDERR <<EOF;
+Usage: build [options] [ReleaseDescriptionFile]
+	-S	Skip checkout, rebuild from last try
+	-Q	Quick build (no documentation)
+	-v	be verbose
+	-q	be quiet
+	-n	show what would be done, but dont do it.  Implies -v.
+	-c	checkout cvs sources from head of tag rather than export from timestamp point
+	-okey=value	set parameters on the command line
+	-D date	Specify a repository date to build/tag relative to
+	-r tag	Specify a repository tag to build/tag relative to
+	-t name	Tag (with name) instead of building (also uses -r and -D)
+	-b	When tagging, branch instead of simple tag
+	-F	When tagging, Force the tag (move the tag if it previously existed)
+	-m mod[,...]	Specify a module or modules to build instead of all.
+
+The default ReleaseDescriptionFile is "default.build".  If the file is not
+found as specified, it will try to check from cvs using the current CVSROOT from
+build/data/<ReleaseDescriptionFile> and use that.
+
+Examples:
+Standard vebose build of the HEAD:
+	build -v default.build
+Retroactively point-tag the repositories at a specific date:
+	build  -D '7/31/2001 10:00:11' -t V8_3_0 default.build
+Build blackjack (and all required parts):
+	build -m blackjack default.build
+EOF
+
   exit(1);
 }
 
@@ -110,8 +117,16 @@ sub usage {
 
 %opts;
 parse_args();
-print "parsing $opt_file\n";
-parse_config($opt_file);
+if (-e $opt_file) {
+  print "parsing $opt_file\n";
+  parse_config($opt_file);
+} else {
+  my($of)="/tmp/$$.build";
+  mysystem("cvs -Q co -p build/data/$opt_file>$of");
+  parse_config($of);
+  unlink($of);
+}
+
 if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
   print "parsing $ENV{HOME}/.cougaar-build-system-specific\n";
   parse_config("$ENV{HOME}/.cougaar-build-system-specific");
