@@ -592,7 +592,10 @@ public class PGWriter extends WriterBase {
                   "    while (_real == null) {\n"+
                   "      try {\n"+
                   "        wait();\n"+
-                  "      } catch (InterruptedException _ie) {}\n"+
+                  "      } catch (InterruptedException _ie) {\n"+
+                  "        // We should really let waitForFinalize throw InterruptedException\n"+
+                  "        Thread.interrupted();\n"+
+                  "      }\n"+
                   "    }\n"+
                   "  }");
       println(out,"}");
@@ -1103,8 +1106,7 @@ public class PGWriter extends WriterBase {
       // lock and unlock methods
       println(out,"  private transient "+className+" _locked = null;");
       println(out,"  public PropertyGroup lock(Object key) {");
-      println(out,"    if (_locked == null)");
-      println(out,"      _locked = new _Locked(key);");
+      println(out,"    if (_locked == null)_locked = new _Locked(key);");
       println(out,"    return _locked; }");
       println(out,"  public PropertyGroup lock() "+
                   "{ return lock(null); }");
@@ -1210,12 +1212,9 @@ public class PGWriter extends WriterBase {
                   "  {");
       println(out,"    private transient Object theKey = null;");
       println(out,"    _Locked(Object key) { ");
-      println(out,"      if (this.theKey == null){  ");
-      println(out,"        this.theKey = key; ");
-      println(out,"      } ");
+      println(out,"      if (this.theKey == null) this.theKey = key;");
       println(out,"    }  ");
       println(out);
-      println(out,"    /** public constructor for beaninfo - probably wont work**/");
       println(out,"    public _Locked() {}");
       println(out);
       println(out,"    public PropertyGroup lock() { return this; }");
@@ -1223,10 +1222,11 @@ public class PGWriter extends WriterBase {
       println(out);
       println(out,"    public NewPropertyGroup unlock(Object key) "+
                   "throws IllegalAccessException {");
-      println(out,"       if( theKey.equals(key) )");
+      println(out,"       if( theKey.equals(key) ) {");
       println(out,"         return "+implclassName+".this;");
-      println(out,"       else ");
+      println(out,"       } else {");
       println(out,"         throw new IllegalAccessException(\"unlock: mismatched internal and provided keys!\");");
+      println(out,"       }");
       println(out,"    }");
       println(out);
       /*
@@ -1416,6 +1416,8 @@ public class PGWriter extends WriterBase {
         println(out,"    try {");
         int i = 0;
         se = slotspecs.elements();
+        String clname = toClassName(context);
+
         while (se.hasMoreElements()) {
           String slotspec = ((String)se.nextElement()).trim();
           int s = slotspec.indexOf(" ");
@@ -1432,7 +1434,6 @@ public class PGWriter extends WriterBase {
             etype = ct.etype;
           }
 
-          String clname = toClassName(context);
 
           if (as == null) {
             // non-active slots
@@ -1453,7 +1454,9 @@ public class PGWriter extends WriterBase {
             i++;
           }
         }
-        println(out,"    } catch (Exception e) { System.err.println(\"Caught: \"+e); e.printStackTrace(); }");
+        println(out,"    } catch (Exception e) { \n"+
+                    "      org.cougaar.util.log.Logging.getLogger("+clname+".class).error(\"Caught exception\",e);\n"+
+                    "    }");
         println(out,"  }");
       }
       println(out);
