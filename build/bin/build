@@ -1081,15 +1081,17 @@ sub javadoc {
   my $pkgs = join(" ", sort keys %pmap);
   my $cp = cpWrap(get_classpath($mod));
   $ENV{CLASSPATH} = $cp;
-  my($jdoptions) = opt("javadoc.options");
   my($args) = "";
+
+  my($jdoptions) = gopt($mod, "javadoc.options");
   $args .= " $jdoptions" if ($jdoptions);
-  my($jdmemory) = opt("javadoc.memory");
+
+  my($jdmemory) = gopt($mod, "javadoc.memory");
   $args .= " $jdmemory" if ($jdmemory);
 
   if (opt("useDoclet", 1)) {
-    my(@jddoclets) = opt("javadoc.doclets");
-    my(@jdtaglets) = opt("javadoc.taglets");
+    my(@jddoclets) = gopt($mod, "javadoc.doclets");
+    my(@jdtaglets) = gopt($mod, "javadoc.taglets");
     if ($#jddoclets>=0) {
       $args .= " -docletpath $libdir/build.jar -doclet ";
       $args .= join(" -doclet ", @jddoclets);

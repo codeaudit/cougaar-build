@@ -54,7 +54,7 @@ javac.arguments = -source 1.4 -target 1.4 -J-Xmx128m -J-Xms128m
 # default memory settings are not enough to build the unified javadoc
 # javadoc.memory = -J-Xmx256m -J-Xms128m
 # javadoc.arguments = 
-javadoc.options = -breakiterator -source 1.4 -quiet -splitIndex
+javadoc.options = -breakiterator -source 1.4 -quiet -splitIndex -tag beaninfo:X
 javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
 javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
 	org.cougaar.tools.javadoc.ToDoTaglet,\
