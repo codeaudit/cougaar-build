@@ -216,6 +216,7 @@ vishnu.deps = core,planning,toolkit,glm,util
 vishnu.jars = xerces,vishnuServer
 #vishnu.repository = internal
 # Moved to Cougaarforge
+vishnu.module = vishnuClient
 vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 
 # uiframework
