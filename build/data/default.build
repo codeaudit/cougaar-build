@@ -271,6 +271,8 @@ bol.standalone = 1
 # bol needs javac for now
 bol.compiler=javac
 bol.compiler.deprecation = 1
+# we don't have an ant solution for bol right now
+bol.noant=1
 
 # community
 community.deps = util,core,planning,glm,planserver,manager,webserver

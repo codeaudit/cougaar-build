@@ -1175,6 +1175,9 @@ sub build_moby_api {
 
     chdir "$srcdir/$mod";
 
+    my @splits = &opt("$mod.split");
+    my $split_p = ($#splits >= 0);
+
     # only do javadoc if it is not part of the unified build, and not split
     if ((! $split_p) && (! isUnified($mod))) {
       mkd "$tmpdist/doc";
@@ -2417,6 +2420,7 @@ sub generateProductAntRecipe {
 	  $inmod=0;
 	  # @modlines has the per-module hackery
 	  foreach $mod (@modules) {
+	    next if (opt("$mod.noant",0));
 	    my ($modspec);
 	    $modspec = opt("$mod.deps");
 	    my (@modspecs);
