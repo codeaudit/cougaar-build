@@ -176,6 +176,11 @@ if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
   parse_config("$ENV{HOME}/.cougaar-build-system-specific");
 }
 
+# try to circumvent some VM problems
+$ENV{J2SE_PREEMPTCLOSE}="1";	# see bug parade 4344135
+# might consider doing a workaround for 4466587
+# by detecting the bad cases and doing a limit call.
+
 #$compiler_touse = "jikes";
 $compiler_touse = "javac";
 addopt("javac.command", "javac");
@@ -991,7 +996,9 @@ sub jar {
 
 sub add_info {
   local($comment, $dir, $destfile) = @_;
-  open(OUT, ">$dir/$destfile.version");
+  my($mandir) = "$dir/Manifest";
+  mkd($mandir);
+  open(OUT, ">$mandir/$destfile.version");
   print OUT "COMMENT = $comment\n";
   print OUT "REPOSITORY_TAG = $rtag\n";
   print OUT "REPOSITORY_TIME = $rdate\n";
