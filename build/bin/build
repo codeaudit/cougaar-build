@@ -1315,6 +1315,58 @@ sub getCVSROOT {
 
 sub tag {
   my($newtag) = @_;		# name to use for tagging
+
+  my ($barg)="";
+  $barg = "-b" if($branchP);
+
+  my ($hairyP) = ($tag ne "HEAD") && ($rdate ne "");
+
+  my (@mods);
+  @mods = @modules;
+  push @modules, "build" if (! member("build",@modules));
+
+  {
+    $syslib = opt("sys.lib");
+    if ($syslib =~ /^module:(.+)/) {
+      my($mod) = $1;
+      push @mods, $mod;
+    }
+  }
+
+  my $tmpdir = "$tmp/tagger.$$";
+  mkd($tmpdir) if $hairyP;
+
+  foreach $mod (@mods) {
+    my $rep = getCVSROOT($mod);
+    my $tag = opt("$mod.tag");
+    $tag = $rtag if (!$tag);
+
+    my $arg = "";
+    $arg = "-Q" if ($verbose<=1);
+    my $rarg="";
+    # special case for HEAD - bogon.
+    $rarg = "-r $tag" if (! ($tag eq "HEAD"));
+    my $Farg = $forceP?"-F":"";
+    if ($hairyP) {
+      # sigh.  Have to do a checkout and then local tag
+      chdir("$tmpdir");
+      mysystem("cvs $arg -d '$rep' co $rarg -D '$rdate' $mod");
+      chdir("$tmpdir/$mod");
+      mysystem("cvs $arg -d '$rep' tag $barg $Farg $newtag .");
+      chdir("$tmpdir");
+      mysystem("rm -rf $tmpdir/$mod");
+    } else {
+      mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $mod");
+    }
+  }
+  if ($hairyP) {
+    chdir("/");
+    mysystem("rm -rf $tmpdir");
+  }
+}
+
+sub tagx {
+  my($newtag) = @_;		# name to use for tagging
   my ($barg)="";
   $barg = "-b" if($branchP);
 
@@ -1344,6 +1396,7 @@ sub tag {
     mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $mod");
   }
 }
+
 
 sub junit {
   my ($mod, $classdir, $extrajars) = @_;
