@@ -74,6 +74,10 @@ org.cougaar.tools.make.3rd.party.jars
        <project>/jars
 org.cougaar.tools.make.omit.module.<module>
        set to true to leave <module> out of the list of all modules
+org.cougaar.tools.make.default.target
+       the default target when no targets are given on the command
+       line. The default default target is compileDir -- compile all
+       the files in the current directory.
 
 Prequisites
 

@@ -79,6 +79,10 @@ public class Make {
 	}
 	try {
 	    MakeContext context = new MakeContext(properties);
+            if (targets.size() == 0) {
+                targets.add(properties.getProperty(MakeContext.PROP_DEFAULT_TARGET,
+                                                   MakeContext.DEFAULT_TARGET));
+            }
 	    for (Iterator i = targets.iterator(); i.hasNext(); ) {
 		String tgt = (String) i.next();
 		context.makeTarget(tgt);

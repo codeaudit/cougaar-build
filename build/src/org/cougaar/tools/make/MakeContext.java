@@ -38,6 +38,9 @@ public class MakeContext {
     public static final String PROP_JIKES            = PROP_PREFIX + "jikes";
     public static final String PROP_3RD_PARTY_JARS   = PROP_PREFIX + "3rd.party.jars";
     public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
+    public static final String PROP_DEFAULT_TARGET   = PROP_PREFIX + "default.target";
+
+    public static final String DEFAULT_TARGET = "compileDir";
 
     private String theModuleName;
     private File theCurrentDirectory;
