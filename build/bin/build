@@ -37,10 +37,6 @@ $verbose = 1;
 $pointP = 0;
 $isSigning = 1;
 
-# I think this is right - search for !$moby_* for likely cleanups
-$moby_src = 1;			# build one big product-src.zip
-$moby_api = 1;			# build one big product-api.zip
-
 sub parse_args {
   while ($#ARGV>=0) {
     $_ = shift @ARGV;
@@ -480,18 +476,11 @@ if (! $opt_m || $nodoc) {
 # build product-support.zip
 &build_3rdparty;
 
-if (!$moby_api) {
-  print "Building module unified\n";
-  # build unified javadoc
-  &build_javadoc("unified", "$product-api") if (!$nodoc);
-  print "Done building unified\n";
-}
-
 &generateProductAntRecipe($product);
 
 # do the moby source zip (requires the xml files)
-&build_moby_src if ($moby_src);
-&build_moby_api if ($moby_api);
+&build_moby_src;
+&build_moby_api;
 
 # add any dist extras
 &add_dist;
@@ -831,82 +820,6 @@ sub build_module {
 
   $moduleFailed{$mod} = !$builtjar;
 
-  if (! $moby_src) {
-  # now create the product-module.zip file
-    if (isPublic($mod)) {
-      my $tmpdir = "$tmp/build-$mod.$$";
-      mkd $tmpdir;
-      my $tmpdist = "$tmpdir/$mod";
-      mkd "$tmpdist";
-
-      chdir "$srcdir/$mod";
-
-      my $make_zip = 0;		# should we emit a zipfile?
-      my $standalone_p = opt("$mod.standalone");
-
-      my $pkg_name;
-      if ( $standalone_p) {
-	$pkg_name = "$mod";
-      } else {
-	$pkg_name = "$mod-dev";
-      }
-
-      if ($standalone_p && $split_p) {
-	# make install some jars in the dist package
-	my $tlib = "$tmpdist/lib";
-	mkd $tlib;
-	foreach $split (@splits) {
-	  my $pjar = "$libdir/${mod}_$split.jar";
-	  my $djar = "$tlib/${split}.jar";
-	  if (-e $pjar) {
-	    &cp($pjar,$djar);
-	    $make_zip++;
-	  }
-	}
-      }
-
-      # bin,data,configs are now shipped as runtime parts.
-      # Ship "dev" as a hack location for non-java and codegen source
-      # placeholder.
-      my @shipped_subdirs = ( "src", "examples", "regress", "dev" );
-      my @maybe_subdirs = @shipped_subdirs;
-      my @subdirs = ();
-      my @runtime_subdirs = ("bin", "data", "configs", "doc");
-      @maybe_subdirs = (@maybe_subdirs,@runtime_subdirs) if ($standalone_p);
-
-      foreach $sub (@maybe_subdirs) {
-	if (-d "$srcdir/$mod/$sub") {
-	  push @subdirs, $sub ;
-	}
-      }
-
-      if (-e "$srcdir/$mod/build.xml") {
-	push @subdirs, "build.xml";
-      }
-
-      my $subdirs = join(" ", @subdirs);
-      if ($subdirs) {
-	$make_zip = 1;		# something to emit
-	mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
-
-	if (! $moby_api) {
-	# only do javadoc if it is not part of the unified build, and not split
-	  if ((! $split_p) && (! isUnified($mod))) {
-	    mkd "$tmpdist/doc";
-	    mkd "$tmpdist/doc/api";
-	    javadoc($mod, $mysrc, "$tmpdist/doc/api") if (!$nodoc);
-	  }
-	}
-      }
-
-      fixbats($tmpdir);
-
-      zip("$product $module", $tmpdir, $distdir, $pkg_name) if $make_zip;
-
-      chdir($mymod);
-      mysystem("rm -rf $tmpdir");
-    }
-  }
   print "Done building $mod\n";
   $moduleDone{$mod}=1;
   return 1;
@@ -1343,28 +1256,6 @@ sub build_3rdparty {
   chdir $build_dir;
   mysystem("rm -rf $tmpdir");
   print "Done building 3rdparty dist\n" if $verbose;
-}
-
-sub build_javadoc {
-  local($mod,$dest)=@_;
-
-  return if (!opt("$mod.javadoc",1));
-  $dest = "$mod-api" if ($dest eq "");
-
-  print "\nBuilding javadoc of $mod\n" if $verbose;
-
-  # generate javadoc from unified source
-  my $tmpdir = "$tmp/javadoc.$$";
-  mkd $tmpdir;
-  mkd "$tmpdir/doc";
-  mkd "$tmpdir/doc/api";
-  javadoc($mod, "$srcdir/$mod/src", "$tmpdir/doc/api");
-
-  chdir $tmpdir;
-  zip("$product javadoc apis", $tmpdir, $distdir, $dest);
-  chdir $build_dir;
-  mysystem("rm -rf $tmpdir");
-  print "Done building javadoc for $mod\n" if $verbose;
 }
 
 sub add_dist {
