@@ -97,12 +97,48 @@ if ($opt_t && !$opt_a) {
   $auto = $opt_t;
 }
 
+$lockfile = "$tmp/LOCK";
+acquireLock();
 logMessage("Started");
+
+sub acquireLock {
+  if (open(LOCK, "<$lockfile")) {
+    $pid = <LOCK>;
+    close(LOCK);
+    chop $pid;
+    logMessage("Lockfile $lockfile is owned by process $pid - exiting.");
+    die("Could not acquire lock $lockfile");
+  }
+
+  if (!open(LOCK, ">$lockfile")) {
+    logMessage("Couldn't open lockfile $lockfile for write - something seriously wrong");
+    die("Could not acquire lock $lockfile");
+  }
+  print LOCK "$$\n";
+  close(LOCK);
+}
+
+sub releaseLock {
+  if (! open(LOCK, "<$lockfile")) {
+    logMessage("Couldn't read lockfile $lockfile - we'll assume it is ok");
+    return;
+  }
+  $pid = <LOCK>;		# one line;
+  close(LOCK);
+
+  chop $pid;
+  if (! ($pid eq $$)) {
+    logMessage("Lock held by $pid instead of $$ - someone is probably losing");
+    return;
+  }
+  unlink($lockfile);
+}
 
 # handle signals
 sub sighandler {
   local ($sig) = @_;
   print "Caught a SIG$sig -- exiting\n";
+  releaseLock();
   logMessage("build failed (signal $sig)");
   exit(0);
 }
@@ -177,7 +213,9 @@ mysystem("rm -rf $tmpdir");
 
 mysystem("rm -rf $builddir") if $cleanup;
 
+releaseLock();
 logMessage("Finished");
+
 
 exit 0;
 
