@@ -85,7 +85,7 @@ sys.lib=module:jars
 modules=\
 	build,javaiopatch,bootstrap,util,core,contract,toolkit,planserver, \
 	glm,scalability,aggagent,\
-	vishnu,glmtrans,datagrabber,\
+	vishnu,datagrabber,\
 	uiframework,blackjack,\
 	base,\
 	tutorial,\
@@ -109,7 +109,7 @@ default.public=1
 # modules which contribute to unified api (javadoc & moby src)
 modules.unified = build,bootstrap,util,core,\
 	contract,toolkit,planserver,\
-	glm,glmtrans,scalability,aggagent,\
+	glm,scalability,aggagent,\
 	uiframework, server, manager, community,\
 	webserver,server
 
@@ -190,11 +190,6 @@ vishnu.repository = internal
 datagrabber.deps = core,glm,toolkit,planserver,util
 datagrabber.jars = xerces,chart,openmap,servlet
 datagrabber.repository = internal
-
-# glm transportation 
-glmtrans.deps = core,glm,toolkit,vishnu,util
-glmtrans.jars = xerces,servlet,vishnuServer
-glmtrans.repository = internal
 
 # delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
 delta.deps = core,glm,toolkit,planserver,javaiopatch,util
@@ -278,13 +273,13 @@ dbms.repository = dbms
 # Adaptive Logistics jars
 #
 # AL BBN
-albbn.deps = core,planserver,util,toolkit,glm,glmtrans,vishnu
+albbn.deps = core,planserver,util,toolkit,glm,vishnu
 albbn.jars = xerces,openmap,fesi-111,jcchart,servlet
 albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 albbn.module = bbn
 
 # AL SRA
-alsra.deps = core,planserver,util,toolkit,glm,glmtrans,vishnu,albbn
+alsra.deps = core,planserver,util,toolkit,glm,vishnu,albbn
 alsra.jars = xerces,openmap,fesi-111,jcchart,servlet
 alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
 alsra.module = sra
