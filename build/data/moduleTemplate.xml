@@ -197,7 +197,7 @@
 
     <!-- What are the dependencies of this module at compile time -->
     <path id="compile.classpath">
-      <filelist dir="${target.lib}" files="${compile.jarlist}"/>
+      <filelist dir="." files="${compile.jarlist}"/>
       <pathelement path="${compile.abs.jarlist}"/>
     </path>
     
@@ -205,7 +205,7 @@
     <path id="junit.classpath">
       <path location="${module.classes}" />
       <path location="${module.regress}" />
-      <filelist dir="${target.lib}" files="${run.jarlist}"/>
+      <filelist dir="." files="${run.jarlist}"/>
       <pathelement path="${run.abs.jarlist}"/>
       <!-- junit.jar always comes from sys directory -->
       <path location="${target.sys}/junit.jar"/>
@@ -215,7 +215,7 @@
     <path id="javadoc.path">
       <path location="${module.classes}" />
       <path location="${module.regress}" />
-      <filelist dir="${target.lib}" files="${run.jarlist}"/>
+      <filelist dir="." files="${run.jarlist}"/>
       <pathelement path="${run.abs.jarlist}"/>
     </path>
 
