@@ -100,7 +100,7 @@ found as specified, it will try to check from cvs using the current CVSROOT from
 build/data/<ReleaseDescriptionFile> and use that.
 
 Examples:
-Standard vebose build of the HEAD:
+Standard verbose build of the HEAD:
 	build -v default.build
 Retroactively point-tag the repositories at a specific date:
 	build  -D '7/31/2001 10:00:11' -t V8_3_0 default.build
