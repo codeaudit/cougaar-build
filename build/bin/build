@@ -450,6 +450,8 @@ sub build_module {
     my $syslib = opt("sys.lib");
     if (-e "$syslib/junit.jar") {
       $extrajars = "$extrajars:$syslib/junit.jar";
+    } else {
+      print "Warning: could not find $syslib/junit.jar -- regression tests will probably fail.";
     }
     # compile regress tests, but don't jar the results up
     compile_dir($mod, $myreg, $tmplib, $extrajars);
