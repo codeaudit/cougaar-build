@@ -46,6 +46,20 @@ You can always run "build -h" to get some help information.
     (	-r <t>	tag/build relative to the named branch instead of
 		HEAD )
 
+3. Another example:
+We have just had the 9.4 Development freeze, and need a branch for it.
+So we:
+1) Find the appropriate succesful head build, and the time of that
+build from build.out (6/17/2002 12:00:07 in this case)
+2) Do a branch, a la:
+
+   build -v -D '6/17/2002 12:00:07' -t B9_4 -b
+
+Note: This is a branch, so use the prefix 'B'. We are branching off of
+the head, so no '-r' option is necessary.
+3) Update the HEAD builds if necessary (less frequent) and start
+regular builds of the branch.
+
 Notes:
  - the build scripts will take a while to run - don't worry.
  - Although the build script ought to work on windows (with cygwin),
@@ -54,3 +68,4 @@ I've never tried it.  linux is preferred here.
 it and made a mistake.  This turns it into a destructive operation, so
 you'd better be completely certain that you are doing things right the
 second time!
+
