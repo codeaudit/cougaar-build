@@ -613,6 +613,7 @@ public class MakeContext {
                 command.addAll(Arrays.asList(JAVAC));
             }
             if (isDeprecation()) command.add("-deprecation");
+	    command.add("-g");
             command.add("-classpath");
             command.add(getClassPath(testClasses));
             command.add("-d");

@@ -1,3 +1,11 @@
+2001-10-01  Ray Tomlinson  <RTomlinson@HEFEWEIZEN>
+
+	* src/org/cougaar/tools/make/MakeContext.java (Repository):
+	Include -g option in all compilations.
+
+	* bin/domake (Repository):
+	Default installpath to /cougaar if not specified
+
 2001-04-18  Michael Thome  <mthome@bbn.com>
 
 	* bin/build, data/*.build
