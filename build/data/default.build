@@ -10,6 +10,8 @@ javac = jikes
 # +P	pedantic compilation - issue lots of style/usage warnings
 # -g	include as much debugging info as possible (local vars)
 # -deprecation report uses of deprecated features.
+# this is a good recipe for finding potential problems
+#javac = jikes +P -deprecation
 
 #javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
 # -g	include as much debugging info as possible (local vars)
@@ -118,7 +120,7 @@ scalability.jars = xerces
 vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
 glmtrans.jars = xerces
-delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50
+delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
 blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
