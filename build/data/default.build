@@ -151,7 +151,7 @@ server.deps = core, util, bootstrap
 manager.deps = core, server, util, glm
 
 # contract
-contract.deps = core, util
+contract.deps = util
 contract.jars = xerces
 
 # toolkit
