@@ -34,6 +34,7 @@ import java.lang.reflect.*;
 
 // Standard doclet 
 import com.sun.tools.doclets.standard.*;
+import com.sun.tools.doclets.standard.tags.*;
 
 /**
  * An extension of the "Standard" Doclet for generating files which 
@@ -69,7 +70,7 @@ public class CougaarDoclet
   protected void startGeneration(RootDoc root) throws DocletAbortException {
     super.startGeneration(root);
 
-    ParameterListWriter.generate(root);
+    ParameterListWriter.generate(configuration, root);
   }
 
   private static RootDoc hackRootDoc(final RootDoc root) {
@@ -94,12 +95,12 @@ public class CougaarDoclet
 
 }
 
-class ParameterListWriter extends HtmlStandardWriter {
+class ParameterListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
 
   public final static String PARAMETERFILE = "Parameters.html";
 
-  public ParameterListWriter(String filename) throws IOException {
-    super(filename);
+  public ParameterListWriter(ConfigurationStandard cs, String filename) throws IOException {
+    super(cs, filename);
   }
 
   /**
@@ -107,11 +108,11 @@ class ParameterListWriter extends HtmlStandardWriter {
    *
    * @param root the root of the doc tree.
    */
-  public static void generate(RootDoc root) throws DocletAbortException {
+  public static void generate(ConfigurationStandard cs, RootDoc root) throws DocletAbortException {
     ParameterListWriter packgen;
     String filename = PARAMETERFILE;
     try {
-      packgen = new ParameterListWriter(filename);
+      packgen = new ParameterListWriter(cs, filename);
       packgen.generateParameterListFile(root);
       packgen.close();
     } catch (IOException exc) {

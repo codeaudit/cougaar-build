@@ -15,16 +15,17 @@ product.name=cougaar
 tmp = /tmp
 
 # if set, java.home will be used to find java, jar, javadoc, rmi
-java.home = /usr/local/java/jdk1.3
+java.home = /usr/local/java/jdk1.4
 # java.command may be used to figure out java.home if not otherwise
 java.command = java
 # old syntax (still grudginly accepted)
-# java = /usr/local/java/jdk1.3/bin/java
+# java = /usr/local/java/jdk1.4/bin/java
 
 # which compiler to use.  valid options are "javac" and "jikes" and
 # the actual command executed will depend on the $javac.command
 # options below
-compiler = jikes
+#compiler = jikes
+compiler = javac
 
 # these may be modified to have full path names, or they will be found
 # either via java.home or on the path.
@@ -45,13 +46,13 @@ compiler.debug = 1
 #compiler.optimize = 1
 
 # arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
-#javac.arguments = -J-Xmx128m -J-Xms128m
+javac.arguments = -source 1.4 -target 1.4 -J-Xmx128m -J-Xms128m
 #jikes.arguments =
 
 # javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
 # javadoc.command = javadoc
 # default memory settings are not enough to build the unified javadoc
-# javadoc.arguments = -J-Xmx128m -J-Xms128m
+javadoc.arguments = -breakiterator -source 1.4 -quiet -J-Xmx128m -J-Xms128m
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/
