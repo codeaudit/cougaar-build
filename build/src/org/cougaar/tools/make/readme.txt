@@ -9,8 +9,10 @@ their package names.
 
 All compilations store their class files in the tmpdir/classes
 subdirectory of the module directory. All generated code files are
-stored in the tmpdir/gencode subdirectory. All jar files are stored in
-the lib subdirectory of the project directory.
+stored in the tmpdir/gencode subdirectory. All jar files are stored or
+found in the lib subdirectory of the project directory. All third
+party jars are found, by default, in the sys subdirectory of the
+project directory.
 
 Targets
 
@@ -49,7 +51,9 @@ jax            -- creates executable jars for corresponding to every
                   includes all the jarable files from all prerequisite
                   modules.
 tags           -- makes a TAGS file using etags of all the source and
-                  generated code for the module.
+                  generated code for the module. The tags files (named
+                  TAGS) are stored in the tmpdir directory of the
+                  module.
 projectTags    -- makes all.tags and the project tags file
 rmic           -- makes the compile target and then runs rmic to
                   create stub classes for rmi server implementations.
@@ -72,6 +76,18 @@ The targets have built-in dependencies on prerequisite targets. For
 example, the compileGenCode has a built-in dependency on the
 generateCode target; the compile targets have build-in dependencies on
 the generateCode target.
+
+Prerequisite Modules
+
+Modules can have prerequisite modules (defined by properties below).
+By default, all prerequisite modules are compiled (compile target)
+before any of the compile targets are made. Furthermore, the classpath
+during compilation will include the <module>/src,
+<module>/tmpdir/classes, and lib/<module>.jar of the prerequisite
+modules. It will _not_ include any of these elements for modules that
+are not listed as prerequisites. There is a command line option
+(-noprerequisites) that skips the compilation of prerequisite modules.
+However, this option does not change the compilation classpath.
 
 Properties
 
