@@ -1598,7 +1598,7 @@ public class PGWriter extends WriterBase {
           if (isTimePhased(context)) {
             print(out,",");
             println(out);
-            print(out,"    {\""+pkg+".PropertyGroupSchedule\", \"new"+context+"Schedule\"}");
+            print(out,"    {\"org.cougaar.planning.ldm.asset.PropertyGroupSchedule\", \"new"+context+"Schedule\"}");
           }
           if (contexts.hasMoreElements())
             print(out,",");
@@ -1883,19 +1883,43 @@ public class PGWriter extends WriterBase {
           println(out,"  }");
           println(out);
 
-          println(out,"  /** Test for existence of a "+context+"\n"+
-                      "   **/");
+          // For timephased - get default
           if (timephased) {
-            timeVar = "long time";
+            println(out,"  public "+context+" get"+context+"()");
+            println(out,"  {");
+            println(out,"    PropertyGroupSchedule pgSchedule = get"+context+
+                    "Schedule();");
+            println(out,"    if (pgSchedule != null) {");
+            println(out,"      return ("+context+
+                    ") pgSchedule.getDefault();");
+            println(out,"    } else {");
+            println(out,"      return null;");
+            println(out,"    }");
+            println(out,"  }");
+            println(out);
           }
-          println(out,"  public boolean has"+context+"("+timeVar+") {\n");
 
           if (timephased) {
-            timeVar = "time";
+            println(out,"  /** Test for existence of a default "+context+"\n"+
+                    "   **/");
+          } else {
+            println(out,"  /** Test for existence of a "+context+"\n"+
+                    "   **/");
           }
-          println(out,"    return (get"+context+"("+timeVar+") != null);\n"+
-                      "  }");
+          println(out,"  public boolean has"+context+"() {");
+          println(out,"    return (get"+context+"() != null);\n"+
+                  "  }");
           println(out);
+
+
+          if (timephased) {
+            println(out,"  /** Test for existence of a "+context+
+                    " at a specific time\n"+"   **/");
+            println(out,"  public boolean has"+context+"(long time) {");
+            println(out,"    return (get"+context+"(time) != null);\n"+
+                      "  }");
+            println(out);
+          }
 
           String vr = "a"+context;
           println(out,"  /** Set the "+context+" property.\n"+
