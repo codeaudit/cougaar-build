@@ -241,7 +241,7 @@ sub checkout {
     $tag = $rtag if (!$tag);
 
     my $arg = "";
-    $arg = "-Q" if ($verbose<=1);
+    $arg = "-Q";# if ($verbose<=1);
     my $rarg="";
     # special case for HEAD - bogon.
     $rarg = "-r $tag" if (! ($tag eq "HEAD"));
