@@ -118,7 +118,8 @@ public class MakeContext {
         ".jpg",
         ".png",
         ".html",
-        ".htm"
+        ".htm",
+        ".q"
     };
     private Set madeTargets = new HashSet();
 
@@ -690,6 +691,8 @@ public class MakeContext {
      * Run jar on a bunch of arguments.
      **/
     public void jar(File jarFile, File manifestFile, JarSet[] jarSets) throws MakeException {
+        List redo = new ArrayList();
+        boolean didFullDirectory = false;
         List args = new ArrayList();
         if (manifestFile != null) {
             args.add("-cmf");
@@ -701,9 +704,14 @@ public class MakeContext {
         for (int j = 0; j < jarSets.length; j++) {
             JarSet jarSet = jarSets[j];
             if (jarSet.files == null) {
-                args.add("-C"); // Do all files
-                args.add(jarSet.root.getPath());
-                args.add(".");
+                if (didFullDirectory) {
+                    redo.add(jarSet);
+                } else {
+                    args.add("-C"); // Do all files
+                    args.add(jarSet.root.getPath());
+                    args.add(".");
+                    didFullDirectory = true;
+                }
             } else {
                 String[] tails = getTails(jarSet.root, jarSet.files);
                 for (int i = 0; i < tails.length; i++) {
@@ -715,6 +723,17 @@ public class MakeContext {
         }
         String[] argStrings = (String[]) args.toArray(new String[args.size()]);
         runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length);
+        for (Iterator i = redo.iterator(); i.hasNext(); ) {
+            JarSet jarSet = (JarSet) i.next();
+            args.clear();
+            args.add("-uf");
+            args.add(jarFile.getPath());
+            args.add("-C"); // Do all files
+            args.add(jarSet.root.getPath());
+            args.add(".");
+            argStrings = (String[]) args.toArray(new String[args.size()]);
+            runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length);
+        }
     }
 
     /**
