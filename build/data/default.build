@@ -142,7 +142,7 @@ util.jars = log4j, xerces
 
 # core
 core.deps = bootstrap, util
-core.jars = log4j, servlet
+core.jars = log4j, servlet, concurrent
 
 # yellow pages
 yp.deps = util, core
