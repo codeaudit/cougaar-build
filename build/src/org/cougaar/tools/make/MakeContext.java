@@ -40,6 +40,7 @@ public class MakeContext {
     public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
     public static final String PROP_DEFAULT_TARGET   = PROP_PREFIX + "default.target";
     public static final String PROP_NO_PREREQUISITES = PROP_PREFIX + "no.prerequisites";
+    public static final String PROP_OMIT             = PROP_PREFIX + "omit.module.";
 
     public static final String DEFAULT_TARGET = "compileDir";
 
@@ -109,7 +110,7 @@ public class MakeContext {
         theModuleRoots = getProjectRoot().listFiles(new FileFilter() {
             public boolean accept(File f) {
                 if (f.isDirectory() && new File(f, "src").isDirectory()) {
-                    return (theProperties.getProperty("omit.module." + f.getName(), "false")
+                    return (theProperties.getProperty(PROP_OMIT + f.getName(), "false")
                             .equals("false"));
                 }
                 return false;
@@ -391,13 +392,25 @@ public class MakeContext {
         MakeException e = null;
         while (offset < sources.length) {
             int nfiles = Math.min(sources.length - offset, 200);
-            String[] command = new String[] {
-                (jikes && jikesClassPath != null) ? JIKES : JAVAC,
-                "-classpath",
-                getClassPath(),
-                "-d",
-                getClassesRoot().getPath()
-            };
+            String[] command;
+            if (jikes && jikesClassPath != null) {
+                command = new String[] {
+                    JIKES,
+                    "+D",
+                    "-classpath",
+                    getClassPath(),
+                    "-d",
+                    getClassesRoot().getPath()
+                };
+            } else {
+                command = new String[] {
+                    JAVAC,
+                    "-classpath",
+                    getClassPath(),
+                    "-d",
+                    getClassesRoot().getPath()
+                };
+            }
             try {
                 runExecutable(command, sources, offset, nfiles);
             } catch (MakeException me) {
@@ -584,11 +597,15 @@ public class MakeContext {
         MakeException e = null;
         String[] writeCmd = new String[] {
             ETAGS,
+            "-r",
+            "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/",
             "-o",
             tagsFile.getPath()
         };
         String[] appendCmd = new String[] {
             ETAGS,
+            "-r",
+            "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/",
             "-o",
             tagsFile.getPath(),
             "-a"
