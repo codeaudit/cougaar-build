@@ -301,10 +301,15 @@ Products required:
     </classpath>
   </javac>
 
+  <echo message="copying def/images from ${build.srcdir} to ${build.destdir}..."/>
   <!-- copy various files directly from source into the lib tree for jarring -->
   <copy todir="${build.destdir}" >
     <fileset dir="${build.srcdir}" >
-	<include name="**/*.def,**/*.props,**/*.gif,**/*.jpg,**/*.png" />
+	<include name="**/*.def"/>
+	<include name="**/*.props"/>
+	<include name="**/*.gif"/>
+	<include name="**/*.jpg"/>
+	<include name="**/*.png"/>
     </fileset>
   </copy>
 
