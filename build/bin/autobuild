@@ -86,11 +86,12 @@ $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
-&Getopts('vVm:a:t:d:hkT:H:po:n:j:Cg:S:');
+&Getopts('vVm:a:t:d:hkT:H:po:n:j:Cg:S:E');
 if ($opt_h) {
   print STDOUT "Usage: autobuild [args]\n";
   print STDOUT "\t-v\tVerbose mode\n";
-  print STDOUT "\t-V\tVery Verbose mode (also prints error log)\n";
+  print STDOUT "\t-V\tVery Verbose mode (implies -E)\n";
+  print STDOUT "\t-E\tPrints error log\n";
   print STDOUT "\t-a name\tDirectory name instead of 'auto'\n";
   print STDOUT "\t-S buildspec\tURL or spec to use instead of default HEAD build\n";
   print STDOUT "\t-t tag\tTag to use instead of 'HEAD' (deprecated - use -S instead)\n";
@@ -108,6 +109,8 @@ if ($opt_h) {
   print STDOUT "\t-m address\tSend email to address if the build fails\n";
   exit(-1);
 }
+
+$printErrorlog = $opt_E;
 
 if ($opt_g) {
   $group = $opt_g;
@@ -133,6 +136,7 @@ $javahome = $opt_j if ($opt_j);
 
 $verbose++ if $opt_v;
 $verbose=3 if $opt_V;
+if ($verbose > 2) { $printErrorlog++; }
 $auto = $opt_a if ($opt_a);
 $data = $opt_d if ($opt_d);
 $mailaddr = $opt_m if ($opt_m);
@@ -268,7 +272,7 @@ $status = "UNKNOWN";
 }
 
 # output the error log for requested builds
-printErrors() if ($verbose>2);
+printErrors() if ($printErrorlog);
 
 # send email if requested
 if (! ($status eq "SUCCEEDED")) {
