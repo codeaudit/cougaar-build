@@ -146,7 +146,7 @@ scalability.jars = xerces
 
 # aggregation agent
 aggagent.deps = core,planserver,glm
-aggagent.jars = xerces,xalan,jpython,silk
+aggagent.jars = xerces,xalan,jpython,silk,servlet
 
 # vishnu scheduler
 vishnu.deps = core,toolkit,glm
