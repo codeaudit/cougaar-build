@@ -146,7 +146,7 @@ core.jars = log4j, servlet
 
 # yellow pages
 yp.deps = util, core
-yp.jars = jaxr-api
+yp.jars = uddi4j
 
 # planning
 planning.deps = util, core
