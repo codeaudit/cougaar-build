@@ -1,17 +1,22 @@
 # COUGAAR release build driver for the HEAD (currently > 8.2)
 
+product.name=cougaar
+
 java = /usr/local/java/jdk1.3/bin/java
 #java = /usr/local/java/jdk1.4/bin/java
 #javadoc = /usr/local/java/jdk1.4/bin/javadoc
 javac = jikes -g
 #javac = javac -J-Xmx128m -J-Xms128m -g
 
-repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
+# repository.base defaults to CVSROOT without the trailing "cougaar"
+#repository.base=/cvs/alp/
 repository.default=cougaar
-tag.default=HEAD
-product.name=cougaar
+# HEAD is the default
+#tag.default=HEAD
 sys.lib=/home/cougaar/build.jars
-build.root=/tmp/head
+
+# build.root defaults to /tmp/{product.name}
+# build.root=/tmp/head
 
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
