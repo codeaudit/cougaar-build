@@ -369,6 +369,8 @@ sub checkout {
     # special case for HEAD - bogon.
     $rarg = "-r $tag" if (! ($tag eq "HEAD"));
     if ($checkoutP) {
+      # hack to allow us to checkout a branch at a specific time
+      $rarg .= " -D '$opt_D'" if ($opt_D);
       # leave it in development mode
       mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $mod");
     } else {
@@ -1196,9 +1198,8 @@ sub getCVSROOT {
 
 sub tag {
   my($newtag) = @_;		# name to use for tagging
-  # if($branchP) branch
-  # $rtag relative tag (or HEAD)
-  # $rdate relative date (or "now")
+  my ($barg)="";
+  $barg = "-b" if($branchP);
 
   foreach $mod (@modules) {
     my $rep = getCVSROOT($mod);
