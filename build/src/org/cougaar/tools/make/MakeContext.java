@@ -129,7 +129,7 @@ public class MakeContext {
                                      "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/"
     }; 
     private final String[] JAR    = {"jar"};
-    private final String[] JAVADOC= {"javadoc"};
+    private final String[] JAVADOC= {"javadoc", "-source", "1.4"};
     private Class[] targetMethodParameterTypes = new Class[0];
     private Object[] targetMethodParameters = new Class[0];
     private Properties theProperties;
