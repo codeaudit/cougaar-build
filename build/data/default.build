@@ -176,7 +176,7 @@ aggagent.jars = xerces,jpython,silk,servlet
 
 # vishnu scheduler
 vishnu.deps = core,toolkit,glm,util
-vishnu.jars = xerces
+vishnu.jars = xerces,vishnuServer
 vishnu.repository = internal
 
 # tops
@@ -192,7 +192,7 @@ datagrabber.repository = internal
 
 # glm transportation 
 glmtrans.deps = core,glm,toolkit,vishnu,util
-glmtrans.jars = xerces,servlet
+glmtrans.jars = xerces,servlet,vishnuServer
 glmtrans.repository = internal
 
 
