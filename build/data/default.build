@@ -300,7 +300,7 @@ stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 #stoplight.tag = HEAD
 #stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent
-stoplight.jars = xercesImpl,xml-apis,servlet
+stoplight.jars = xercesImpl,xml-apis,servlet, openmap
 
 #
 # ServiceDiscovery
