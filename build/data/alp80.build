@@ -1,7 +1,9 @@
 
 java = /usr/local/java/jdk1.3/bin/java
 javac = jikes -g
-#javac = javac -J-Xmx128m -J-Xms128m -g
+#javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
+javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
+
 
 repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
 repository.default=cougaar

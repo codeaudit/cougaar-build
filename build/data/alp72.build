@@ -1,5 +1,7 @@
 # ALP 7.2.x build configuration
 
+javadoc = /usr/local/java/jdk1.2/bin/javadoc -J-Xmx128m -J-Xms128m
+
 java = /usr/local/java/jdk1.2/bin/java
 javac = jikes -g
 #javac = javac -J-Xmx128m -J-Xms128m -g

@@ -1,33 +1,72 @@
+# COUGAAR release build driver for the HEAD (currently > 8.2)
 
+product.name=cougaar
+
+### Begin System specific definitions 
+
+## holodeck:
+#java = /usr/local/java/jdk1.3/bin/java
+#javac = jikes -g
+#javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
+#sys.lib=/home/mdamish/alpbuild-2001/build.jars
+
+## hops:
 java = /usr/local/java/jdk1.3/bin/java
 javac = jikes -g
 #javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
 javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
+sys.lib=/home/mdamish/alpbuild-2001/build.jars
 
-repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
-repository.default=cougaar
-tag.default=V8_2
-product.name=cougaar
-sys.lib=/home/cougaar/build.jars
-build.root=/tmp/V82
+
+## eiger:
+#java = /usr/local/java/j2sdk1_3_0_02/bin/java
+#javac = /usr/local/java/jikes-1.14 -g
+#javadoc = /usr/local/java/j2sdk1_3_0_02/bin/javadoc -J-Xmx128m -J-Xms128m
+#sys.lib=/export/home/build/alpbuild-2001/build.jars
+
+
+
+#java = /usr/local/java/jdk1.4/bin/java
+#javadoc = /usr/local/java/jdk1.4/bin/javadoc
+#javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
+
+# repository.base defaults to CVSROOT without the trailing "cougaar"
+#repository.base=/cvs/alp/
+
+# default repository tag is "cougaar"
+#repository.default=cougaar
+
+# HEAD is the default
+#tag.default=HEAD
+
+
+# build.root defaults to /tmp/{product.name}
+# build.root=/tmp/head
+
+###  END System specific definitions.
+
 
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,delta,blackjack,uiframework,Marine,\	# plugins
-	base
+	vishnu,tops,delta,blackjack,uiframework,Marine,\
+	base,\
+	tutorial
+
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
-	glm,scalability,server,aggagent,uiframework,base
+	glm,scalability,server,aggagent,uiframework,base,tutorial,\
+	tops,vishnu
 
 # modules which contribute to unified api (javadoc)
-modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent
+modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
 
 ##
 ## module-specific flags
 ##
 
+# per-module javac:
 #uiframework.javac=javac
 
 # module deps
@@ -45,27 +84,29 @@ delta.deps = core,glm,toolkit,planserver
 blackjack.deps = core,glm,planserver,toolkit,vishnu
 Marine.deps = core,glm
 uiframework.deps = core,glm,planserver,aggagent
+tutorial.deps = core,glm
 
 # module libs (in addition to module deps)
 core.jars = xerces
 contract.jars = xerces
 toolkit.jars = xerces
 planserver.jars = xerces
-glm.jars = xerces,fesi-111,omcore,jcchart451K
+glm.jars = xerces,fesi-111,jcchart451K
 aggagent.jars = xerces,xalan
 scalability.jars = xerces
-uiframework.jars = omcore,xerces,cuimap,j2ee,vgj
 vishnu.jars = xerces
-tops.jars = xerces,topsga,omcore,openmap,chart
-delta.jars = xerces,activation,jms,jndi,jsdk,mail,omcore,qslink,jess50
+tops.jars = xerces,topsga,openmap,chart
+delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50
 blackjack.jars = xerces,jcchart451K,jsdk
-uiframework.jars = xerces,cuimap,j2ee,vgj,xerces
+uiframework.jars = xerces,openmap,j2ee,vgj,xerces,tops
 Marine.jars = xerces
+tutorial.jars = xerces
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
 glm.extras = oracle12
 tops.extras = mm-mysql-2
+uiframework.extras = mm-mysql-2
 
 # flag other repositories
 tops.repository = internal

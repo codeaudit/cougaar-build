@@ -3,10 +3,15 @@
 product.name=cougaar
 
 java = /usr/local/java/jdk1.3/bin/java
-#java = /usr/local/java/jdk1.4/bin/java
-#javadoc = /usr/local/java/jdk1.4/bin/javadoc
 javac = jikes -g
 #javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
+javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
+
+# java = /usr/local/java/jdk1.3/bin/java
+# #java = /usr/local/java/jdk1.4/bin/java
+# #javadoc = /usr/local/java/jdk1.4/bin/javadoc
+# javac = jikes -g
+# #javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/

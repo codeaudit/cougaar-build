@@ -75,8 +75,8 @@ sub usage {
 parse_args();
 parse_config($opt_file);
 
-$javac_command = "jikes -g";
-#$javac_command = "javac -J-Xmx128m -J-Xms128m -g";
+#$javac_command = "jikes -g";
+$javac_command = "javac -J-Xmx128m -J-Xms128m -g";
 %javac_commands = (
 		   "javac" => "javac -J-Xmx128m -J-Xms128m -g",
 		   "jikes" => "jikes -g",
@@ -84,13 +84,14 @@ $javac_command = "jikes -g";
 $rmic_command = "rmic -g -v1.2";
 
 $java_command = "java";
-$javadoc_command = "/usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m";
-#$javadoc_command = "javadoc -J-Xmx256m -J-Xms256m";
-
 $javac_command = opt("javac",$javac_command);
 $java_command = opt("java", $java_command);
 $javadoc_command = opt("javadoc", $javadoc_command);
 
+
+#$javadoc_command = "/usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m";
+#$javadoc_command = "/usr/local/java/j2sdk1_3_0_02/bin/javadoc -J-Xmx128m -J-Xms128m";
+#$javadoc_command = "javadoc -J-Xmx256m -J-Xms256m";
 
 {
   local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
@@ -548,10 +549,7 @@ sub rundef {
     #print "Running $class\n" if $verbose;
     $args = join " ", @words[1..$#words];
     chdir($dirpath);
-    # pass repository args to code generators
-    my ($skippy) = ($skip?"true":"false");
-    my ($darg)="-Drepository.tag='$rtag' -Drepository.time='$rdate' -Drepository.modified='$skippy'";
-    $rc = mysystem("$java_command -classpath $libdir/build.jar:$cp $darg $class $args $path");
+    $rc = mysystem("$java_command -classpath $libdir/build.jar:$cp $class $args $path");
   }
   close(DEF);
   return $rc;
@@ -792,48 +790,84 @@ sub mysystem {
   }
 }
 
+
+sub sub_for_findbypattern {
+   if (/^CVS$/) {
+      $File::Find::prune = 1;
+      return;
+   }
+   (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_));
+   if (-d $_) {
+      #      if (skipP($_)) {
+      #       $File::Find::prune = 1;
+      #       return;
+      #      }
+      ;
+      } else {
+         if (-f $_ && /$pat/) {
+            push @stuff, $File::Find::name;
+         }
+      }
+} 
+
 sub findbypattern {
   local($dir, $pat) = @_;
   local(@stuff);
+  @stuff = ();
   return @stuff if (! -e $dir);
-  local($code)= sub { 
-    if (/^CVS$/) {
-      $File::Find::prune = 1;
-      return;
-    }
-    (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_));
-    if (-d $_) {
-#      if (skipP($_)) {
-#	$File::Find::prune = 1;
-#	return;
-#      }
-    } else {
-      if (-f $_ && /$pat/) {
-	push @stuff, $File::Find::name;
-      }
-    }
-  };
-  local(%ref);
-  $ref{"wanted"}=$code;
-  &find(\%ref, $dir);
-  @stuff;
+#   local($code)= sub { 
+#     if (/^CVS$/) {
+#       $File::Find::prune = 1;
+#       return;
+#     }
+#     (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_));
+#     if (-d $_) {
+# #      if (skipP($_)) {
+# #	$File::Find::prune = 1;
+# #	return;
+# #      }
+# ;
+#     } else {
+#       if (-f $_ && /$pat/) {
+# 	push @stuff, $File::Find::name;
+#       }
+#     }
+#   };
+#   local(%ref);
+#   $ref{"wanted"}=$code;
+#   #&find(\%ref, $dir);
+  find(\&sub_for_findbypattern, $dir);
+  return @stuff;
 }
+
+
+sub sub_for_finddirs {
+   if (/^CVS$/) {
+      $File::Find::prune = 1;
+   } else {
+      if ((($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && -d $_ ) {
+         push @stuff, $File::Find::name  if (!&skipP($File::Find::name));
+      } 
+   }
+} 
 
 sub finddirs {
   local($dir) = @_;
   local(@stuff);
-  local($code)= sub { 
-    if (/^CVS$/) {
-      $File::Find::prune = 1;
-    } else {
-      if ((($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && -d $_ ) {
-	push @stuff, $File::Find::name 	if (!&skipP($File::Find::name));
-      }
-    }
-  };
-  local(%ref);
-  $ref{"wanted"}=$code;
-  &find(\%ref, $dir);
+  @stuff = ();
+#   local($code)= sub { 
+#     if (/^CVS$/) {
+#       $File::Find::prune = 1;
+#     } else {
+#       if ((($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && -d $_ ) {
+# 	push @stuff, $File::Find::name 	if (!&skipP($File::Find::name));
+#       }
+#     }
+#   };
+#   local(%ref);
+#   $ref{"wanted"}=$code;
+#   #&find(\%ref, $dir);
+  find(\&sub_for_finddirs, $dir);
   @stuff;
 }
 
