@@ -11,11 +11,17 @@ Baseline ANT module build recipe
 	project.classlib	classpath will be augmented by any
 				jarfiles found in this directory.
 Other tricks:
-	-Dclassdir=<foo> with the compile target to compile to some
+	-Dmodule.classdir=<foo> with the compile target to compile to some
 common classpath location.  I sometimes do -Dclassdir=$HOME/lib/classes 
 to compile everything into my very own development directory.
 
-	-Dclassdir=.../src will compile in-place
+	-Dmodule.classdir=.../src will compile in-place
+
+So, for instance, in order to use this to build in-place:
+cd /my/srcdir/core
+ant ../build/buildm.xml -Dbasedir=$PWD -Dcodegen.jar=.../build.jar \
+	-Dmodule.name=core -Dmodule.classdir=$PWD/src compile
+
 -->
 
 <!--
@@ -52,20 +58,19 @@ or globally in your $HOME/.ant.properties.
 <!-- usually reset by the builder -->
 <property name="module.name" value="module" />
 
-<property name="src" value="${basedir}/src" />
+<property name="module.src" value="${basedir}/src" />
 
 <!-- tmp is a temporary directory for interim products. -->
-<property name="mtmpdir" value="${basedir}/tmpdir" />
+<property name="module.tmpdir" value="${basedir}/tmpdir" />
 
 <!-- classdir is where we put compiled java files -->
-<property name="classdir" value="${mtmpdir}/classes" />
-
-<!-- docdir is where we put generated javadoc -->
-<property name="docdir" value="${mtmpdir}/api" />
+<property name="module.classdir" value="${module.tmpdir}/classes" />
 
 <!-- dist is where distributed products go -->
-<property name="dist" value="${mtmpdir}/dist" />
+<property name="module.dist" value="${module.tmpdir}/dist" />
 
+<!-- docdir is where we put generated javadoc -->
+<property name="module.docdir" value="${module.dist}/${module.name}/api" />
 
 <path id="jars">
   <fileset dir="${project.classlib}">
@@ -81,19 +86,23 @@ or globally in your $HOME/.ant.properties.
   <available property="hasDoc" file="${basedir}/doc"/>
   <available property="hasExamples" file="${basedir}/examples"/>
   <available property="hasTest" file="${basedir}/test"/>
+  <mkdir dir="${module.tmpdir}"/>
+  <mkdir dir="${module.classdir}"/>
+  <mkdir dir="${module.dist}"/>
+  <mkdir dir="${module.docdir}"/>
 </target>
 
 <target name="main.compile">
   <antcall target="build">
-	<param name="build.srcdir" value="${src}"/>
-	<param name="build.destdir" value="${classdir}" />
+	<param name="build.srcdir" value="${module.src}"/>
+	<param name="build.destdir" value="${module.classdir}" />
   </antcall>
 </target>
 
 <target name="main.jar" depends="main.compile">
   <antcall target="build">
-	<param name="build.srcdir" value="${src}"/>
-	<param name="build.destdir" value="${classdir}" />
+	<param name="build.srcdir" value="${module.src}"/>
+	<param name="build.destdir" value="${module.classdir}" />
   </antcall>
 </target>
 
@@ -104,7 +113,7 @@ or globally in your $HOME/.ant.properties.
 <target name="examples.compile" depends="main.compile">
   <antcall target="build">
 	<param name="build.srcdir" value="${basedir}/examples"/>
-	<param name="build.destdir" value="${mtmpdir}/examples" />
+	<param name="build.destdir" value="${module.tmpdir}/examples" />
   </antcall>
 </target>
 
@@ -117,7 +126,7 @@ or globally in your $HOME/.ant.properties.
 <target name="test.compile" depends="main.compile">
   <antcall target="build">
 	<param name="build.srcdir" value="${basedir}/test"/>
-	<param name="build.destdir" value="${mtmpdir}/test" />
+	<param name="build.destdir" value="${module.tmpdir}/test" />
   </antcall>
 </target>
 
@@ -131,14 +140,14 @@ or globally in your $HOME/.ant.properties.
 </target>
 
 <target name="doc.real" depends="init" if="hasBuildProps">
-  <mkdir dir="${docdir}" />
-  <!-- ${src}/build.properties must define doc.packages to be
+  <!-- ${module.src}/build.properties must define doc.packages to be
 something like org.cougaar.tools.build.* (e.g. for the build module) -->
-  <property file="${src}/build.properties"/>
+  <property file="${module.src}/build.properties"/>
+  <echo message="Generating javadoc for ${module.src} (${doc.packages}) to ${module.docdir}"/>
   <javadoc
 	packagenames="${doc.packages}"
-	sourcepath="${src}"
-	destdir="${docdir}"
+	sourcepath="${module.src}"
+	destdir="${module.docdir}"
 	classpathref="jars"
 	additionalparam="-J-Xmx128m"
 	>
@@ -150,45 +159,45 @@ something like org.cougaar.tools.build.* (e.g. for the build module) -->
 </target>
 
 <target name="dist" depends="init,compile,examples,test,doc">
-  <!-- Create the module distribution and put it in ${dist}.
+  <!-- Create the module distribution and put it in ${module.dist}.
 Products required:
-	${dist}/lib/${module.name}.jar
-	${dist}/${module.name}/src.jar
-	${dist}/${module.name}/examples.jar
-	${dist}/${module.name}/test.jar
-	${dist}/${module.name}/doc/*
-	${dist}/${module.name}/api/*
-	${dist}/${module.name}/bin/*
-	${dist}/${module.name}/data/*
+	${module.dist}/lib/${module.name}.jar
+	${module.dist}/${module.name}/src.jar
+	${module.dist}/${module.name}/examples.jar
+	${module.dist}/${module.name}/test.jar
+	${module.dist}/${module.name}/doc/*
+	${module.dist}/${module.name}/api/*
+	${module.dist}/${module.name}/bin/*
+	${module.dist}/${module.name}/data/*
 	-->
 
-  <property name="mod" value="${dist}/${module.name}"/>
+  <property name="module.mod" value="${module.dist}/${module.name}"/>
 
-  <mkdir dir="${dist}/lib"/>
-  <mkdir dir="${mod}"/>
+  <mkdir dir="${module.dist}/lib"/>
+  <mkdir dir="${module.mod}"/>
 
-  <!-- ${dist}/lib/${module.name}.jar -->
+  <!-- ${module.dist}/lib/${module.name}.jar -->
   <antcall target="jar">
-    <param name="jar.jarfile" value="${dist}/lib/${module.name}.jar"/>
-    <param name="jar.basedir" value="${classdir}"/>
-    <param name="jar.srcdir" value="${src}"/>
+    <param name="jar.jarfile" value="${module.dist}/lib/${module.name}.jar"/>
+    <param name="jar.basedir" value="${module.classdir}"/>
+    <param name="jar.srcdir" value="${module.src}"/>
   </antcall>
 
-  <!-- ${mod}/src.jar -->
+  <!-- ${module.mod}/src.jar -->
   <antcall target="jarsources">
-    <param name="jar.jarfile" value="${mod}/src.jar"/>
-    <param name="jar.basedir" value="${src}"/>
+    <param name="jar.jarfile" value="${module.mod}/src.jar"/>
+    <param name="jar.basedir" value="${module.src}"/>
   </antcall>
 
-  <!-- ${mod}/examples.jar -->
+  <!-- ${module.mod}/examples.jar -->
   <antcall target="jarsources">
-    <param name="jar.jarfile" value="${mod}/examples.jar"/>
+    <param name="jar.jarfile" value="${module.mod}/examples.jar"/>
     <param name="jar.basedir" value="${basedir}/examples"/>
   </antcall>
 
-  <!-- ${mod}/test.jar -->
+  <!-- ${module.mod}/test.jar -->
   <antcall target="jarsources">
-    <param name="jar.jarfile" value="${mod}/test.jar"/>
+    <param name="jar.jarfile" value="${module.mod}/test.jar"/>
     <param name="jar.basedir" value="${basedir}/test"/>
   </antcall>
 
@@ -198,9 +207,11 @@ Products required:
   </antcall>
 
   <!-- copy api -->
+  <!--  done by dist target
   <antcall target="copydir">
     <param name="dirname" value="api"/>
   </antcall>
+  -->
 
   <!-- copy bin -->
   <antcall target="copydir">
@@ -219,18 +230,18 @@ Products required:
 </target>
 
 <target name="copydir">
-  <available property="hazit" file="${basedir}/${dirname}"/>
+  <available property="copydir.hazit" file="${basedir}/${dirname}"/>
   <antcall target="copydir1">
-    <param name="todir" value="${mod}/${dirname}"/>
-    <param name="fromdir" value="${basedir}/${dirname}"/>
+    <param name="copydir.todir" value="${module.mod}/${dirname}"/>
+    <param name="copydir.fromdir" value="${basedir}/${dirname}"/>
   </antcall>
 </target>
 
-<target name="copydir1" if="hazit">
+<target name="copydir1" if="copydir.hazit">
   <echo message="Copying from ${fromdir} to ${todir}"/>
-  <mkdir dir="${todir}"/>
-  <copy todir="${todir}" >
-    <fileset dir="${fromdir}">
+  <mkdir dir="${copydir.todir}"/>
+  <copy todir="${copydir.todir}" >
+    <fileset dir="${copydir.fromdir}">
         <include name="**/*"/>
     </fileset>
 
@@ -238,9 +249,9 @@ Products required:
 </target>
 
 <target name="clean">
-  <!-- Delete the ${mtmpdir} and ${dist} directory trees -->
-  <delete dir="${mtmpdir}" />
-  <delete dir="${dist}" />
+  <!-- Delete the ${module.tmpdir} and ${module.dist} directory trees -->
+  <delete dir="${module.tmpdir}" />
+  <delete dir="${module.dist}" />
 </target>
 
 <!-- fancy jarfile handling.  Call "jar" target with:
@@ -352,8 +363,8 @@ jars up source.
 
   <antcall target="jar">
     <param name="jar.jarfile" value="${dist.dest}/${module.name}.jar"/>
-    <param name="jar.basedir" value="${classdir}"/>
-    <param name="jar.srcdir" value="${src}"/>
+    <param name="jar.basedir" value="${module.classdir}"/>
+    <param name="jar.srcdir" value="${module.src}"/>
   </antcall>
 </target>
 
