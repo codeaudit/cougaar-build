@@ -545,7 +545,11 @@ sub checkout_module {
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $cvsmod");
   } else {
-    $rarg .= " -D '$rdate'" if ($rarg eq "" || !pointP);
+    if ($opt_D) {
+      $rarg .= " -D '$opt_D'";
+    } else { 
+      $rarg .= " -D '$rdate'" if (!pointP);
+    }
     mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
   }
 }
@@ -1776,10 +1780,25 @@ sub junit {
     print "Error: cannot find junit.jar in sys.lib: regress($mod) will probably fail.\n";
   }
 
+  # prefer the all-module regression test pattern
   if (-e "$classdir/Regress.class") {
     java("$classdir$cpsep$cp","junit.textui.TestRunner Regress");
   } else {
-    print "Warning: Module $mod has a regress directory, but no compilable Regress.class\n";
+    # TIC regression test pattern
+    @tests = findbypattern($classdir, "Test\.class\$");
+    if ($#tests>-1) {
+      foreach $test (@tests) {
+	if ( ($test =~ /(.*Test).class$/) ) {
+	  my ($c) = $1;
+	  $c =~ s/^$classdir\///;	# trim off the head
+	  $c =~ s/\//\./g;	# make the path a class
+	  #print "Hacking $test to $c:\n";
+	  java("$classdir$cpsep$cp","junit.textui.TestRunner $c");
+	}
+      }
+    } else {
+      print "Warning: Module $mod has a regress directory, but couldn't find Regress.class or *Test.class\n";
+    }
   }
 }
 
