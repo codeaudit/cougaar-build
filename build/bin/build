@@ -141,6 +141,12 @@ if (-e $opt_file) {
   unlink($of);
 }
 
+sub mkd {
+  my($p) = @_;
+  mkdir $p, 0777 if (!$pretend);
+}
+
+
 if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
   print "parsing $ENV{HOME}/.cougaar-build-system-specific\n";
   parse_config("$ENV{HOME}/.cougaar-build-system-specific");
@@ -254,12 +260,66 @@ if ($skip) {
 # absolute path of directory we are building into
 $build_dir = "$build_root/$bdate";
 
+
+# record start time for later measurement
+$start_time = time;
+
+
+# subdir containing all the sources
+$srcdir = "$build_dir/src";
+
+$product = opt("product.name");
+
+$latest_dir = "$build_root/latest";
+
+if ($tag) {
+  tag($tag);
+  exit(0);
+}
+
+# create the build dirs
+mkd "$build_root";
+mkd $build_dir;
+unlink "$latest_dir";
+print "ln -s $build_dir $latest_dir\n" if $verbose;
+symlink "$build_dir", "$latest_dir";
+mkd $srcdir;
+# libdir is where we store built jars
+$libdir = "$build_dir/lib";
+mkd $libdir;
+# distdir is where we put end products
+$distdir = "$build_dir/dist";
+mkd $distdir;
+
+chdir($distdir) || die("Couldn't chdir to $distdir");
+
+# redirect streams to file
+$errout = "$distdir/build.out";
+open(SAVEOUT, ">&STDOUT");
+open(SAVEERR, ">&STDERR");
+#open(STDOUT, ">$errout");  # direct to file
+open(STDOUT, "|tee $errout");  # tee to file
+open(STDERR, ">&STDOUT");
+select STDERR; $| = 1;		# unbuffered
+select STDOUT; $| = 1;
+
+print "Building $rtag at $rdate into $build_dir\n"  if $verbose;
+print "Output is in $errout\n" if $verbose;
+
+
 # just a copy of the enviroment variable (or maybe a command line option)
 $sysclasspath;
 @sysjars;
+$syslib;
 # skip the classpath evar and use the sys.lib param
 {
-  @sysjars = findbypattern(opt("sys.lib"), "\.(jar|zip)\$");
+  $syslib = opt("sys.lib");
+  if ($syslib =~ /^module:(.+)/) {
+    my($mod) = $1;
+    $syslib = "$srcdir/$mod/lib";
+    checkout_module($1, $srcdir) if (!$skip);
+  }
+  @sysjars = findbypattern($syslib, "\.(jar|zip)\$");
   $sysclasspath = join(":", @sysjars);
 }
 
@@ -294,55 +354,7 @@ $javahome;
   }
 }
 
-# record start time for later measurement
-$start_time = time;
 
-
-# subdir containing all the sources
-$srcdir = "$build_dir/src";
-
-$product = opt("product.name");
-
-$latest_dir = "$build_root/latest";
-
-if ($tag) {
-  tag($tag);
-  exit(0);
-}
-
-sub mkd {
-  my($p) = @_;
-  mkdir $p, 0777 if (!$pretend);
-}
-
-# create the build dirs
-mkd "$build_root";
-mkd $build_dir;
-unlink "$latest_dir";
-print "ln -s $build_dir $latest_dir\n" if $verbose;
-symlink "$build_dir", "$latest_dir";
-mkd $srcdir;
-# libdir is where we store built jars
-$libdir = "$build_dir/lib";
-mkd $libdir;
-# distdir is where we put end products
-$distdir = "$build_dir/dist";
-mkd $distdir;
-
-chdir($distdir) || die("Couldn't chdir to $distdir");
-
-# redirect streams to file
-$errout = "$distdir/build.out";
-open(SAVEOUT, ">&STDOUT");
-open(SAVEERR, ">&STDERR");
-#open(STDOUT, ">$errout");  # direct to file
-open(STDOUT, "|tee $errout");  # tee to file
-open(STDERR, ">&STDOUT");
-select STDERR; $| = 1;		# unbuffered
-select STDOUT; $| = 1;
-
-print "Building $rtag at $rdate into $build_dir\n"  if $verbose;
-print "Output is in $errout\n" if $verbose;
 
 # Check out everything from CVS
 &checkout if (!$skip);
@@ -392,28 +404,37 @@ sub checkout {
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
   foreach $mod (@modules) {
-    my $rep = getCVSROOT($mod);
-
-    my $tag = opt("$mod.tag");
-    $tag = $rtag if (!$tag);
-
-    my $arg = "";
-    $arg = "-Q";# if ($verbose<=1);
-    my $rarg="";
-    # special case for HEAD - bogon.
-    $rarg = "-r $tag" if (! ($tag eq "HEAD"));
-    if ($checkoutP) {
-      # hack to allow us to checkout a branch at a specific time
-      $rarg .= " -D '$opt_D'" if ($opt_D);
-      # leave it in development mode
-      mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $mod");
-    } else {
-      mysystem ("cvs $arg -d '$rep' export $rarg -D '$rdate' -d $mod $mod");
-    }
+    checkout_module($mod,$srcdir);
   }
 
   print "Checkout complete\n" if $verbose;
 }
+
+sub checkout_module {
+  my ($mod, $dir) = @_;
+  chdir ($dir) || die ("Couldn't chdir to $build_dir");
+  print "\tchecking out $mod\n" if $verbose;
+
+  my $rep = getCVSROOT($mod);
+
+  my $tag = opt("$mod.tag");
+  $tag = $rtag if (!$tag);
+
+  my $arg = "";
+  $arg = "-Q";			# if ($verbose<=1);
+  my $rarg="";
+  # special case for HEAD - bogon.
+  $rarg = "-r $tag" if (! ($tag eq "HEAD"));
+  if ($checkoutP) {
+    # hack to allow us to checkout a branch at a specific time
+    $rarg .= " -D '$opt_D'" if ($opt_D);
+    # leave it in development mode
+    mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $mod");
+  } else {
+    mysystem ("cvs $arg -d '$rep' export $rarg -D '$rdate' -d $mod $mod");
+  }
+}
+
 
 #
 # moby build of modules
@@ -495,7 +516,7 @@ sub build_module {
     mysystem("rm -rf $tmplib");
     mkd $tmplib;
     my $extrajars = "$libdir/$mod.jar";
-    my $syslib = opt("sys.lib");
+    my $syslib = $syslib;
     if (-e "$syslib/junit.jar") {
       $extrajars = "$extrajars:$syslib/junit.jar";
     } else {
@@ -1294,7 +1315,7 @@ sub junit {
   if ($extrajars) {
     $cp = "$extrajars:$cp";
   }
-  my $syslib = opt("sys.lib");
+  my $syslib = $syslib;
   if (-e "$syslib/junit.jar") {
     $cp = "$cp:$syslib/junit.jar";
   } else {
@@ -1383,3 +1404,5 @@ sub compiler_command {
 
   return $command;
 }
+
+
