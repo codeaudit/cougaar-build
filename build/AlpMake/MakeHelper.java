@@ -366,21 +366,30 @@ private void scanRecurse(File curdir, Vector filesvec, Vector dirsvec)
             BufferedReader in = new BufferedReader(new FileReader(defFile));
             try {
               String firstLine = in.readLine();
+              String gen = null;
               if (firstLine.startsWith(GEN_PREFIX)) {
-                String gen = firstLine.substring(GEN_PREFIX.length());
-                sh.writeBytes("\n");
-                sh.writeBytes("echo   " + "\n");
-		sh.writeBytes("echo \"=> .def file: " +  defFile + "\"" + "\n");
-                sh.writeBytes("cd " + defFile.getParent() + "\n");
-                sh.writeBytes("java -classpath \"" + classpath + "\" " + gen + "\n");
-		bat.writeBytes("\n");
-                bat.writeBytes("echo   " + "\n");
-		bat.writeBytes("echo \"=> .def file: " +  defFile + "\"" + "\n");
-                bat.writeBytes("cd " + defFile.getParent() + "\n");
-                bat.writeBytes("java -classpath \"" + classpath + "\" " + gen + "\n");
+                gen = firstLine.substring(GEN_PREFIX.length()).trim();
               } else {
-                throw new IOException("Bad generate prefix in " + defFile);
+                int ibang = firstLine.indexOf('!');
+                if (ibang > -1) {
+                  gen = firstLine.substring(ibang+1).trim();
+                } else {
+                  throw new IOException("Bad generate prefix in " + defFile);
+                }
               }
+                
+              sh.writeBytes("\n");
+              sh.writeBytes("echo   " + "\n");
+              sh.writeBytes("echo \"=> .def file: " +  defFile + "\"" + "\n");
+              sh.writeBytes("cd " + defFile.getParent() + "\n");
+              sh.writeBytes("java -classpath \"" + classpath + "\" " + gen +
+                            " " + defFile.getName() + "\n");
+              bat.writeBytes("\n");
+              bat.writeBytes("echo   " + "\n");
+              bat.writeBytes("echo \"=> .def file: " +  defFile + "\"" + "\n");
+              bat.writeBytes("cd " + defFile.getParent() + "\n");
+              bat.writeBytes("java -classpath \"" + classpath + "\" " + gen + 
+                             " " + defFile.getName() + "\n");
             }
             finally {
               in.close();
