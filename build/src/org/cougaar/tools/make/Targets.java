@@ -58,9 +58,7 @@ public class Targets {
             File moduleDirectory = theContext.getModuleRoot(moduleName);
             if (moduleDirectory.isDirectory()) {
                 String tgt = moduleName + ".compile";
-                if (theContext.isNoPrerequisites()) {
-                    if (new File(theContext.getProjectLib(), tgt).exists()) continue;
-                }
+                if (theContext.isNoPrerequisites()) continue;
                 theContext.makeTarget(tgt);
             }
         }
