@@ -89,6 +89,7 @@ while (<>) {
       /\.zip/i ||
       /\.gif/i ||
       /\.jpg/i ||
+      /\.cgm/i ||
       /\.png/i ||
       /\.tar/i ||
       /\.gen/i ||
@@ -359,13 +360,9 @@ sub parse_oldcr {
   #figure out company
   if ($company) {
     $company = $1 if ($company=~/(.*) under sponsorship/);
-
-    if ($company=~/ALPINE/ && $company=~/BBN/) {
-      $company = $bbn_company;
-    }
-    if ($company=~/BBN/) {
-      $company = $bbn_company;
-    }
+    $company = $bbn_company if ($company=~/ALPINE/ && $company=~/BBN/);
+    $company = $bbn_company if ($company=~/BBN/);
+    $company = $1 if ($company=~/Defense Advanced Research Projects Agency \(DARPA\) and (.*) This software/);
   } else {
     $company = $default_company;
   }
