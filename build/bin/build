@@ -1785,7 +1785,7 @@ sub find_errors {
 
     my $nl = 0;
     # search for CVS errors
-    if (/cvs server:/) {
+    if (/cvs server:/ || /export aborted/) {
       $ec++;
       $nl = max($nl,3);
     }
