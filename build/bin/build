@@ -2199,7 +2199,7 @@ sub rmic {
   #$cp = &cpWrap($cp); # Not apparently necessary when using env vars
   $ENV{CLASSPATH}="$cp";
   print STDERR "CLASSPATH = $ENV{CLASSPATH}\n" if ($verbose>1);
-  my ($result) = mysystem("$rmic_command $rmi_arguments $args");
+  my ($result) = mysystem("$rmic_command $rmic_arguments $args");
   undef $ENV{CLASSPATH};
   my ($time1) = time;
   addtime("rmic",$time1-$time0);
