@@ -51,32 +51,6 @@ javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
 # not be one of the built modules (e.g. should not listed in modules=)
 sys.lib=module:jars
 
-# Expected third-party jars:
-# activation
-# fesi-111
-# grappa1_2_bbn		1.2 + bbn mods
-# j2ee
-# jcchart451k
-# jess50
-# jms
-# jsdk
-# log4j 		1.1.3 (full)
-# mail
-# openmap		4.2 (*not* omcore!)
-# qslink		(partnet driver)
-# vgj
-# xalan
-# xerces		3.1.1
-
-# run time only:
-# jce1_2-do		1.2
-# mm-mysql-2		2.0
-# oracle12		(for >= jdk 1.2)
-
-# build time only:
-# junit		3.7
-
-
 # build.root defaults to /tmp/{product.name}
 # build.root=/tmp/head
 
