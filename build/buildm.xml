@@ -84,7 +84,9 @@ or globally in your $HOME/.ant.properties.
   <tstamp/>
   <available property="hasBuildProps" file="${basedir}/src/build.properties"/>
   <available property="hasDoc" file="${basedir}/doc"/>
+  <!--
   <available property="hasExamples" file="${basedir}/examples"/>
+  -->
   <available property="hasTest" file="${basedir}/test"/>
   <mkdir dir="${module.tmpdir}"/>
   <mkdir dir="${module.classdir}"/>
