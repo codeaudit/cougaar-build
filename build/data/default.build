@@ -101,7 +101,7 @@ modules=\
 	community, \
 	albbn, stoplight, datagrabber,\
 	servicediscovery, vishnu,\
-	ulconfigs, pizza
+	pizza
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -146,13 +146,13 @@ modules.unified =\
 #(e.g. from CVSROOT) with the value 'internal'
 #vishnu.repository = internal
 #or you can specify a complete CVSROOT value:
-#albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+#albbn.repository = :ext:cvs.cougaar.org:/cvsroot/logistics
 
-jars.repository = :ext:cougaar.org:/cvsroot/core
+jars.repository = :ext:cvs.cougaar.org:/cvsroot/core
 
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
-javaiopatch.repository = :ext:cougaar.org:/cvsroot/core
+javaiopatch.repository = :ext:cvs.cougaar.org:/cvsroot/core
 
 # build tools requires the jdk tools jars
 build.jars = tools
@@ -161,65 +161,65 @@ build.jars = tools
 build.extras = junit
 # compiletime means that it is installed as clib rather than lib
 build.compiletime = 1
-build.repository = :ext:cougaar.org:/cvsroot/build
+build.repository = :ext:cvs.cougaar.org:/cvsroot/build
 
 # bootstrap
 bootstrap.keystore.alias = bootstrapper
-bootstrap.repository = :ext:cougaar.org:/cvsroot/util
+bootstrap.repository = :ext:cvs.cougaar.org:/cvsroot/util
 
 # util
 util.deps = bootstrap
 util.jars = log4j, xercesImpl, xml-apis
-util.repository = :ext:cougaar.org:/cvsroot/util
+util.repository = :ext:cvs.cougaar.org:/cvsroot/util
 
 # core
 core.deps = bootstrap, util
 core.jars = log4j, servlet, concurrent
-core.repository = :ext:cougaar.org:/cvsroot/core
+core.repository = :ext:cvs.cougaar.org:/cvsroot/core
 
 # mtsstd
 mtsstd.deps = core, util
 mtsstd.jars = log4j, servlet
-mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
+mtsstd.repository = :ext:cvs.cougaar.org:/cvsroot/mts
 
 # yellow pages
 yp.deps = util, core
 yp.jars = uddi4j, juddi, hsqldb
-yp.repository = :ext:cougaar.org:/cvsroot/yp
+yp.repository = :ext:cvs.cougaar.org:/cvsroot/yp
 
 # planning
 planning.deps = util, core
 planning.jars = xercesImpl, xml-apis, servlet
-planning.repository = :ext:cougaar.org:/cvsroot/planning
+planning.repository = :ext:cvs.cougaar.org:/cvsroot/planning
 
 # contract
 contract.deps = util
 contract.jars = xercesImpl,xml-apis
-contract.repository = :ext:cougaar.org:/cvsroot/util
+contract.repository = :ext:cvs.cougaar.org:/cvsroot/util
 
 # toolkit
 toolkit.deps = core, planning, util
 toolkit.jars = xercesImpl,xml-apis
-toolkit.repository = :ext:cougaar.org:/cvsroot/glm
+toolkit.repository = :ext:cvs.cougaar.org:/cvsroot/glm
 
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xercesImpl,xml-apis,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
-glm.repository = :ext:cougaar.org:/cvsroot/glm
+glm.repository = :ext:cvs.cougaar.org:/cvsroot/glm
 glm.runtime = bin
 
 # aggregation agent
 aggagent.deps = core,planning,glm,util
 aggagent.jars = xercesImpl,xml-apis,jpython,silk,servlet
-aggagent.repository = :ext:cougaar.org:/cvsroot/aggagent
+aggagent.repository = :ext:cvs.cougaar.org:/cvsroot/aggagent
 
 # vishnu scheduler
 vishnu.deps = core,planning,toolkit,glm,util
 vishnu.jars = xercesImpl,xml-apis,vishnuServer
 #vishnu.repository = internal
 vishnu.module = vishnuClient
-vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
+vishnu.repository = :ext:cvs.cougaar.org:/cvsroot/vishnu
 
 # uiframework
 #uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
@@ -245,69 +245,60 @@ csmart.jars = xercesImpl,xml-apis,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = mm-mysql-2, log4j
 #csmart.repository = internal
-csmart.repository = :ext:cougaar.org:/cvsroot/csmart
+csmart.repository = :ext:cvs.cougaar.org:/cvsroot/csmart
 # Set PrettyName for ANT script generation
 csmart.PrettyName = CSMART
 
 # quo/qos
 qos.deps = core,util,mtsstd
 qos.jars = quoSumo,servlet
-qos.repository = :ext:cougaar.org:/cvsroot/qos
+qos.repository = :ext:cvs.cougaar.org:/cvsroot/qos
 
 quo.deps = core,planning,qos,util,mtsstd
 quo.jars = quoSumo
-quo.repository = :ext:cougaar.org:/cvsroot/qos
+quo.repository = :ext:cvs.cougaar.org:/cvsroot/qos
 
 ping.deps = core,planning,qos,quo,util,mtsstd
 ping.jars = quoSumo,servlet
-ping.repository = :ext:cougaar.org:/cvsroot/qos
+ping.repository = :ext:cvs.cougaar.org:/cvsroot/qos
 
 # App (Node) Server
-server.repository = :ext:cougaar.org:/cvsroot/util
+server.repository = :ext:cvs.cougaar.org:/cvsroot/util
 
 # new PSP/web server
 webserver.deps = bootstrap,core,util
 webserver.jars = servlet
-webserver.repository = :ext:cougaar.org:/cvsroot/webserver
+webserver.repository = :ext:cvs.cougaar.org:/cvsroot/webserver
 
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
-webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
+webtomcat.repository = :ext:cvs.cougaar.org:/cvsroot/webserver
 
 # community
 community.deps = util,core
 community.jars = log4j,xercesImpl,servlet,concurrent
 # added bootstrap for junit tests.
 community.extras = bootstrap
-community.repository = :ext:cougaar.org:/cvsroot/community
+community.repository = :ext:cvs.cougaar.org:/cvsroot/community
 
 #
 # Adaptive Logistics jars
 #
 #
 # AL BBN
-albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+albbn.repository = :ext:cvs.cougaar.org:/cvsroot/logistics
 albbn.module = bbn
-#albbn.tag = COUGAAR_*
-#albbn.tag = HEAD
-#albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
 albbn.jars = xercesImpl,xml-apis,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.runtime = bin,configs
 
 # AL datagrabber
-datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
-#datagrabber.tag = COUGAAR_*
-#datagrabber.tag = HEAD
-#datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
+datagrabber.repository = :ext:cvs.cougaar.org:/cvsroot/logistics
 datagrabber.deps = core,planning,glm,toolkit,util,albbn
 datagrabber.jars = xercesImpl,xml-apis,chart,openmap,servlet
 
 # AL stoplight
-stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
-#stoplight.tag = COUGAAR_*
-#stoplight.tag = HEAD
-#stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
+stoplight.repository = :ext:cvs.cougaar.org:/cvsroot/logistics
 stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent
 stoplight.jars = xercesImpl,xml-apis,servlet, openmap
 
@@ -318,21 +309,13 @@ stoplight.jars = xercesImpl,xml-apis,servlet, openmap
 servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
 servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr
-#servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
-servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
-
-#
-# UL-only overlay
-#
-#ulconfigs.tag = HEAD
-ulconfigs.runtime = configs,csmart,servicediscovery,dbms
-ulconfigs.repository = :ext:cvs.ultralog.net:/cvs/commons/bbn
+servicediscovery.repository = :ext:cvs.cougaar.org:/cvsroot/servicediscovery
 
 #
 # distribution settings
 #
 
-base.repository = :ext:cougaar.org:/cvsroot/util
+base.repository = :ext:cvs.cougaar.org:/cvsroot/util
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
