@@ -201,8 +201,10 @@ mysystem("rm -rf $builddir");
 $rarg = "";
 $rarg = "-r $tag" if (! ($tag eq "HEAD"));
 if ($javahome) {
-  $extaargs = "$extraargs -ojava.home=$javahome";
+  $extraargs .= " -ojava.home=$javahome";
 }
+$extraargs .= " -p" if ($opt_p);
+
 mysystem("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$tag.out");
 
 # what did we build?
