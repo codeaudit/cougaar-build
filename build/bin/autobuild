@@ -311,26 +311,32 @@ sub cleanRemote {
 
   # if we saw a success or failure, then we're watching complient builds
   if ($lsucc || $lfail) {
-
-    # delete the last failure if there's been a more recent success
-    if ($lsucc > $lfail) {
-      undef $lfail;
-    }
-
-    my ($cmd) = "$host cd $auto \\; rm -f latest_success latest_failure";
-    $cmd .= " \\; ln -s $lsucc latest_success" if ($lsucc);
-    $cmd .= " \\; ln -s $lsucc latest_failure" if ($lfail);
-    ssh($cmd);
-
-    # delete everything but the marked last ones
+    my $sc = 0;
+    my $fc = 0;
     foreach $dir (@alldirs) {
       chomp $dir;
-      if (! ($dir eq $lsucc ||
-	     $dir eq $lfail)) {
-	rrm($dir);
+      my $status = $status{$dir};
+      if ($status eq "SUCCEEDED") {
+	$sc++;
+	$fc = 100;		# don't keep any older failures!
+	# first is latest
+	if ($sc == 1) {
+	  ssh("$host cd $auto \\; rm -f latest_success \\; ln -s $dir latest_success");
+	}
+	if ($sc > 2) {
+	  rmm($dir);
+	}
+      }
+      if ($status eq "FAILED") {
+	$fc++;
+	if ($fc == 1) {
+	  ssh("$host cd $auto \\; rm -f latest_failure \\; ln -s $dir latest_failure");
+	}
+	if ($fc > $keep) {
+	  rmm($dir);
+	}
       }
     }
-
   } else {
     # older-style builds: keep the most recent N builds
 
@@ -349,7 +355,7 @@ sub cleanRemote {
 
 sub rrm {
   my ($p) = @_;
-  ssh("$host rm -rf $auto/$p");
+  #ssh("$host rm -rf $auto/$p");
 }
 
 sub checkRemoteStatus {
