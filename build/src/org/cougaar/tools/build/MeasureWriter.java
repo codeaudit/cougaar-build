@@ -327,7 +327,6 @@ public class MeasureWriter extends WriterBase {
       String base = getBaseUnit(context);
       String baseabbrev = p.get(context, "baseabbrev");
       if (baseabbrev == null) baseabbrev=base;
-      String baseC = toConstantName(base);
       
       // write static factors
       println(out,"  // Conversion factor constants");
@@ -452,7 +451,6 @@ public class MeasureWriter extends WriterBase {
       ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
-        String unitName = toClassName(unit);
         String fexpr="1.0";
         if (!unit.equals(base)) {
           fexpr = toConstantName(base+"_PER_"+unit);

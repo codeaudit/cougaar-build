@@ -383,7 +383,6 @@ public class UnifySourceScripter {
         iter.hasNext();
         ) {
       Map.Entry me = (Map.Entry) iter.next();
-      String key = (String) me.getKey();
       Object val = me.getValue();
       if (val instanceof DirEntry) {
         DirEntry sde = (DirEntry) val;
@@ -400,7 +399,6 @@ public class UnifySourceScripter {
         iter.hasNext();
         ) {
       Map.Entry me = (Map.Entry) iter.next();
-      String key = (String) me.getKey();
       Object val = me.getValue();
       if (val instanceof File) {
         File f = (File) val;

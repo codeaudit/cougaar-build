@@ -1406,7 +1406,6 @@ public class PGWriter extends WriterBase {
         String slotspec = ((String)se.nextElement()).trim();
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
-        String name = slotspec.substring(s+1);
         ActiveSlot as = parseActiveSlot(slotspec);
         // count the different slot types
         if (as == null) {         
@@ -1619,7 +1618,6 @@ public class PGWriter extends WriterBase {
         if (! context.equals("global") && 
             isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
-          String newclassName = "New"+context;
           String pkg = findPackage(context);
           print(out,"    {\""+pkg+"."+context+"\", \"new"+context+"\"}");
           if (isTimePhased(context)) {

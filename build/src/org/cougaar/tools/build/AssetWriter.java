@@ -87,7 +87,7 @@ public class AssetWriter extends WriterBase {
 
     public void setSlots(String s) {
       int p = 0;
-      int l = s.length();
+
       int i;
       while ((i = s.indexOf(',',p)) != -1) {
         parseSlot(s.substring(p,i).trim());
@@ -435,9 +435,6 @@ public class AssetWriter extends WriterBase {
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
 
-            //String stype = sd.getType();
-            String init = sd.getInit();
-
             // for time phased, want snameSchedule
             if (!sd.getTimePhased()) {
               println(out,"    my"+sname+" = null;"); 
@@ -456,7 +453,6 @@ public class AssetWriter extends WriterBase {
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
-            String stype = sd.getType();
 
             if (sd.getTimePhased()) {
               sname = sname+"Schedule";
@@ -482,7 +478,6 @@ public class AssetWriter extends WriterBase {
             // Hack until we figure out how to do this right
             if (!sd.getHasRelationships()) {
               String sname = sd.getName();
-              String stype = sd.getType();
               boolean stimephased = sd.getTimePhased();
               
               String vname = "my"+sname;
@@ -527,7 +522,6 @@ public class AssetWriter extends WriterBase {
               sname = sname+"Schedule";
             }
 
-            String stype = sd.getType();
             if (!sd.hasInit()) {
               println(out,"    { Object _tmp = get"+sname+"();\n"+
                           // LATE?
@@ -661,245 +655,247 @@ public class AssetWriter extends WriterBase {
             }
           }
 
-          println(out,"  // generic search methods");
+          if (cd.getSlotDs().hasMoreElements()) {  // don't write the methods unless we need to
+            println(out,"  // generic search methods");
 
-          println(out,"  public PropertyGroup getLocalPG(Class c, long t) {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if (!sd.getExact()) {
-              String sname = sd.getName();
-              // for time phased, want snameSchedule
-              String var = "my"+sname;
-              println(out,"    if ("+sname+".class.equals(c)) {");
-              if (!sd.getTimePhased()) {
-                println(out,"      return ("+var+"=="+sname+".nullPG)?null:"+var+";");
-              } else {
-                var = var+"Schedule";
-                println(out,"      if ("+var+"==null) {\n"+
-                            "        return null;\n"+
-                            "      } else {\n"+
-                            "        if (t == UNSPECIFIED_TIME) {\n"+
-                            "          return ("+sname+")"+var+".getDefault();\n"+
-                            "        } else {\n"+
-                            "          return ("+sname+")"+var+".intersects(t);\n"+
-                            "        }\n"+
-                            "      }");
+            println(out,"  public PropertyGroup getLocalPG(Class c, long t) {");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if (!sd.getExact()) {
+                String sname = sd.getName();
+                // for time phased, want snameSchedule
+                String var = "my"+sname;
+                println(out,"    if ("+sname+".class.equals(c)) {");
+                if (!sd.getTimePhased()) {
+                  println(out,"      return ("+var+"=="+sname+".nullPG)?null:"+var+";");
+                } else {
+                  var = var+"Schedule";
+                  println(out,"      if ("+var+"==null) {\n"+
+                          "        return null;\n"+
+                          "      } else {\n"+
+                          "        if (t == UNSPECIFIED_TIME) {\n"+
+                          "          return ("+sname+")"+var+".getDefault();\n"+
+                          "        } else {\n"+
+                          "          return ("+sname+")"+var+".intersects(t);\n"+
+                          "        }\n"+
+                          "      }");
+                }
+                println(out,"    }");
               }
-              println(out,"    }");
             }
-          }
-          println(out,"    return super.getLocalPG(c,t);");
-          println(out,"  }");
-          println(out);
+            println(out,"    return super.getLocalPG(c,t);");
+            println(out,"  }");
+            println(out);
 
-          println(out,"  public PropertyGroupSchedule getLocalPGSchedule(Class c) {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            String sname = sd.getName();
-            String init = sd.getInit();
-            // for time phased, want snameSchedule
-            if (!sd.getExact() && sd.getTimePhased()) {
-              println(out,"    if ("+sname+".class.equals(c)) {");
-              println(out,"      return my"+sname+"Schedule;");
-              println(out,"    }");
-            }
-          }
-          println(out,"    return super.getLocalPGSchedule(c);");
-          println(out,"  }");
-          println(out);
-
-
-          println(out,"  public void setLocalPG(Class c, PropertyGroup pg) {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if (!sd.getExact()) {
+            println(out,"  public PropertyGroupSchedule getLocalPGSchedule(Class c) {");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
               String sname = sd.getName();
-              String var = "my"+sname;
-              println(out,"    if ("+sname+".class.equals(c)) {");
-              if (!sd.getTimePhased()) {
-                println(out,"      "+var+"=("+sname+")pg;");
-              } else {
-                var = var+"Schedule";
-                println(out,"      if ("+var+"==null) {");
-                println(out,"        "+var+"="+sd.getInit()+";");
-                println(out,"      } else {");
-                println(out,"        "+var+".removeAll("+var+".intersectingSet((TimePhasedPropertyGroup) pg));");
-                println(out,"      }");
-                println(out,"      "+var+".add(pg);");
+              // for time phased, want snameSchedule
+              if (!sd.getExact() && sd.getTimePhased()) {
+                println(out,"    if ("+sname+".class.equals(c)) {");
+                println(out,"      return my"+sname+"Schedule;");
+                println(out,"    }");
               }
-              println(out,"    } else");
             }
-          }
-          println(out,"      super.setLocalPG(c,pg);");
-          println(out,"  }");
-          println(out); 
+            println(out,"    return super.getLocalPGSchedule(c);");
+            println(out,"  }");
+            println(out);
 
-          println(out,"  public void setLocalPGSchedule(PropertyGroupSchedule pgSchedule) {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if ((!sd.getExact()) && (sd.getTimePhased())) {
-              String sname = sd.getName();
-              // for time phased, want snameSchedule
-              String var = "my"+sname+"Schedule";
-              println(out,"    if ("+sname+".class.equals(pgSchedule.getPGClass())) {");
-              println(out,"      "+var+"=pgSchedule;");
-              println(out,"    } else");
+
+            println(out,"  public void setLocalPG(Class c, PropertyGroup pg) {");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if (!sd.getExact()) {
+                String sname = sd.getName();
+                String var = "my"+sname;
+                println(out,"    if ("+sname+".class.equals(c)) {");
+                if (!sd.getTimePhased()) {
+                  println(out,"      "+var+"=("+sname+")pg;");
+                } else {
+                  var = var+"Schedule";
+                  println(out,"      if ("+var+"==null) {");
+                  println(out,"        "+var+"="+sd.getInit()+";");
+                  println(out,"      } else {");
+                  println(out,"        "+var+".removeAll("+var+".intersectingSet((TimePhasedPropertyGroup) pg));");
+                  println(out,"      }");
+                  println(out,"      "+var+".add(pg);");
+                }
+                println(out,"    } else");
+              }
             }
-          }
-          println(out,"      super.setLocalPGSchedule(pgSchedule);");
-          println(out,"  }");
-          println(out); 
+            println(out,"      super.setLocalPG(c,pg);");
+            println(out,"  }");
+            println(out); 
 
-          println(out,"  public PropertyGroup removeLocalPG(Class c) {");
-          println(out,"    PropertyGroup removed = null;");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if (!sd.getExact()) {
-              String sname = sd.getName();
-              // for time phased, want snameSchedule
-              String var = "my"+sname;
-              println(out,"    if ("+sname+".class.equals(c)) {");
-              if (!sd.getTimePhased()) {
-                println(out,"      removed="+var+";");
+            println(out,"  public void setLocalPGSchedule(PropertyGroupSchedule pgSchedule) {");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if ((!sd.getExact()) && (sd.getTimePhased())) {
+                String sname = sd.getName();
+                // for time phased, want snameSchedule
+                String var = "my"+sname+"Schedule";
+                println(out,"    if ("+sname+".class.equals(pgSchedule.getPGClass())) {");
+                println(out,"      "+var+"=pgSchedule;");
+                println(out,"    } else");
+              }
+            }
+            println(out,"      super.setLocalPGSchedule(pgSchedule);");
+            println(out,"  }");
+            println(out); 
+
+            println(out,"  public PropertyGroup removeLocalPG(Class c) {");
+            println(out,"    PropertyGroup removed = null;");
+            print  (out,"    ");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if (!sd.getExact()) {
+                String sname = sd.getName();
+                // for time phased, want snameSchedule
+                String var = "my"+sname;
+                println(out,    "if ("+sname+".class.equals(c)) {");
+                if (!sd.getTimePhased()) {
+                  println(out,"      removed="+var+";");
+                  println(out,"      "+var+"=null;");
+                } else {
+                  var = var+"Schedule";
+                  println(out,"      if ("+var+"!=null) {");
+                  println(out,"        if ("+var+".getDefault()!=null) {");
+                  println(out,"          removed="+var+".getDefault();");
+                  println(out,"        } else if ("+var+".size() > 0) {");
+                  println(out,"          removed=(PropertyGroup) "+var+".get(0);");
+                  println(out,"        }");
+                  println(out,"        "+var+"=null;");
+                  println(out,"      }");
+                }
+                print  (out,"    } else ");
+              }
+            }
+            println(out,    "{");
+            println(out,"      removed=super.removeLocalPG(c);");
+            println(out,"    }");
+            println(out,"    return removed;");
+            println(out,"  }");
+            println(out); 
+
+            println(out,"  public PropertyGroup removeLocalPG(PropertyGroup pg) {");
+            println(out,"    Class pgc = pg.getPrimaryClass();");
+            print  (out,"    ");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if (!sd.getExact()) {
+                String sname = sd.getName();
+                // for time phased, want snameSchedule
+                String var = "my"+sname;
+                println(out,    "if ("+sname+".class.equals(pgc)) {");
+                if (!sd.getTimePhased()) {
+                  println(out,"      PropertyGroup removed="+var+";");
+                  println(out,"      "+var+"=null;");
+                  println(out,"      return removed;");
+                } else {
+                  var = var+"Schedule";
+                  println(out,    "if (("+var+"!=null) && ");
+                  println(out,"          ("+var+".remove(pg))) {");
+                  println(out,"        return pg;");
+                  println(out,"      }");
+                }
+                print  (out,"    } else ");
+              }
+            }
+            println(out, "{}");
+            println(out,"    return super.removeLocalPG(pg);");
+            println(out,"  }");
+            println(out); 
+
+            println(out,"  public PropertyGroupSchedule removeLocalPGSchedule(Class c) {");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if ((!sd.getExact()) && (sd.getTimePhased())) {
+                String sname = sd.getName();
+                // for time phased, want snameSchedule
+                String var = "my"+sname+"Schedule";
+                println(out,"    if ("+sname+".class.equals(c)) {");
+                println(out,"      PropertyGroupSchedule removed="+var+";");
                 println(out,"      "+var+"=null;");
-              } else {
-                var = var+"Schedule";
-                println(out,"      if ("+var+"!=null) {");
-                println(out,"        if ("+var+".getDefault()!=null) {");
-                println(out,"          removed="+var+".getDefault();");
-                println(out,"        } else if ("+var+".size() > 0) {");
-                println(out,"          removed=(PropertyGroup) "+var+".get(0);");
-                println(out,"        }");
-                println(out,"        "+var+"=null;");
-                println(out,"      }");
+                println(out,"      return removed;");
+                println(out,"    } else ");
               }
-              println(out,"    } else");
             }
-          }
-          println(out,"      removed=super.removeLocalPG(c);");
-          println(out,"    return removed;");
+            println(out, "   {");
+            println(out,"      return super.removeLocalPGSchedule(c);");
+            println(out,"    }");
+            println(out,"  }");
+            println(out); 
+
+            println(out,"  public PropertyGroup generateDefaultPG(Class c) {");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
+              if (!sd.getExact()) {
+                String sname = sd.getName();
+                // for time phased, want snameSchedule
+                String var = "my"+sname;
+                println(out,"    if ("+sname+".class.equals(c)) {");
+                if (!sd.getTimePhased()) {
+                  println(out,"      return ("+var+"= new "+sname+"Impl());");
+                } else {
+                  println(out,"      return null;");
+                }
+                println(out,"    } else");
+              }
+            }
+            println(out,"      return super.generateDefaultPG(c);");
+            println(out,"  }");
+            println(out); 
+
+            println(out,"  // dumb serialization methods");
+            println(out);
           
-          println(out,"  }");
-          println(out); 
+            // writer
+            println(out,"  private void writeObject(ObjectOutputStream out) throws IOException {");
+            println(out,"    out.defaultWriteObject();");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
 
-          println(out,"  public PropertyGroup removeLocalPG(PropertyGroup pg) {");
-          println(out,"    PropertyGroup removed = null;");
-          println(out,"    Class pgc = pg.getPrimaryClass();");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if (!sd.getExact()) {
-              String sname = sd.getName();
-              // for time phased, want snameSchedule
-              String var = "my"+sname;
-              println(out,"    if ("+sname+".class.equals(pgc)) {");
-              if (!sd.getTimePhased()) {
-                println(out,"      removed="+var+";");
-                println(out,"      "+var+"=null;");
-              } else {
-                var = var+"Schedule";
-                println(out,"      if (("+var+"!=null) && ");
-                println(out,"          ("+var+".remove(pg))) {");
-                println(out,"        removed=pg;");
-                println(out,"      }");
+              if (! sd.getTrans()) {
+                String sname = sd.getName();
+              
+                String var = "my"+sname;
+                if (sd.getTimePhased()) {
+                  var = var+"Schedule";
+                }
+                println(out,"      if ("+var+" instanceof Null_PG || "+var+" instanceof Future_PG) {\n"+
+                        "        out.writeObject(null);\n"+
+                        "      } else {\n"+
+                        "        out.writeObject("+var+");\n"+
+                        "      }");
               }
-              println(out,"    } else");
             }
-          }
-          println(out,"      removed= super.removeLocalPG(pg);");
-          println(out,"    return removed;");
-          println(out,"  }");
-          println(out); 
+            println(out,"  }");
+            println(out);
 
-          println(out,"  public PropertyGroupSchedule removeLocalPGSchedule(Class c) {");
-          println(out,"    PropertyGroupSchedule removed = null;");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if ((!sd.getExact()) && (sd.getTimePhased())) {
-              String sname = sd.getName();
-              // for time phased, want snameSchedule
-              String var = "my"+sname+"Schedule";
-              println(out,"    if ("+sname+".class.equals(c)) {");
-              println(out,"      removed="+var+";");
-              println(out,"      "+var+"=null;");
-              println(out,"    } else");
-              println(out,"      removed=super.removeLocalPGSchedule(c);");
-            }
-          }
-
-            
-          println(out,"    return removed;");
-          println(out,"  }");
-          println(out); 
-
-          println(out,"  public PropertyGroup generateDefaultPG(Class c) {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            if (!sd.getExact()) {
-              String sname = sd.getName();
-              // for time phased, want snameSchedule
-              String var = "my"+sname;
-              println(out,"    if ("+sname+".class.equals(c)) {");
-              if (!sd.getTimePhased()) {
-                println(out,"      return ("+var+"= new "+sname+"Impl());");
-              } else {
-                println(out,"      return null;");
-              }
-              println(out,"    } else");
-            }
-          }
-          println(out,"      return super.generateDefaultPG(c);");
-          println(out,"  }");
-          println(out); 
-
-
-          println(out,"  // dumb serialization methods");
-          println(out);
-          
-          // writer
-          println(out,"  private void writeObject(ObjectOutputStream out) throws IOException {");
-          println(out,"    out.defaultWriteObject();");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-
-            if (! sd.getTrans()) {
+            // reader
+            println(out,"  private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {");
+            println(out,"    in.defaultReadObject();");
+            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+              SlotD sd = (SlotD) sls.nextElement();
               String sname = sd.getName();
               String stype = sd.getType();
-              
+
               String var = "my"+sname;
               if (sd.getTimePhased()) {
                 var = var+"Schedule";
+                stype = "PropertyGroupSchedule";
               }
-              println(out,"      if ("+var+" instanceof Null_PG || "+var+" instanceof Future_PG) {\n"+
-                          "        out.writeObject(null);\n"+
-                          "      } else {\n"+
-                          "        out.writeObject("+var+");\n"+
-                          "      }");
+
+              if (! sd.getTrans()) {
+                println(out,"      "+var+"=("+stype+")in.readObject();");
+              } else {
+                println(out,"      "+var+"="+sd.getInit()+";");
+              }
             }
+            println(out,"  }");
+
           }
-          println(out,"  }");
-          println(out);
-
-          // reader
-          println(out,"  private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {");
-          println(out,"    in.defaultReadObject();");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
-            String sname = sd.getName();
-            String stype = sd.getType();
-
-            String var = "my"+sname;
-            if (sd.getTimePhased()) {
-              var = var+"Schedule";
-              stype = "PropertyGroupSchedule";
-            }
-
-            if (! sd.getTrans()) {
-              println(out,"      "+var+"=("+stype+")in.readObject();");
-            } else {
-              println(out,"      "+var+"="+sd.getInit()+";");
-            }
-          }
-          println(out,"  }");
 
           println(out,"  // beaninfo support");
           writeBeanInfoBody(out,cd);
@@ -932,7 +928,6 @@ public class AssetWriter extends WriterBase {
           for (Enumeration sls = v.elements(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
-            String stype = sd.getType();
             
             if (sd.getTimePhased()) {
               println(out,"      properties["+i+"] = new PropertyDescriptor(\""+
@@ -1019,7 +1014,6 @@ public class AssetWriter extends WriterBase {
     }
 
     public void addHasRelationshipsImpl(PrintWriter out, String slotName) {
-      String var = "my"+slotName;
       String arg = "_arg" + slotName;
       
       println(out,"  public RelationshipSchedule getRelationshipSchedule() {");
