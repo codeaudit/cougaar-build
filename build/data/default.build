@@ -191,6 +191,7 @@ vishnu.jars = xerces,vishnuServer
 vishnu.repository = internal
 
 # uiframework
+uiframework.repository = :pserver:anonymous@cougaarforge.cougaar.org:/cvsroot/cui
 uiframework.deps = core,planning,glm,aggagent,datagrabber,util
 uiframework.jars = xerces,openmap,vgj,xerces
 uiframework.extras = mm-mysql-2
