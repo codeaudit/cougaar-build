@@ -548,7 +548,10 @@ sub rundef {
     #print "Running $class\n" if $verbose;
     $args = join " ", @words[1..$#words];
     chdir($dirpath);
-    $rc = mysystem("$java_command -classpath $libdir/build.jar:$cp $class $args $path");
+    # pass repository args to code generators
+    my ($skippy) = ($skip?"true":"false");
+    my ($darg)="-Drepository.tag='$rtag' -Drepository.time='$rdate' -Drepository.modified='$skippy'";
+    $rc = mysystem("$java_command -classpath $libdir/build.jar:$cp $darg $class $args $path");
   }
   close(DEF);
   return $rc;
