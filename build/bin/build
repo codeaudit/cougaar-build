@@ -623,6 +623,7 @@ sub compute_path {
   return $tmp;
 }
 
+# return 1 on success
 sub build_module_main {
   my ($mod, $mypath, $pext) = @_;
 
@@ -630,47 +631,52 @@ sub build_module_main {
   $jname = "${jname}_$pext" if $pext;
 
   my $mysrc = &compute_path($mypath, "src", $pext);
-  my $builtjar = &build_module_src($mod,$mysrc,$jname);
-  if ($builtjar) {
-    my $extrajars = "$libdir/$jname.jar";
+  my $builtjar;
+  if (-d $mysrc) {
+    my $builtjar = &build_module_src($mod,$mysrc,$jname);
+    if ($builtjar) {
+      my $extrajars = "$libdir/$jname.jar";
 
-    {
-      my $myex = &compute_path($mypath, "examples", $pext);
-      if ( -d "$myex/src") {
-	print "Compiling $jname examples src:\n" if $verbose;
-	&build_module_src($mod,"$myex/src","${jname}_examples",$extrajars,"examples");
-      } elsif ( -d $myex) {
-	print "Compiling $jname examples:\n" if $verbose;
-	&build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+      {
+	my $myex = &compute_path($mypath, "examples", $pext);
+	if ( -d "$myex/src") {
+	  print "Compiling $jname examples src:\n" if $verbose;
+	  &build_module_src($mod,"$myex/src","${jname}_examples",$extrajars,"examples");
+	} elsif ( -d $myex) {
+	  print "Compiling $jname examples:\n" if $verbose;
+	  &build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+	}
       }
+
+      {
+	my $mytest = &compute_path($mypath, "test", $pext);
+	if ( -d "$mytest/src") {
+	  print "Compiling $jname test src:\n" if $verbose;
+	  &build_module_src($mod,"$mytest/src","${jname}_test",$extrajars,"test");
+	} elsif ( -d $mytest) {
+	  print "Compiling $jname test:\n" if $verbose;
+	  &build_module_src($mod,$mytest,"${jname}_test",$extrajars,"test");
+	}
+      }
+
+      {
+	my $myreg = &compute_path($mypath, "regress", $pext);
+	if (-d $myreg) {
+	  print "Compiling $jname regression tests:\n" if $verbose;
+	  &build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+	}
+      }
+
+      # sign only after doing examples and regress
+      sign_jar("$libdir/$jname.jar", $mod) if ($builtjar);
+    } else {
+      print "Error: Failed to compile $jname\n";
     }
 
-    {
-      my $mytest = &compute_path($mypath, "test", $pext);
-      if ( -d "$mytest/src") {
-	print "Compiling $jname test src:\n" if $verbose;
-	&build_module_src($mod,"$mytest/src","${jname}_test",$extrajars,"test");
-      } elsif ( -d $mytest) {
-	print "Compiling $jname test:\n" if $verbose;
-	&build_module_src($mod,$mytest,"${jname}_test",$extrajars,"test");
-      }
-    }
-
-    {
-      my $myreg = &compute_path($mypath, "regress", $pext);
-      if (-d $myreg) {
-	print "Compiling $jname regression tests:\n" if $verbose;
-	&build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
-      }
-    }
-
-    # sign only after doing examples and regress
-    sign_jar("$libdir/$jname.jar", $mod) if ($builtjar);
+    return $builtjar;
   } else {
-    print "Error: Failed to compile $jname\n";
+    return 1;
   }
-
-  return $builtjar;
 }
 
 sub build_module {
@@ -1758,11 +1764,11 @@ sub compile_dir {
     chdir $from;
     my $tmpfile = "$tmp/build.$$";
     mysystem("find . -name '*.java' -print>$tmpfile");
-    my $cok = 1;
+    my $cok = $grc;
     if (-s $tmpfile) {
-      $cok = javac($mod, $cp, "-d $to \@$tmpfile");
+      $cok = javac($mod, $cp, "-d $to \@$tmpfile") && $cok;
     } else {
-      print "Error: Module $mod $from does not seem to actually have any sources to compile\n";
+      print "Warning: Module $mod $from does not seem to actually have any sources to compile\n";
     }
     unlink($tmpfile);
 
