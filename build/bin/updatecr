@@ -85,10 +85,18 @@ while (<>) {
   chop;
   $file = $_;
   if (/CVS/ ||
-      /\.jar/ ||
-      /\.zip/ ||
-      /\.gif/ ||
-      /\.jpg/
+      /\.jar/i ||
+      /\.zip/i ||
+      /\.gif/i ||
+      /\.jpg/i ||
+      /\.png/i ||
+      /\.tar/i ||
+      /\.gen/i ||
+      /\.index/i ||
+      /\.rmic/i ||
+      /ChangeLog/ ||
+      /CHANGES/ ||
+      /\.exe/i
      ) {
     next;
   }
@@ -162,15 +170,7 @@ sub process {
 	$std = 1;
 	$parsing = 0;
 	local($rv,$cv)=parse_oldcr($crp);
-	#print STDERR "$file: $rv $cv\n";
-	print OUT "$lead$tag0$trail\n";
-	foreach $rl (@stdlines) {
-	  my $l = $rl;
-	  $l =~ s/\{RANGE\}/$rv/;
-	  $l =~ s/\{COMPANY\}/$cv/;
-	  print OUT "$lead$l$trail\n";
-	}
-	print OUT "$lead$tag1$trail\n";
+	dumpCR(\*OUT, $lead, $trail, $rv, $cv);
 	$found++;
       } else {
 	chomp;
@@ -190,36 +190,13 @@ sub process {
   local($missing) = (!$std && !$nonstd);
   local($fixed) =0;
   if ($missing) {
-    local($how);
-    if ( ($file =~ /\.java$/)) {
-      $found=1;
+    if (addCR($file, $tmp)) {
+      $found = 1;
       $fixed = 1;
-      open(IN, "<$file");
-      open(OUT,">$tmp");
-      $lead = " * ";
-      $trail = "";
-      local($rv) = $yyyy;
-      local($cv) = $default_company;
-      print OUT "/*\n";
-	print OUT "$lead$tag0$trail\n";
-	foreach $rl (@stdlines) {
-	  my $l = $rl;
-	  $l =~ s/\{RANGE\}/$rv/;
-	  $l =~ s/\{COMPANY\}/$cv/;
-	  print OUT "$lead$l$trail\n";
-	}
-	print OUT "$lead$tag1$trail\n";
-      print OUT " */\n";
-      while(<IN>)  {
-	print OUT "$_";
-      }
-      close(IN);
-      close(OUT);
-    } else {
     }
-    # other recipe detection can go here
   }
-#  $found=0;
+
+  # copy it back
   if ($found) {
     unlink($file);
     open(IN, "<$tmp");
@@ -240,6 +217,103 @@ sub process {
 }
 
 
+sub addCR {
+  my ($file,$tmp) = @_;
+
+  my ($ft) = fileType($file);
+  my ($r) = $yyyy;
+  my ($c) = $default_company;
+  if ( $ft eq "java") {
+    open(IN, "<$file");
+    open(OUT,">$tmp");
+    local($rv) = $yyyy;
+    local($cv) = $default_company;
+    print OUT "/*\n";
+    dumpCR(\*OUT, " * ", "", $r, $c);
+    print OUT " */\n";
+    while(<IN>)  {
+      print OUT "$_";
+    }
+    close(IN);
+    close(OUT);
+  } elsif ($ft eq "perl" || $ft eq "sh") {
+    open(IN, "<$file");
+    open(OUT,">$tmp");
+    my ($blind) = 0;
+    while (<IN>) {
+      if (! $blind) {
+	if (! /^\#/) {
+	  $blind = 1;
+	  # insert the CR after any leading comment lines
+	  print OUT "\n";
+	  dumpCR(\*OUT, "# ", "", $r, $c);
+	  print OUT "\n";
+	}
+      }
+      print OUT "$_";
+    }
+    close(IN);
+    close(OUT);
+  } elsif ($ft eq "bat") {
+    open(IN, "<$file");
+    open(OUT,">$tmp");
+    my ($blind) = 0;
+    while (<IN>) {
+      if (! $blind) {
+	if (! /^\@echo/i) {	# skip a leading @echo OFF if there
+	  $blind = 1;
+	  # insert the CR after any leading comment lines
+	  print OUT "\n";
+	  dumpCR(\*OUT, "REM \"", "\"", $r, $c);
+	  print OUT "\n";
+	}
+      }
+      print OUT "$_";
+    }
+    close(IN);
+    close(OUT);
+  }
+  # other recipe detection can go here
+  else {
+    return 0;
+  }
+  return 1;
+}
+
+sub fileType {
+  my ($file) = @_;
+  return "java" if ($file =~ /\.java$/);
+  return "bat" if ($file =~ /\.bat$/);
+  return "perl" if ($file =~ /\.pl$/);
+  return "xml" if ($file =~ /\.xml$/);
+  return "html" if ($file =~ /\.html$/ || $file =~ /\.htm$/);
+  return "sh" if ($file =~ /\.sh$/ || $file =~ /\.csh$/ || $file =~/\.bash$/ );
+
+  # look inside for shell, perl
+  open (P, "<$file");
+  my ($first) = <P>;
+  close (P);
+
+  if ($first =~ /^\#\!([^ ]+)/) {	# unix script of some sort?
+    my ($x) = $1;
+    return "perl" if ($x =~ /perl/);
+    return "sh" if ($x =~ /(tcsh|csh|bash|sh)/); # don't distinguish between shells here
+  }
+  return 0;
+}
+
+
+sub dumpCR {
+  my ($fh, $lead, $trail, $range, $company) = @_;
+  print $fh "$lead$tag0$trail\n";
+  foreach $rl (@stdlines) {
+    my $l = $rl;
+    $l =~ s/\{RANGE\}/$range/;
+    $l =~ s/\{COMPANY\}/$company/;
+    print $fh "$lead$l$trail\n";
+  }
+  print $fh "$lead$tag1$trail\n";
+}
 
 # parse an old conforming copyright notice (without the tags, in one line)
 # and return the range and company extracted, if possible.
