@@ -267,8 +267,6 @@ bol.compiler=javac
 bol.compiler.deprecation = 1
 
 # community
-# (incorrectly) checked into cvs as "mic" for now
-community.module = mic
 community.repository = external
 community.deps = util,core,glm,planserver,manager,webserver
 community.jars = log4j,xerces,servlet
