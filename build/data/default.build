@@ -204,9 +204,9 @@ csmart.repository = internal
 
 # quo/qos
 qos.deps = core
-quo.deps = core, qos
-quo.jars = quoSumo, jacorb
 qos.jars = quoSumo
+quo.deps = core, qos
+quo.jars = quoSumo, jacorb, xerces
 
 # new PSP/web server
 webserver.deps = core
