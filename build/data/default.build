@@ -81,7 +81,7 @@ sys.lib=module:jars
 
 # these don't get shipped in cougaar-support.zip, usually because of
 # licence restrictions.
-sys.lib.dontship = wasp,uddiclient
+sys.lib.dontship =
 
 # build.root defaults to /tmp/{product.name}
 # build.root=/tmp/head
