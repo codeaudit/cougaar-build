@@ -23,4 +23,5 @@ if [ "x$COUGAAR_INSTALL_PATH" != "x" ]
 then cp=$COUGAAR_INSTALL_PATH/lib/build.jar
 else cp=/cougaar/lib/build.jar
 fi
+#cp=/cougaar72/lib/build.jar
 exec java -classpath $cp org.cougaar.tools.make.Make $*
