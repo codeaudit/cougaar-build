@@ -1169,6 +1169,12 @@ sub build_3rdparty {
   my $tl = "$tmpdir/sys";
   mkd $tl;
 
+  # exclude dontships from cougaar-support.zip
+  my @dontships;
+  @dontships = opt("sys.lib.dontship");
+  my %dontship;
+  foreach $ds (@dontships) { $dontship{$ds} = 1; }
+
   # grab the modules (checked-in) jars
   foreach $mod (@modules) {
     my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
@@ -1177,6 +1183,11 @@ sub build_3rdparty {
     my @deps = ((split /\s*,\s*/, opt("$mod.jars")),
 		(split /\s*,\s*/, opt("$mod.extras")));
     foreach $dep (@deps) {
+      # skip dontships
+      if ($dontship{$dep}) {
+	print "Skipping $dep for module $mod\n";
+	next;
+      }
       my $jar = findjar($dep, @alljars);
       if (!$jar) {
 	next if ($dep eq "tools"); # skip tools (and other java standard ones, even if required)
@@ -2307,8 +2318,8 @@ sub generateProductAntRecipe {
 	    }
 
 	    #debug
-	    $modspec = join ",", @modspecs;
-	    print "mod=$mod: deps=$modspec\n";
+	    #$modspec = join ",", @modspecs;
+	    #print "mod=$mod: deps=$modspec\n";
 	    #debug
 
 	    sopt($mod, "Name", $mod);
