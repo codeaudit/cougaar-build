@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ "x$COUGAAR_INSTALL_PATH" != "x" ]
+then cp=$COUGAAR_INSTALL_PATH/lib/build.jar
+else cp=/cougaar/lib/build.jar
+fi
+exec java -classpath $cp org.cougaar.tools.make.Make $*
