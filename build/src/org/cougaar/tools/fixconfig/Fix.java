@@ -30,15 +30,15 @@ public class Fix {
             this.clusters = clusters;
         }
     }
-    public static interface Fixer {
+    public interface Fixer {
         String fix(String line);
     }
 
-    public static interface Checker extends Matcher {
+    public interface Checker extends Matcher {
         Relationships.Role getRole();
     }
 
-    public static interface Matcher {
+    public interface Matcher {
         boolean matches(String line);
     }
 
