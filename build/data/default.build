@@ -177,16 +177,18 @@ glmtrans.deps = core,glm,toolkit,vishnu
 glmtrans.jars = xerces,servlet
 glmtrans.repository = internal
 
-# delta
-delta.deps = core,glm,toolkit,planserver
-delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
+
+# delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
+delta.deps = core,glm,toolkit,planserver,javaiopatch
+delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 delta.repository = internal
 delta.private=1
 
-deltaeport.deps = core,glm,toolkit,planserver,delta
-deltaeport.jars = servlet,jbcl,oracle12
+deltaeport.deps = core,glm,toolkit,planserver,javaiopatch
+deltaeport.jars = NetComponents,activation,jbcl,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 deltaeport.repository = internal
 deltaeport.private=1
+
 
 # blackjack
 blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
