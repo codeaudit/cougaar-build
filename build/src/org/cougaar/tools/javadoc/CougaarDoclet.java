@@ -134,7 +134,7 @@ class ParameterListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
     
     // Note that this line includes some SCRIPT tags that the default Java HTML renderer
     // can't handle. Ugly.
-    printHeader("Parameter List");
+    printHtmlHeader("Parameter List");
     println("Catalog of System Properties");
     p();
     
@@ -227,7 +227,7 @@ class EventListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
     
     // Note that this line includes some SCRIPT tags that the default Java HTML renderer
     // can't handle. Ugly.
-    printHeader("Cougaar Event List");
+    printHtmlHeader("Cougaar Event List");
     println("Catalog of Cougaar Events");
     p();
     
