@@ -702,10 +702,6 @@ sub build_module {
       }
     }
 
-    if ($standalone_p) {
-      push @subdirs, "lib";
-    }
-
     my $subdirs = join(" ", @subdirs);
     if ($subdirs) {
       $make_zip = 1;		# something to emit
