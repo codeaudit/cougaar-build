@@ -652,7 +652,11 @@ sub rundef {
     #print "Running $class\n" if $verbose;
     $args = join " ", @words[1..$#words];
     chdir($dirpath);
-    $rc = java("$libdir/build.jar:$cp", "$class $args $path");
+    my ($dargs) = "-Drepository.tag='$rtag' -Drepository.time='$rdate'";
+    if ($skip || $checkoutP) {
+      $dargs .= " -Drepository.modified=true";
+    }
+    $rc = java("$libdir/build.jar:$cp", "$dargs $class $args $path");
   }
   close(DEF);
   return $rc;
