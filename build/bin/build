@@ -547,9 +547,14 @@ sub checkout_module {
 
   my $rep = getCVSROOT($mod);
   my $cvsmod = opt("$mod.module","$mod");
+  my $modpointP = $pointP;
 
   my $tag = opt("$mod.tag");
   $tag = $rtag if (!$tag);
+  if ( $tag =~ /^\@(.*)/) {
+    $tag = $1;
+    $modpointP = true;
+  }
 
   my $arg = "";
   $arg = "-Q";			# if ($verbose<=1);
@@ -558,14 +563,14 @@ sub checkout_module {
   $rarg = "-r $tag" if (! ($tag eq "HEAD"));
   if ($checkoutP) {
     # hack to allow us to checkout a branch at a specific time
-    $rarg .= " -D '$opt_D'" if ($opt_D && !$pointP);
+    $rarg .= " -D '$opt_D'" if ($opt_D && !$modpointP);
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $cvsmod");
   } else {
     if ($opt_D) {
       $rarg .= " -D '$opt_D'";
     } else { 
-      if (!$pointP) {
+      if (!$modpointP) {
 	$rarg .= " -D '$rdate'"
       }
     }

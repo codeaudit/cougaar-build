@@ -128,6 +128,16 @@ modules.unified = build,bootstrap,util,core,planning,\
 # all of the compiler.* options may be prefixed by a module name:
 #core.compiler.pedantic = 1
 #core.compiler.deprecation = 1
+# Also, modules may specify specific branch tags, eg:
+#core.tag = MYCOREBRANCH
+# If you want a point tag, prefix the tag with a '@':
+#core.tag = @MYCOREPOINTTAG
+# You can also specify the repository on a per-module basis.  The
+#following says to replace the tail of the default repository
+#(e.g. from CVSROOT) with the value 'internal'
+#vishnu.repository = internal
+#or you can specify a complete CVSROOT value:
+#albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
