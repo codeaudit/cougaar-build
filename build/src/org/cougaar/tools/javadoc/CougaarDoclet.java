@@ -125,7 +125,9 @@ class ParameterListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
   protected void generateParameterListFile(RootDoc root) {
     buildParameterInfo(root);
     
-    printHeader("Paramater List");
+    // Note that this line includes some SCRIPT tags that the default Java HTML renderer
+    // can't handle. Ugly.
+    printHeader("Parameter List");
     println("Catalog of System Properties");
     p();
     
