@@ -44,11 +44,39 @@ use File::Copy;
 use File::Path;
 use File::Find;
 
+# for specfile parsing,grabbing
+use CGI;
+use LWP::Simple;
+
 require "getopts.pl";
+
+# Tag argument is interpreted to find the right build spec file.
+# in most general form, it is an arbitrary URL source for the spec.
+# some extensions and simplifications are accepted.
+# examples:
+# generic http (ftp, file, etc also work):
+#   http://cf.cougaar.org/build/browse/HEAD/build/data/default.build
+# full cvs form:
+#   cvs://cvs.cougaar.org/cvsroot/build&path=build/data/default.build&tag=B10_4
+# shorthand for above:
+#   B10_4
+# non-specified components of CVS option are defaulted, eg:
+#  cvs://alternate.cougaar.org
+# is interpreted as "cvs://alternate.cougaar.org/cvsroot/build&path=build/data/default.build&tag=HEAD"
+$defaults{protocol} = "cvs";
+$defaults{tag} = "HEAD";
+$defaults{domain} = "cvs.cougaar.org";
+$defaults{repository} = "/cvsroot/build";
+$defaults{file} = "build/data/default.build";
+
+$specTag;			# default tag as given by the specfile
+$impliedTag;			# tag used to check out the specfile (if known)
 
 $verbose = 1;
 $auto = "auto";
-$tag = "HEAD";
+$tag;				# tag to use to pass to the build script (-t arg)
+$default_group = "AUTO";
+$group;
 $data = "default.build";
 $host = "eiger.alpine.bbn.com";
 $cleanup = 1;
@@ -58,17 +86,19 @@ $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
-&Getopts('vVm:a:t:d:hkT:H:po:n:j:C');
+&Getopts('vVm:a:t:d:hkT:H:po:n:j:Cg:S:');
 if ($opt_h) {
   print STDOUT "Usage: autobuild [args]\n";
   print STDOUT "\t-v\tVerbose mode\n";
   print STDOUT "\t-V\tVery Verbose mode (also prints error log)\n";
   print STDOUT "\t-a name\tDirectory name instead of 'auto'\n";
-  print STDOUT "\t-t tag\tTag to use instead of 'HEAD'\n";
+  print STDOUT "\t-S buildspec\tURL or spec to use instead of default HEAD build\n";
+  print STDOUT "\t-t tag\tTag to use instead of 'HEAD' (deprecated - use -S instead)\n";
+  print STDOUT "\t-g group\tPosting group to use instead of 'AUTO', defaults to tag if specified\n";
   print STDOUT "\t-C\tOnly clean\n";
   print STDOUT "\t-d file\tData file to use instead of 'default.build'\n";
   print STDOUT "\t-k\tDont clean up afterwards (leave leftovers)\n";
-  print STDOUT "\t-T dir\tPut temporary files in dir/tag instead of /tmp/tag\n";
+  print STDOUT "\t-T dir\tPut temporary files in dir/group instead of /tmp/group\n";
   print STDOUT "\t-H host\tPublish to host instead of \"$host\"\n";
   print STDOUT "\t-h\tThis usage commend\n";
   print STDOUT "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
@@ -79,10 +109,25 @@ if ($opt_h) {
   exit(-1);
 }
 
+if ($opt_g) {
+  $group = $opt_g;
+} else {
+  if ($opt_t) {
+    $group = $opt_t;
+  }
+}
+
 $host = $opt_H if $opt_H;
 $cleanup=0 if $opt_k;
 $onlyclean = $opt_C;
 $tag = $opt_t if ($opt_t);
+if ($opt_S) {
+  $buildspec = $opt_S;
+} else {
+  if ($tag ne "") {
+    $buildspec = $tag;
+  }
+}
 $extraargs = $opt_o if ($opt_o);
 $javahome = $opt_j if ($opt_j);
 
@@ -102,13 +147,30 @@ if ($onlyclean) {
 #}
 
 if ($opt_T) {
-  $tmp = $opt_T;
+  $tmpbase = $opt_T;
 } else {
-  $tmp = "/tmp";
+  $tmpbase = "/tmp";
 }
 
-&mkd($tmp);
-$tmp = "$tmp/$tag";
+&mkd($tmpbase);
+
+# bootstrap the build process
+$tmpdir = "/tmp/autobuild.$$";
+mysystem("rm -rf $tmpdir");
+mkd($tmpdir);
+
+$buildspecfile;			# specfile
+$buildscript;			# buildscript
+
+# get the buildspecs
+($buildspecfile,$buildscript,$group) = grab_buildspec($tmpdir, $buildspec);
+$group = $default_group if ($group eq "");
+
+# install the signal handlers
+$SIG{INT} = 'sighandler';
+$SIG{QUIT} = 'sighandler';
+
+$tmp = "$tmpbase/$group";
 &mkd($tmp);
 
 $statusfile = "$tmp/STATUS";
@@ -116,75 +178,8 @@ $lockfile = "$tmp/LOCK";
 acquireLock();
 logMessage("Started");
 
-sub acquireLock {
-  if (open(LOCK, "<$lockfile")) {
-    $pid = <LOCK>;
-    close(LOCK);
-    chop $pid;
-    logMessage("Lockfile $lockfile is owned by process $pid - exiting.");
-    mailreport("FAILED: could not acquire lock");
-    die("Could not acquire lock $lockfile");
-  }
-
-  if (!open(LOCK, ">$lockfile")) {
-    logMessage("Couldn't open lockfile $lockfile for write - something seriously wrong");
-    mailreport("FAILED: could not acquire lock");
-    die("Could not acquire lock $lockfile");
-  }
-  print LOCK "$$\n";
-  close(LOCK);
-}
-
-sub releaseLock {
-  if (! open(LOCK, "<$lockfile")) {
-    logMessage("Couldn't read lockfile $lockfile - we'll assume it is ok");
-    return;
-  }
-  $pid = <LOCK>;		# one line;
-  close(LOCK);
-
-  chop $pid;
-  if (! ($pid eq $$)) {
-    logMessage("Lock held by $pid instead of $$ - someone is probably losing");
-    return;
-  }
-  unlink($lockfile);
-}
-
-# handle signals
-sub sighandler {
-  local ($sig) = @_;
-  print "Caught a SIG$sig -- exiting\n";
-  releaseLock();
-  logMessage("build failed (signal $sig)");
-  exit(0);
-}
-$SIG{INT} = 'sighandler';
-$SIG{QUIT} = 'sighandler';
-
-# bootstrap the build process
-$tmpdir = "$tmp/$tag-build.$$";
-mysystem("rm -rf $tmpdir");
-mkd($tmpdir);
-{
-  my($rarg) = "-r $tag" if (! ($tag eq "HEAD"));
-  $rarg .= " -D now" if (!$opt_p);
-  mysystem("cd $tmpdir ; cvs -Q export $rarg build/bin build/data");
-}
-$basedir = "$tmpdir/build";
-
 # this is where build will build into
-$builddir = "$tmp/$tag";
-
-
-$buildscript = "$basedir/bin/build";
-# if data has any pathname components, use it instead of relative to checked-out
-# version
-if ($data =~ /\//) {
-  $builddata = $data;
-} else {
-  $builddata = "$basedir/data/$data";
-}
+$builddir = "$tmp/$group";
 $keep = $opt_n if $opt_n;	# reset the keep value if we need to
 
 # clean up any waxy yellow buildup
@@ -194,18 +189,29 @@ mysystem("rm -rf $builddir");
 # let them know we're in progress
 {
   my($ds) = datestr();
-  ssh("$host mkdir -p $auto/$tag \\; rm -f $auto/$tag/STATUS \\; echo BUILD started at $ds \\> $auto/$tag/STATUS");
+  ssh("$host mkdir -p $auto/$group \\; rm -f $auto/$group/STATUS \\; echo BUILD started at $ds \\> $auto/$group/STATUS");
+}
+
+if ($tag eq "") {		# no tag specified
+  if ($specTag) {		# ... but that's ok - the specfile defines one
+  } else {
+    if ($impliedTag ne "") {	# use impliedTag if we know it...
+      $tag = $impliedTag;
+    } else {			# otherwise we'll warn and hope for the best
+      print "Warning: no default tag specified.\n";
+    }
+  }
 }
 
 # start a fresh build
 $rarg = "";
-$rarg = "-r $tag" if (! ($tag eq "HEAD"));
-if ($javahome) {
-  $extraargs .= " -ojava.home=$javahome";
+if ($tag ne "") {
+  $rarg = "-r $tag" if (! ($tag eq "HEAD"));
 }
-$extraargs .= " -p" if ($opt_p);
-
-mysystem("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$tag.out");
+if ($javahome) {
+  $extaargs = "$extraargs -ojava.home=$javahome";
+}
+mysystem("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $buildspecfile >$tmp/$group.out");
 
 # what did we build?
 opendir D, $builddir;
@@ -237,12 +243,11 @@ $status = "UNKNOWN";
   }
 }
 
-if (0) {			# We never use this information, so let's skip it.
 # parse the old status reports
 @statusReports;
 {
   if (!open(STAT, "<$statusfile")) {
-#    logMessage("Couldn't open status file $statusfile for reading - something seriously wrong");
+    logMessage("Couldn't open status file $statusfile for reading - something seriously wrong");
   } else {
     while (<STAT>) {
       chop;
@@ -250,7 +255,6 @@ if (0) {			# We never use this information, so let's skip it.
     }
     close(STAT);
   }
-}
 }
 
 # record the status
@@ -272,16 +276,16 @@ if (! ($status eq "SUCCEEDED")) {
 }
 
 # copy whatever is there to $host
-ssh("$host mkdir -p $auto/$tag/$built");
-scp("$builddir/$built/dist/* $host:$auto/$tag/$built");
-ssh("$host cd $auto/$tag \\; rm -f latest \\; ln -s $built latest");
+ssh("$host mkdir -p $auto/$group/$built");
+scp("$builddir/$built/dist/* $host:$auto/$group/$built");
+ssh("$host cd $auto/$group \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
 cleanRemote();
 
 {
   my($ds) = datestr();
-  ssh("$host rm -f $auto/$tag/STATUS \\; echo BUILD $status finished at $ds \\> $auto/$tag/STATUS");
+  ssh("$host rm -f $auto/$group/STATUS \\; echo BUILD $status finished at $ds \\> $auto/$group/STATUS");
 }
 
 
@@ -296,7 +300,7 @@ exit 0;
 sub mysystem {
   local($command)= @_;
 
-  print STDOUT "$command\n" if ($verbose>1);
+  print STDOUT "$command\n";# if ($verbose>1);
   if ($pretend) {
     return 0;
   }
@@ -368,7 +372,7 @@ sub datestr {
 sub logMessage {
   local($s)=@_;
   print STDOUT "$s\n" if ($verbose>1);
-  open(LOG, ">>$tmp/$tag.log");
+  open(LOG, ">>$tmp/$group.log");
   my ($d) = datestr();
   print LOG "$d\t$s\n";
   close(LOG);
@@ -376,7 +380,7 @@ sub logMessage {
 
 
 sub cleanRemote {
-  open(B, "$ssh $host ls $auto/$tag|");
+  open(B, "$ssh $host ls $auto/$group|");
   @alldirs = <B>;
   close(B);
 
@@ -400,7 +404,7 @@ sub cleanRemote {
   if ($lsucc || $lfail) {
     my $sc = 0;
     my $fc = 0;
-    ssh("$host cd $auto/$tag \\; rm -f latest_success latest_failure");
+    ssh("$host cd $auto/$group \\; rm -f latest_success latest_failure");
     foreach $dir (reverse @alldirs) {
       chomp $dir;
       my $status = $status{$dir};
@@ -409,7 +413,7 @@ sub cleanRemote {
 	$fc = 100;		# don't keep any older failures!
 	# first is latest
 	if ($sc == 1) {
-	  ssh("$host cd $auto/$tag \\; ln -s $dir latest_success");
+	  ssh("$host cd $auto/$group \\; ln -s $dir latest_success");
 	}
 	if ($sc > 2) {
 	  rrm($dir);
@@ -418,7 +422,7 @@ sub cleanRemote {
       if ($status eq "FAILED") {
 	$fc++;
 	if ($fc == 1) {
-	  ssh("$host cd $auto/$tag \\; ln -s $dir latest_failure");
+	  ssh("$host cd $auto/$group \\; ln -s $dir latest_failure");
 	}
 	if ($fc > $keep) {
 	  rrm($dir);
@@ -443,14 +447,14 @@ sub cleanRemote {
 
 sub rrm {
   my ($p) = @_;
-  ssh("$host rm -rf $auto/$tag/$p");
+  ssh("$host rm -rf $auto/$group/$p");
 }
 
 sub checkRemoteStatus {
   my ($rd) = @_;
 
-  print STDOUT "$ssh $host tail -1 $auto/$tag/$rd/build.out\n" if ($verbose>1);
-  open(R, "$ssh $host tail -1 $auto/$tag/$rd/build.out|");
+  print STDOUT "$ssh $host tail -1 $auto/$group/$rd/build.out\n" if ($verbose>1);
+  open(R, "$ssh $host tail -1 $auto/$group/$rd/build.out|");
   my @lines;
   @lines = <R>;
   close(R);
@@ -481,7 +485,7 @@ sub mailreport {
   my ($report) = @_;
   if (! ($mailaddr eq "") ) {
     my($statfile)= "$builddir/$built/dist/errors.out";
-    my($complaint) = "Build of $tag at $built $report";
+    my($complaint) = "Build of $group at $built $report";
 
     if (-r $statfile) {
       mysystem("/bin/mail -s \"$complaint\" $mailaddr <$statfile");
@@ -489,4 +493,201 @@ sub mailreport {
       mysystem("/bin/mail -s \"$complaint\" $mailaddr < /dev/null");
     }
   }
+}
+
+#
+# tag parsing and specfile grabbing
+#
+
+sub grab_buildspec {
+  # arguments 
+  # grok the passed buildspec/tag info, grab it from the right spot
+  # and leave it in the returned filename(s)
+
+  my ($tf, $spec) = @_;
+  my $specf = "$tf/build.spec";
+  my $buildf = "$tf/build";
+  my $sgroup = $group;
+
+  my $hash = parse_buildspec($spec);
+  my $proto = $hash->{protocol};
+  my $content;
+
+  if ($proto eq "cvs") {
+    # grab it via cvs
+    my $qarg = $verbose?"-Q ":"";
+    my $domain = $hash->{domain};
+    $domain = $defaults{domain} if ($domain eq "");
+    my $repository = $hash->{repository};
+    $repository = $defaults{repository} if ($repository eq "");
+    my $cvsroot = ":ext:$domain:$repository";
+    $ENV{CVSROOT} = $cvsroot;
+    my $tag = $hash->{tag};
+    if ($tag ne "") {
+      $impliedTag = $tag;
+    }
+    $tag = $defaults{tag} if ($tag eq "");
+    $sgroup = $tag if ($sgroup eq "");
+    my $file = $hash->{file};
+    $file = $defaults{file} if ($file eq "");
+    my $command = "cvs -d $cvsroot $qarg co -p -r $tag $file";
+    print "Copying '$command' to '$specf'\n" if $verbose;
+    open(CVS, "$command|") || die "Could not check out spec with '$command'";
+    while (<CVS>) {
+      $content .= $_;
+    }
+    close(CVS);
+  } else {
+    # grab it via http or whatever
+    print "Copying '$spec' to '$specf'\n" if $verbose;
+    $content = get($spec);
+    die "Couldn't open '$spec'" unless defined $content;
+  }
+
+  open(F, ">$specf") || die "Couldn't open '$specf' for writing";
+  print F $content;
+  close(F);
+
+  {
+    my $brep;
+    my $bmod = "build";
+    my $btag;
+    my $bpath = "bin/build";
+    my $dtag;
+    # parse content for important bits
+    foreach $_ (split("\n",$content)) {
+      next if (/\s*#/);
+      $btag = $1 if (/^\s*build\.tag\s*=\s*(.*)/);
+      $brep = $1 if (/^\s*build\.repository\s*=\s*(.*)/);
+      $bpath = $1 if (/^\s*build\.script\s*=\s*(.*)/);
+      $bmod = $1 if (/^\s*build\.module\s*=\s*(.*)/);
+      $dtag = $1 if (/^\s*default\.tag\s*=\s*(.*)/);
+      $bgroup = $1 if (/^\s*build\.group\s*=\s*(.*)/);
+    }
+    $specTag = $dtag;
+    if ($btag eq "") {
+      if ($dtag eq "") {
+	# ugh.  just use HEAD
+	$btag = "HEAD";
+      } else {
+	$btag = $dtag;
+      }
+    }
+    if ($brep eq "") {		# no repository spec? just use default
+      my $domain = $defaults{domain};
+      my $repository = $defaults{repository};
+      $brep = ":ext:$domain:$repository";
+    }
+
+    my $command = "cvs -d $brep -Q co -p -r $btag $bmod/$bpath";
+    print "getting script with \"$command\"\n";
+    mysystem("$command > $buildf");
+    if (! -r $buildf) {
+      die ("Failed to get build script");
+    }
+    mysystem("chmod a+x $buildf");
+    $sgroup = $bgroup if (defined $bgroup);
+  }
+  return ($specf, $buildf, $sgroup);
+}
+
+
+sub print_buildspec {
+  # parse the passed buildspec and print the contents.
+  my $spec = shift;
+  my $hash = parse_buildspec($spec);
+  print "\n$spec\n";
+  print " protocol=$hash->{protocol}\n";
+  print " domain=$hash->{domain}\n";
+  print " repository=$hash->{repository}\n";
+  print " tag=$hash->{tag}\n";
+  print " file=$hash->{file}\n";
+}
+
+
+sub parse_buildspec {
+  #return a hashref to parsed buildspec url
+  my $spec = shift;
+  return \%defaults if ($spec eq "");
+
+  my $parts = parse_url($spec);
+  my $protocol =$parts->{protocol};
+  if ($protocol eq "") {
+    # blew the parse, assume it is a cvs tag
+    my %tmp = %defaults;
+    $tmp{tag} = $spec;
+    return \%tmp;
+  }
+  my $domain = $parts->{domain};
+  my $path = $parts->{path};
+  my $file = $parts->{file};
+  my $fpath = "$path$file";
+  my $query = new CGI($parts->{arguments});
+  my $ptag=$query->param('tag');
+  my $ppath = $query->param('path');
+
+  my (%hash) = ();
+  $hash{protocol} = $parts->{protocol};
+  $hash{domain} = $parts->{domain};
+  $hash{repository} = $fpath;
+  $hash{tag} = $ptag;
+  $hash{file} = $ppath;
+  return \%hash;
+}
+
+
+sub parse_url {
+# Pass in a URL. Hashref is returned.
+  my $url     = shift;
+  my (@parts) = $url =~ m|^([^:]+)://([^/]+)(?:(/.+?/?)([^/]+)?)?(\&.+)?$|;
+  my (%slice) = ();
+  @slice{qw/protocol domain path file arguments/} = @parts;
+  return \%slice;
+}
+
+#
+# signal handling
+#
+sub acquireLock {
+  if (open(LOCK, "<$lockfile")) {
+    $pid = <LOCK>;
+    close(LOCK);
+    chop $pid;
+    logMessage("Lockfile $lockfile is owned by process $pid - exiting.");
+    mailreport("FAILED: could not acquire lock");
+    die("Could not acquire lock $lockfile");
+  }
+
+  if (!open(LOCK, ">$lockfile")) {
+    logMessage("Couldn't open lockfile $lockfile for write - something seriously wrong");
+    mailreport("FAILED: could not acquire lock");
+    die("Could not acquire lock $lockfile");
+  }
+  print LOCK "$$\n";
+  close(LOCK);
+}
+
+sub releaseLock {
+  if (! open(LOCK, "<$lockfile")) {
+    logMessage("Couldn't read lockfile $lockfile - we'll assume it is ok");
+    return;
+  }
+  $pid = <LOCK>;		# one line;
+  close(LOCK);
+
+  chop $pid;
+  if (! ($pid eq $$)) {
+    logMessage("Lock held by $pid instead of $$ - someone is probably losing");
+    return;
+  }
+  unlink($lockfile);
+}
+
+# handle signals
+sub sighandler {
+  local ($sig) = @_;
+  print "Caught a SIG$sig -- exiting\n";
+  releaseLock();
+  logMessage("build failed (signal $sig)");
+  exit(0);
 }
