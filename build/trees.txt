@@ -14,7 +14,7 @@ Topics:
 
 Three cvs trees:
 ~~~~~~~~~~~~~~~~
-  1) eiger.alpine.bbn.com:/cvs/alp/master      core, alpine, tools, utility & tutorial.
+  1) eiger.alpine.bbn.com:/cvs/alp/cougaar     core, alpine, tools, utility & tutorial.
   2) eiger.alpine.bbn.com:/cvs/alp/internal    BBN developed plugins.
   3) eiger.alpine.bbn.com/cvs/alp/external     Externally developed plugins.
 
@@ -39,7 +39,7 @@ alp-<date>/
    |  + <plugin1.jar>          NOTE: currently in lib
    |  + <plugin2.jar>
    |  + <pluginN.jar>
-   + src/                      Released sources.
+   + src/                      Released core sources.
    |  + core.zip               Source for core.
    |  + alpine.zip             Ditto for alpine sources.
    |
@@ -56,8 +56,8 @@ alp-<date>/
    + <pluginN>/
 
 
-Partial tree diagram if eiger:/cvs/alp/master
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Partial tree diagram if eiger:/cvs/alp/cougaar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    + alpine/
    |   + bin/
    |   + configs/
@@ -79,7 +79,7 @@ Tree diagram of eiger:/cvs/alp/internal
    |   + data/
    |   + doc/
    |   + lib/
-   |   + src/
+   |   + src/            # Your source packages here...
    |   |  + com/
    |   |  |  + bbn/
    |   |  |     + .../
@@ -88,13 +88,16 @@ Tree diagram of eiger:/cvs/alp/internal
    |   + other?/  
    |
    + plugin2/
+   + ...
    + pluginN/
 
+
+NOTE: eiger:/cvs/alp/external has the same layout as eiger:/cvs/alp/internal
 
 
 Disk overlays
 ~~~~~~~~~~~~~
-location: eiger:/build/dist/alp-overlays-MB6/
+location: eiger:/build/dist/alp-overlays-MB7/
 
 .../alp-overlays-MB6/
       + core           # name
