@@ -1,10 +1,10 @@
 /*
  * <copyright>
- *  Copyright 1997-2001 Defense Advanced Research Projects
- *  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
- *  Raytheon Systems Company (RSC) Consortium).
- *  This software to be used only in accordance with the
- *  COUGAAR licence agreement.
+ * Copyright 1997-2001 Defense Advanced Research Projects
+ * Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
+ * Raytheon Systems Company (RSC) Consortium).
+ * This software to be used only in accordance with the
+ * COUGAAR licence agreement.
  * </copyright>
  */
 
@@ -80,12 +80,11 @@ public class WriterBase {
   protected final static void writeCR(PrintWriter out, String source) {
     println(out,"/*\n"+
                 " * <copyright>\n"+
-                " * Copyright 1997-2001 Defense Advanced Research Projects Agency (DARPA)\n"+
-                " * and ALPINE (A BBN Technologies (BBN) and Raytheon Systems Company\n"+
-                " * (RSC) Consortium). This software to be used in accordance with the\n"+
-                " * COUGAAR license agreement.  The license agreement and other\n"+
-                " * information on the Cognitive Agent Architecture (COUGAAR) Project can\n"+
-                " * be found at http://www.cougaar.org or email: info@cougaar.org.\n"+
+                " * Copyright 1997-2001 Defense Advanced Research Projects\n"+
+                " * Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and\n"+
+                " * Raytheon Systems Company (RSC) Consortium).\n"+
+                " * This software to be used only in accordance with the\n"+
+                " * COUGAAR licence agreement.\n"+
                 " * </copyright>\n"+
                 " */");
     println(out);
