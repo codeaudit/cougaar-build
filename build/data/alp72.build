@@ -42,7 +42,7 @@ tops.deps = core,glm,toolkit,planserver,vishnu
 delta.deps = core,glm,toolkit,planserver
 blackjack.deps = core,glm,planserver,toolkit,vishnu
 Marine.deps = core,glm
-uiframework.deps = core,glm,planserver,aggagent
+uiframework.deps = core,glm,planserver,aggagent,tops
 
 # module libs (in addition to module deps)
 core.jars = xml4j_2_0_11
@@ -60,17 +60,9 @@ uiframework.jars = cuimap,xml4j_2_0_11,j2ee,vgj,xerces
 Marine.jars = xml4j_2_0_11
 
 #extra libs
-glm.runtime = oracle12
-
-# unified build
-core.unified = 1
-toolkit.unified = 1
-contract.unified = 1
-planserver.unified = 1
-glm.unified = 1
-scalability.unified = 1
-server.unified = 1
-aggagent.unified = 1
+glm.extras = oracle12
+tops.extras = mm-mysql-2
+uiframework.extras = mm-mysql-2
 
 # runtime specs. Runtime always gets built libs, too.
 core.runtime = doc
