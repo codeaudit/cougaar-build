@@ -126,7 +126,7 @@ public class MakeContext {
 	theProjectBin = new File(theProjectRoot, "bin").getCanonicalFile();
         theCurrentDirectory = new File(".").getCanonicalFile();
 	theCodeGeneratorJar = new File(theProjectLib, BUILD_JAR);
-	theCodeGeneratorJar = new File(theProjectRoot, BUILD_CLASSES);
+	theCodeGeneratorClasses = new File(theProjectRoot, BUILD_CLASSES);
         theModuleRoots = getProjectRoot().listFiles(new FileFilter() {
             public boolean accept(File f) {
                 if (f.isDirectory() && new File(f, "src").isDirectory()) {
@@ -863,8 +863,11 @@ public class MakeContext {
         for (int i = 0; i < prerequisiteModules.length; i++) {
             elements.add(getSourceRoot(getModuleRoot(prerequisiteModules[i])));
             elements.add(getClassesRoot(getModuleRoot(prerequisiteModules[i])));
+            elements.add(new File(getProjectLib(),
+                                  prerequisiteModules[i] + ".jar"));
         }
-        elements.addAll(Arrays.asList(findFiles(getProjectLib(), ".jar", false, false)));
+        elements.add(theCodeGeneratorClasses);
+        elements.add(theCodeGeneratorJar);
         elements.addAll(Arrays.asList(get3rdPartyJars()));
         if (haveJDKTools()) {
             elements.add(getJDKToolsJar());
