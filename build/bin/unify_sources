@@ -63,10 +63,12 @@ fi
 if [ -z $CIP ] || [ ! -d $CIP ]; then
   CIP=$COUGAAR_INSTALL_PATH
   if [ -z $CIP ] || [ ! -d $CIP ]; then
-    if [ -f ../../clib/build.jar ]; then
+    if [ -f clib/build.jar ]; then
+      CIP=$PWD
+    elif [ -f ../../clib/build.jar ]; then
       cd ../..
       CIP=$PWD
-      cd -
+      cd build/bin
     else
       echo "Warn: unable to find COUGAAR_INSTALL_PATH"
     fi
@@ -102,6 +104,8 @@ LOG4J=$JAKARTA/log4j
 SERVLET=$JAKARTA/servletapi
 TOMCAT=$JAKARTA/tomcat
 BCEL=$JAKARTA/bcel
+REGEXP=$JAKARTA/regexp
+AXIS=$JAKARTA/axis
 UDDI4J=$EXT_BASE/uddi4j
 JENA=$EXT_BASE/jena
 JTP=$EXT_BASE/jtp
@@ -164,7 +168,7 @@ if [ -d $COUGAAR/community ]; then
   cd community
     clink community community/src
     clink community community/examples/src examples
-  cd -
+  cd ..
 fi
 clink core core
 clink core jars
@@ -228,7 +232,7 @@ if [ -d $UL/commons/isat/csmart ]; then
   make_dir commons_csmart
   cd commons_csmart
   link $UL/commons/isat/csmart/src/java src
-  cd -
+  cd ..
 fi
 link $UL/commons/isat/oldcsmart
 link $UL/commons/isat/polaris
@@ -238,7 +242,7 @@ if [ -d $UL/commons/isat/ticenvironment ]; then
   cd ticenvironment/src
   link $UL/commons/isat/ticenvironment/src/jcurses
   link $UL/commons/isat/ticenvironment/src/org
-  cd -
+  cd ../..
 fi
 link $UL/commons/lmco/ETA
 link $UL/commons/sandia/foo
@@ -256,7 +260,7 @@ if [ -d $UL/logistics/psu/castellan ]; then
   make_dir -p castellan/src/org
   cd castellan/src/org
   link $UL/logistics/psu/castellan/src/org/cougaar
-  cd -
+  cd ../../..
 fi
 link $UL/logistics/psu/hydra
 link $UL/logistics/sra/sra
@@ -295,13 +299,13 @@ if [ -d $UL/security/csi/securityservices ]; then
   link $UL/security/csi/securityservices/src/com
   link $UL/security/csi/securityservices/src/org
   link $UL/security/csi/securityservices/src/edu
-  cd -
+  cd ../..
 fi
 if [ -d $UL/security/honeywell/Caesar ]; then
   make_dir -p Caesar/src
   cd Caesar/src
   link $UL/security/honeywell/Caesar/src/org 
-  cd -
+  cd ../..
 fi
 link $UL/security/ihmc/safe safe_ihmc
 link $UL/security/telcordia/AdaptiveMnRFilter
@@ -320,7 +324,7 @@ if [ -d $JDK ]; then
     link $JDK/src/launcher
     link $JDK/src/org
     link $JDK/src/sunw
-    cd -
+    cd ../..
   else
     # link all
     link $JDK java
@@ -333,32 +337,32 @@ if [ -d $VM_SRC ]; then
   make_dir vm_javaws
   cd vm_javaws
   link $VM_SRC/deploy/src/javaws/src/share/classes src
-  cd -
+  cd ..
   make_dir vm_javaws_unix
   cd vm_javaws_unix
   link $VM_SRC/deploy/src/javaws/src/unix/classes src
-  cd -
+  cd ..
   make_dir vm_plugin
   cd vm_plugin
   link $VM_SRC/deploy/src/plugin/src/share/classes src
-  cd -
+  cd ..
   make_dir vm_plugin_conv
   cd vm_plugin_conv
   link $VM_SRC/deploy/src/plugin/src/share/converter src
-  cd -
+  cd ..
   make_dir vm_hotspot
   cd vm_hotspot
   link $VM_SRC/hotspot/src/share/vm/agent src
-  cd -
+  cd ..
   make_dir -p vm_j2se/src
   cd vm_j2se/src
   link $VM_SRC/j2se/src/share/classes/com
   link $VM_SRC/j2se/src/share/classes/sun
-  cd -
+  cd ../..
   make_dir vm_j2se_solaris
   cd vm_j2se_solaris
   link $VM_SRC/j2se/src/solaris/classes src
-  cd -
+  cd ..
 fi
 
 # 3rd-party modules:
@@ -368,37 +372,50 @@ if [ -d $LOG4J ]; then
   make_dir log4j
   cd log4j
   link $LOG4J/src/java src
-  cd -
+  cd ..
 fi
 if [ -d $SERVLET ]; then
   make_dir -p servlet/src
   cd servlet/src
   link $SERVLET/src/share/javax
-  cd -
+  cd ../..
 fi
 if [ -d $TOMCAT ]; then
   make_dir tomcat
   cd tomcat
   link $TOMCAT/catalina/src/share src
-  cd -
+  cd ..
 
   make_dir jasper
   cd jasper
   link $TOMCAT/jasper/src/share src
-  cd -
+  cd ..
 fi
 if [ -d $BCEL ]; then
   make_dir bcel
   cd bcel
   link $BCEL/src/java src
-  cd -
+  cd ..
+fi
+if [ -d $REGEXP ]; then
+  make_dir regexp
+  cd regexp
+  link $REGEXP/src/java src
+  cd ..
+fi
+if [ -d $AXIS ]; then
+  make_dir -p axis/src
+  cd axis/src
+  link $AXIS/src/org
+  link $AXIS/src/javax
+  cd ../..
 fi
 link $UDDI4J
 if [ -d $JENA ]; then
   make_dir -p jena/src
   cd jena/src
   link $JENA/src/com
-  cd -
+  cd ../..
 fi
 if [ -d $JTP ]; then
   make_dir -p jtp/src/jtp
@@ -410,7 +427,7 @@ if [ -d $JTP ]; then
   for x in $JTP/*.java $JTP_DIRS; do
     link $x
   done
-  cd -
+  cd ../../..
 fi
 link $PMD
 link $JMDNS
@@ -428,7 +445,7 @@ if [ -f $CIP/clib/build.jar ]; then
     org.cougaar.tools.build.UnifySourceScripter | \
     sed -e "s/^BASE=\\\$COUGAAR_INSTALL_PATH\$/BASE=$ALL_DIR/" > \
     ../.unify_sources
-  cd -
+  cd ..
   chmod 777 .unify_sources
   ./.unify_sources
   # keep this file for debugging
