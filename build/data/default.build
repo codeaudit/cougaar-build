@@ -62,9 +62,9 @@ sys.lib=/home/cougaar/build.jars
 # xerces		3.1.1
 
 # run time only:
-# jce1_2-do			run time
-# mm-mysql-2
-# oracle12
+# jce1_2-do		1.2
+# mm-mysql-2		2.0
+# oracle12		(for >= jdk 1.2)
 
 # build time only:
 # junit		3.7
@@ -149,6 +149,10 @@ glm.extras = oracle12
 tops.extras = mm-mysql-2
 uiframework.extras = mm-mysql-2
 
+# include junit.jar in dist, even though it is only needed for
+# build/release
+build.extras = junit
+
 # flag other repositories
 tops.repository = internal
 datagrabber.repository = internal
@@ -160,6 +164,8 @@ Marine.repository = internal
 csmart.repository = internal
 
 # runtime specs. Runtime always gets built libs, too.
+# The build process will also try to exclude these guys
+# from the "standard" locations to avoid duplication/confusion.
 core.runtime = doc
 base.runtime = bin,configs
 
