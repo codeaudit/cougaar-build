@@ -50,31 +50,35 @@ $verbose = 1;
 $auto = "auto";
 $tag = "HEAD";
 $data = "default.build";
-$host = "eiger";
+$host = "eiger.alpine.bbn.com";
+$cleanup = 1;
 
 $ssh = "ssh -n";
 $scp = "scp -B";
 
-&Getopts('va:t:d:hkT:');
+&Getopts('va:t:d:hkT:H:');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
   print STDERR "\t-v\tVerbose mode\n";
   print STDERR "\t-a name\tDirectory name instead of 'auto'\n";
   print STDERR "\t-t tag\tTag to use instead of 'HEAD'\n";
   print STDERR "\t-d file\tData file to use instead of 'default.build'\n";
-  print STDERR "\t-k\tclean up afterwards (delete any leftovers)\n";
+  print STDERR "\t-k\tDont clean up afterwards (leave leftovers)\n";
   print STDERR "\t-T dir\tPut temporary files in dir instead of /tmp\n";
+  print STDERR "\t-H host\tPublish to host instead of \"$host\"\n";
   print STDERR "\t-h\tThis usage commend\n";
   exit(-1);
 }
 
-$cleanup++ if $opt_k;
+$host = $opt_H if $opt_H;
+$cleanup=0 if $opt_k;
 
 if ($opt_T) {
   $tmp = $opt_T;
 } else {
   $tmp = "/tmp";
 }
+
 
 $verbose++ if $opt_v;
 $auto = $opt_a if ($opt_a);
@@ -85,10 +89,13 @@ if ($opt_t && !$opt_a) {
   $auto = $opt_t;
 }
 
+logMessage("Started");
+
 # handle signals
 sub sighandler {
   local ($sig) = @_;
   print "Caught a SIG$sig -- exiting\n";
+  logMessage("build failed (signal $sig)");
   exit(0);
 }
 $SIG{INT} = 'sighandler';
@@ -158,6 +165,8 @@ mysystem("rm -rf $tmpdir");
 
 mysystem("rm -rf $builddir") if $cleanup;
 
+logMessage("Finished");
+
 exit 0;
 
 
@@ -197,6 +206,7 @@ sub mysystem {
     print STDERR "$command: $!\n";
     exit(-1);
   } else {
+    logMessage("Failed: Couldn't run @_");
     die "Couldn't run @_\n";
   }
 }
@@ -214,4 +224,28 @@ sub ssh {
 sub scp {
   my($c) = @_;
   mysystem("$scp $c");
+}
+
+sub datestr {
+  local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
+  $yr = $yr+1900;
+  $mon++;
+  $min="0$min" if ($min<10);
+  $sec="0$sec" if ($sec<10);
+  # default repository date
+  # build time for build directory name
+  $mon="0$mon" if ($mon<10);
+  $mday="0$mday" if ($mday<10);
+  $hour="0$hour" if($hour<10);
+  $yr=$yr-2000;
+  $yr="0$yr" if ($yr<10);
+  "$yr$mon$mday$hour$min$sec";
+}
+
+sub logMessage {
+  local($s)=@_;
+  open(LOG, ">>$tmp/$auto.log");
+  my ($d) = datestr();
+  print LOG "$d\t$s\n";
+  close(LOG);
 }
