@@ -152,8 +152,8 @@ if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
   parse_config("$ENV{HOME}/.cougaar-build-system-specific");
 }
 
-#$compiler_command = "jikes";
-$compiler_command = "javac";
+#$compiler_touse = "jikes";
+$compiler_touse = "javac";
 addopt("javac.command", "javac");
 addopt("jikes.command", "jikes");
 addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
@@ -163,12 +163,37 @@ sub addopt {
   $opts{$key} = $val if (! exists $opts{$key});
 }
 
-$rmic_command = "rmic -g -v1.2";
-
 $java_command = "java";
-$compiler_command = opt("compiler",$compiler_command);
-$java_command = opt("java", $java_command);
-$javadoc_command = opt("javadoc", $javadoc_command);
+$compiler_touse = opt("compiler",$compiler_touse);
+$java_command = opt("java.command", $java_command);
+{
+  local($foo) = opt("java");
+  if ($foo) {
+    $java_command = $foo;
+    print "Warning: java property is set, but java.command is preferred";
+  }
+}
+
+$java_home = opt("java.home");
+if (! $java_home) {
+  if ( $java_command =~ /^(.+)\/bin\/java$/ ) {
+    $java_home = $1;
+  } else {
+    open(JAVA, "which java|");
+    my $line = <JAVA>;
+    close(JAVA);
+    if ($line =~ /(.*)\/bin\/java/) {
+      $java_home = $1;
+    } else {
+      die("Cannot figure out where java is installed: set java.home to avoid problems.");
+    }
+  }
+}
+
+$jar_command = jdkCommand(opt("jar.command", "jar"));
+$javadoc_command = jdkCommand(opt("javadoc.command", "javadoc"));
+$rmic_command = jdkCommand(opt("rmic.command", "rmic"));
+$rmic_arguments = opt("rmic.arguments", "-g -v1.2");
 
 if ($opt_m) {
   @modules = compute_modules($opt_m);
@@ -239,10 +264,11 @@ $rdate = $opt_D if ($opt_D);
 
 # root of the build directory tree
 $build_root = opt("build.root");
+$tmp = opt("tmp", "/tmp");
 if (! $build_root) {
   my $foo = opt("product.name");
   die("Could not figure out build.root!\n") if (!$foo);
-  $build_root = "/tmp/$foo";
+  $build_root = "$tmp/$foo";
 }
 
 if ($skip) {
@@ -327,30 +353,14 @@ $syslib;
 # classpath, possibly with rt.jar added for use by jikes
 $augmented_classpath = $sysclasspath;
 @rtjars;
-$javahome;
-{
-  if ( $java_command =~ /^(.+)\/bin\/java$/ ) {
-    $javahome = $1;
-  } else {
-    open(JAVA, "which java|");
-    my $line = <JAVA>;
-    close(JAVA);
-    if ($line =~ /(.*)\/bin\/java/) {
-      $javahome = $1;
-    } else {
-      die("Cannot find java");
-    }
-  }
-  if ($javahome) {
-
-    if ( $compiler_command =~ /jikes/ ) { # find rt.jar for jikes
-      $rtjar = "$javahome/jre/lib/rt.jar";
-      @rtjars = ($rtjar);
-      my @exts = findbypattern("$javahome/jre/lib/ext", "\.jar\$");
-      push @rtjars, @exts;
-      my $rtx = join(":",$rtjars);
-      $augmented_classpath = "$augmented_classpath:$rtx";
-    }
+if ($java_home) {
+  if ( $compiler_touse =~ /jikes/ ) { # find rt.jar for jikes
+    $rtjar = "$java_home/jre/lib/rt.jar";
+    @rtjars = ($rtjar);
+    my @exts = findbypattern("$java_home/jre/lib/ext", "\.jar\$");
+    push @rtjars, @exts;
+    my $rtx = join(":",$rtjars);
+    $augmented_classpath = "$augmented_classpath:$rtx";
   }
 }
 
@@ -478,7 +488,7 @@ sub build_module {
   print "\nBuilding module $mod\n" if $verbose;
 
   my $mysrc = "$mymod/src";
-  my $tmplib = "/tmp/build-lib$$";
+  my $tmplib = "$tmp/build-lib$$";
 
   if (-d $mysrc) {
     print "Compiling $mod src:\n" if $verbose;
@@ -536,7 +546,7 @@ sub build_module {
 
   # now create the product-module.zip file
   if (isPublic($mod)) {
-    my $tmpdir = "/tmp/build-$mod.$$";
+    my $tmpdir = "$tmp/build-$mod.$$";
     mkd $tmpdir;
     my $tmpdist = "$tmpdir/$mod";
     mkd "$tmpdist";
@@ -590,8 +600,8 @@ sub get_classpath {
 
   # add tools
   my @tooljars;
-  if (-e "$javahome/lib/tools.jar") {
-    @tooljars = ("$javahome/lib/tools.jar");
+  if (-e "$java_home/lib/tools.jar") {
+    @tooljars = ("$java_home/lib/tools.jar");
   }
   #put them together - module jars never take precedence
   my @alljars = (@buildjars, @sysjars, @libjars, @tooljars);
@@ -752,7 +762,7 @@ sub unify {
 #
 sub build_runtime {
   my $mod;
-  my $tmpdir = "/tmp/runtime.$$";
+  my $tmpdir = "$tmp/runtime.$$";
   print "\nBuilding runtime dist\n" if $verbose;
   mkd $tmpdir;
   my $tl = "$tmpdir/lib";
@@ -796,7 +806,7 @@ sub build_runtime {
 sub build_3rdparty {
   my %member;
   my $mod;
-  my $tmpdir = "/tmp/runtime.$$";
+  my $tmpdir = "$tmp/runtime.$$";
   print "\nBuilding 3rdparty dist\n" if $verbose;
   mkd $tmpdir;
   my $tl = "$tmpdir/sys";
@@ -838,7 +848,7 @@ sub build_javadoc {
   print "\nBuilding javadoc of $mod\n" if $verbose;
 
   # generate javadoc from unified source
-  my $tmpdir = "/tmp/javadoc.$$";
+  my $tmpdir = "$tmp/javadoc.$$";
   mkd $tmpdir;
   mkd "$tmpdir/doc";
   mkd "$tmpdir/doc/api";
@@ -913,9 +923,9 @@ sub jar {
   chdir $dir;
   add_info($comment, $dir);
   if (-r $mf) {
-    mysystem("jar cmf $mf $dest *");
+    mysystem("$jar_command cmf $mf $dest *");
   } else {
-    mysystem("jar cf $dest *");
+    mysystem("$jar_command cf $dest *");
   }
 }
 
@@ -1348,7 +1358,7 @@ sub compile_dir {
     generate_code($from, $cp);
     # compile sources
     chdir $from;
-    my $tmpfile = "/tmp/build.$$";
+    my $tmpfile = "$tmp/build.$$";
     mysystem("find . -name '*.java' -print>$tmpfile");
     my $jc = compiler_command($mod);
     if (-s $tmpfile) {
@@ -1366,7 +1376,7 @@ sub compile_dir {
 	$rf =~ /\.\/(.*)\.java/;
 	$rf=$1;
 	$rf =~ s/\//\./g;
-	mysystem("$rmic_command -d $to -classpath $to:$cp $rf");
+	mysystem("$rmic_command $rmi_arguments -d $to -classpath $to:$cp $rf");
       }
     }
 
@@ -1380,12 +1390,13 @@ sub compile_dir {
 
 sub java {
   my ($cp, $args) = @_;
-  mysystem("$java_command -classpath $cp $args");
+  my ($j) = jdkCommand($java_command);
+  mysystem("$j -classpath $cp $args");
 }
 
 sub compiler_command {
   my ($mod) = @_;
-  my $jco = opt("$mod.compiler", "$compiler_command");
+  my $jco = opt("$mod.compiler", "$compiler_touse");
   my $jc = opt("$jco.command");
 
   my $pedantic = opt("$mod.compiler.pedantic") || opt("compiler.pedantic");
@@ -1394,7 +1405,7 @@ sub compiler_command {
   my $optimize = opt("$mod.compiler.optimize") || opt("compiler.optimize");
   my $args = opt("$mod.$jco.arguments") || opt("$jco.arguments");
 
-  my $command = $jc;
+  my $command = jdkCommand($jc);
   # pedantic only works for jikes
   $command .= " +P" if ($pedantic && $jco eq "jikes");
   $command .= " -g" if ($debug);
@@ -1405,4 +1416,18 @@ sub compiler_command {
   return $command;
 }
 
+sub jdkCommand {
+  my ($cmd) = @_;
 
+  return $cmd if (absPath($cmd));
+
+  # try javahome/bin
+  my ($c) = "$java_home/bin/$cmd";
+  return $c if (-x $c);
+  return $cmd;			# hope for the best
+}
+
+sub absPath {
+  my ($arg) = @_;
+  return ($arg =~ /^\//);
+}

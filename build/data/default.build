@@ -11,16 +11,28 @@
 
 product.name=cougaar
 
-java = /usr/local/java/jdk1.3/bin/java
+# where to put temporary files and build trees (by default)
+tmp = /tmp
+
+# if set, java.home will be used to find java, jar, javadoc, rmi
+java.home = /usr/local/java/jdk1.3
+# java.command may be used to figure out java.home if not otherwise
+java.command = java
+# old syntax (still grudginly accepted)
+# java = /usr/local/java/jdk1.3/bin/java
 
 # which compiler to use.  valid options are "javac" and "jikes" and
 # the actual command executed will depend on the $javac.command
 # options below
 compiler = jikes
 
-# these may be modified to have full path names
-javac.command = javac
-jikes.command = jikes
+# these may be modified to have full path names, or they will be found
+# either via java.home or on the path.
+#javac.command = javac
+#jikes.command = jikes
+#jar.command = jar
+#javadoc.command = javadoc
+#rmic.command = rmic
 
 # other compiler options.  May be module prefixed (e.g. core.compiler.pedantic=1)
 # pedantic compilation - issue lots of style/usage warnings (jikes only)
