@@ -398,8 +398,9 @@ if ($tag) {
 mkd "$build_root";
 mkd $build_dir;
 unlink "$latest_dir";
-print "ln -s $build_dir $latest_dir\n" if $verbose;
-symlink "$build_dir", "$latest_dir";
+print "linking $latest_dir to $build_root/$bdate \n" if $verbose;
+chdir($build_root);
+symlink "$bdate", "$latest_dir";
 mkd $srcdir;
 # libdir is where we store built jars
 $libdir = "$build_dir/lib";

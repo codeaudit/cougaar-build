@@ -113,11 +113,13 @@ sub acquireLock {
     close(LOCK);
     chop $pid;
     logMessage("Lockfile $lockfile is owned by process $pid - exiting.");
+    mailreport("FAILED: could not acquire lock");
     die("Could not acquire lock $lockfile");
   }
 
   if (!open(LOCK, ">$lockfile")) {
     logMessage("Couldn't open lockfile $lockfile for write - something seriously wrong");
+    mailreport("FAILED: could not acquire lock");
     die("Could not acquire lock $lockfile");
   }
   print LOCK "$$\n";
@@ -235,12 +237,9 @@ $status = "UNKNOWN";
 }
 
 # send email if requested
-if (! ($mailaddr eq "") ) {
-  if (! ($status eq "SUCCEEDED")) {
-      mysystem("/bin/mail -s \"Build of $tag at $built $status\" $mailaddr <$builddir/$built/dist/errors.out");
-    }
+if (! ($status eq "SUCCEEDED")) {
+  mailreport($status);
 }
-
 
 # copy whatever is there to $host
 ssh("$host mkdir -p $auto/$built");
@@ -427,3 +426,16 @@ sub checkRemoteStatus {
   $result;
 }
 
+sub mailreport {
+  my ($report) = @_;
+  if (! ($mailaddr eq "") ) {
+    my($statfile)= "$builddir/$built/dist/errors.out";
+    my($complaint) = "Build of $tag at $built $report";
+
+    if (-r $statfile) {
+      mysystem("/bin/mail -s \"$complaint\" $mailaddr <$statfile");
+    } else {
+      mysystem("/bin/mail -s \"$complaint\" $mailaddr < /dev/null");
+    }
+  }
+}
