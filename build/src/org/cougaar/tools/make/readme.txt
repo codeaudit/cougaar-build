@@ -87,7 +87,7 @@ org.cougaar.tools.make.debug
        true to turn on debugging printout
 org.cougaar.tools.make.3rd.party.jars
        the location of the third party jar files. Defaults to
-       <project>/jars
+       <project>/sys
 org.cougaar.tools.make.omit.module.<module>
        set to true to leave <module> out of the list of all modules
 org.cougaar.tools.make.default.target
