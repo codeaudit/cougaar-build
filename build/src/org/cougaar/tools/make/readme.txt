@@ -117,17 +117,27 @@ The following options may be specified:
 org.cougaar.tools.make.basedir
        the project directory (defaults to the directory containing the
        make.properties found by searching up from the current
-       directory.
+       directory. May be set with the -basedir <dir> option.
 org.cougaar.tools.make.jikes.class.path
        the additional classpath need to run jikes (typically
-       $(JDK)/jre/lib/rt.jar)
+       $(JDK)/jre/lib/rt.jar). If not specified, this is computed from
+       the value of org.cougaar.tools.make.jdk.
 org.cougaar.tools.make.jikes
-       true to use jikes instead of javac
+       true to use jikes instead of javac. May be turned on with the
+       -jikes option. Must be true to perform pedantic checking.
+org.cougaar.tools.make.jdk
+       The location of the jdk installation. If specified, this is
+       used to compute the default value of
+       org.cougaar.tools.make.jikes.class.path and
+       org.cougaar.tools.make.jdk.tools.
 org.cougaar.tools.make.jdk.tools
        The location of the jdk tools jar (typically
-       $(JDK)/lib/tools.jar). Used to run the code generator.
+       $(JDK)/lib/tools.jar). Used to run the code generator. If not
+       specified, this is computed from the value of
+       org.cougaar.tools.make.jdk.
 org.cougaar.tools.make.debug
-       true to turn on debugging printout
+       true to turn on debugging printout. May be set with the -debug
+       option.
 org.cougaar.tools.make.3rd.party.jars
        the location of the third party jar files. Defaults to
        <project>/sys
@@ -141,6 +151,17 @@ org.cougaar.tools.make.default.target
        the default target when no targets are given on the command
        line. The default default target is compileDir -- compile all
        the files in the current directory.
+org.cougaar.tools.make.deprecation
+       turns on deprecation checking during compilation.
+org.cougaar.tools.make.pedantic
+       turns on pedantic checking. May also be turned on with the
+       -pedantic option. The jikes compiler must be enabled for this
+       option to have any effect since javac does not offer pendantic
+       checking.
+org.cougaar.tools.make.no.prerequisites
+       disables the checking and compilation of prerequisite modules.
+       It is generally a bad idea to set the property except through
+       the -noprerequisites option.
 
 Prerequisites
 

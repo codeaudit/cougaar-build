@@ -97,8 +97,16 @@ public class Make {
 		addProperty(MakeContext.PROP_DEPRECATION, "true");
 		continue;
 	    }
+	    if (arg.equals("-pedantic")) {
+		addProperty(MakeContext.PROP_PEDANTIC, "true");
+		continue;
+	    }
 	    if (arg.equals("-jikesClassPath")) {
 		addProperty(MakeContext.PROP_JIKES_CLASS_PATH, "true");
+		continue;
+	    }
+	    if (arg.equals("-jikes")) {
+		addProperty(MakeContext.PROP_JIKES, "true");
 		continue;
 	    }
 	    if (arg.startsWith("-")) {

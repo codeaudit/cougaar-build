@@ -54,6 +54,11 @@ public class Targets {
 
     }
 
+    public void moduleTestClasses() throws MakeException {
+	theContext.insureDirectory(theContext.getTestClassesRoot());
+
+    }
+
     public void moduleGenCode() throws MakeException {
 	theContext.insureDirectory(theContext.getGenCodeRoot());
     }
@@ -80,13 +85,20 @@ public class Targets {
      * out-of-date w.r.t. their class file.
      **/
     public void compileDir() throws MakeException {
-        compileSome(theContext.getCurrentDirectory(), false);
+        File srcDirectory = theContext.getCurrentDirectory();
+        compileSome(srcDirectory, false);
     }
     public void compileAll() throws MakeException {
         compileSome(theContext.getCurrentDirectory(), true);
     }
     public void compile() throws MakeException {
         compileSome(theContext.getSourceRoot(), true);
+        File testRoot = theContext.getTestRoot();
+        if (testRoot.isDirectory())
+            compileSome(testRoot, true);
+        File examplesRoot = theContext.getExamplesRoot();
+        if (examplesRoot.isDirectory())
+            compileSome(examplesRoot, true);
     }
     public void all_recompile() throws MakeException {
         theContext.makeTarget("all.cleanGenCode");
@@ -101,11 +113,23 @@ public class Targets {
 
     private void compileSome(File srcDirectory, boolean recurse) throws MakeException {
 	theContext.makeTarget("projectLib");
-	theContext.makeTarget("moduleClasses");
+        boolean testClasses = theContext.isTestDirectory(srcDirectory);
+        boolean exampleClasses = theContext.isExamplesDirectory(srcDirectory);
+        File srcRoot;
+        if (testClasses) {
+            theContext.makeTarget("moduleTestClasses");
+            srcRoot = theContext.getTestRoot();
+        } else if (exampleClasses) {
+            theContext.makeTarget("moduleClasses");
+            srcRoot = theContext.getExamplesRoot();
+        } else {
+            theContext.makeTarget("moduleClasses");
+            srcRoot = theContext.getSourceRoot();
+        }
         theContext.makeTarget("compileGenCode");
         compilePrerequisites();
         File[] sources = theContext.findFiles(srcDirectory, ".java", recurse, false);
-        compileCommon(theContext.getSourceRoot(), sources);
+        compileCommon(srcRoot, sources, testClasses);
     }
 
     public void compileGenCode() throws MakeException {
@@ -113,13 +137,13 @@ public class Targets {
         File srcRoot = theContext.getGenCodeRoot();
         if (srcRoot.isDirectory()) {
             File[] sources = theContext.findFiles(srcRoot, ".java", true, false);
-            compileCommon(srcRoot, sources);
+            compileCommon(srcRoot, sources, false);
         }
     }
 
-    private void compileCommon(File srcRoot, File[] sources) throws MakeException {
+    private void compileCommon(File srcRoot, File[] sources, boolean testClasses) throws MakeException {
         File[] targets =
-	    theContext.getTargets(theContext.getClassesRoot(),
+	    theContext.getTargets(testClasses ? theContext.getTestClassesRoot() : theContext.getClassesRoot(),
 				  srcRoot,
 				  sources,
 				  ".class");
@@ -131,7 +155,7 @@ public class Targets {
                            + "Compiling "
                            + needed.length
                            + " files");
-	theContext.javac(needed);
+	theContext.javac(needed, testClasses);
     }
     private void cleanDirectory(File dir, String suffix, boolean recurse, boolean includeDirectories)
 	throws MakeException
@@ -324,7 +348,7 @@ public class Targets {
     }
 
     public void projectTags() throws MakeException {
-        theContext.makeTarget("all.tags");
+//          theContext.makeTarget("all.tags");
         File tagsFile = new File(theContext.getProjectRoot(), "TAGS");
         File[] modules = theContext.getAllModuleRoots();
         for (int i = 0; i < modules.length; i++) {
@@ -341,10 +365,14 @@ public class Targets {
 	theContext.insureDirectory(theContext.getModuleTemp());
         theContext.makeTarget("generateCode");
         File[] srcSources = theContext.findFiles(theContext.getSourceRoot(), ".java", true, false);
+        File[] testSources = theContext.findFiles(theContext.getTestRoot(), ".java", true, false);
+        File[] exampleSources = theContext.findFiles(theContext.getExamplesRoot(), ".java", true, false);
         File[] genSources = theContext.findFiles(theContext.getGenCodeRoot(), ".java", true, false);
         File tagsFile = new File(theContext.getModuleTemp(), "TAGS");
-        long maxTime = Math.max(getMaxModificationTime(srcSources),
-                                getMaxModificationTime(genSources));
+        long maxTime = Math.max(Math.max(getMaxModificationTime(srcSources),
+                                         getMaxModificationTime(genSources)),
+                                Math.max(getMaxModificationTime(testSources),
+                                         getMaxModificationTime(exampleSources)));
         if (maxTime > tagsFile.lastModified()) {
             System.out.println(theContext.getModuleName()
                                + ".tags"
@@ -353,6 +381,8 @@ public class Targets {
                                + " files");
             theContext.etags(tagsFile, srcSources, null, false);
             theContext.etags(tagsFile, genSources, null, true);
+            theContext.etags(tagsFile, testSources, null, true);
+            theContext.etags(tagsFile, exampleSources, null, true);
         } else {
             System.out.println(theContext.getModuleName() + ".tags is up to date");
         }

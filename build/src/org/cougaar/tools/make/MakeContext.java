@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
 import java.util.Properties;
@@ -41,14 +42,21 @@ import java.net.MalformedURLException;
 
 public class MakeContext {
     private static final String SRC = "src";
+    private static final String TEST = "regress";
+    private static final String EXAMPLES = "examples";
     private static final String TMPDIR = "tmpdir";
     private static final String CLASSES = "classes";
+    private static final String TEST_CLASSES = "testclasses";
     private static final String GENCODE = "gencode";
     private static final String BUILD_CLASSES = "build" + File.separator + TMPDIR + File.separator + "classes";
     private static final String BUILD_JAR = "build.jar";
     private static final String DEFRUNNER_CLASS = "org.cougaar.tools.build.DefRunner";
     private static final String JAR_CLASS = "sun.tools.jar.Main";
     private static final String JAVAC_CLASS = "sun.tools.javac.Main";
+    private static final String JDK_LIB = "jre/lib";
+    private static final String RT_JAR = "rt.jar";
+    private static final String TOOLS_JAR = "tools.jar";
+    private static final String EXT_DIR = "ext";
 
     public static final String PROP_PREFIX           = "org.cougaar.tools.make.";
     public static final String PROP_BASEDIR          = PROP_PREFIX + "basedir";
@@ -58,9 +66,11 @@ public class MakeContext {
     public static final String PROP_JIKES            = PROP_PREFIX + "jikes";
     public static final String PROP_3RD_PARTY_JARS   = PROP_PREFIX + "3rd.party.jars";
     public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
+    public static final String PROP_JDK              = PROP_PREFIX + "jdk";
     public static final String PROP_DEFAULT_TARGET   = PROP_PREFIX + "default.target";
     public static final String PROP_NO_PREREQUISITES = PROP_PREFIX + "no.prerequisites";
     public static final String PROP_DEPRECATION      = PROP_PREFIX + "deprecation";
+    public static final String PROP_PEDANTIC         = PROP_PREFIX + "pedantic";
     public static final String PROP_OMIT             = PROP_PREFIX + "omit.module.";
 
     public static final String DEFAULT_TARGET = "compileDir";
@@ -73,6 +83,9 @@ public class MakeContext {
     private File theProjectBin;
     private File theModuleRoot;
     private File theSourceRoot;
+    private File theExamplesRoot;
+    private File theTestRoot;
+    private File theTestClassesRoot;
     private File theClassesRoot;
     private File theModuleTemp;
     private File theCodeGeneratorJar;
@@ -122,7 +135,19 @@ public class MakeContext {
 	debug = theProperties.getProperty(PROP_DEBUG, "false").equalsIgnoreCase("true");
 	test = theProperties.getProperty(PROP_TEST, "false").equalsIgnoreCase("true");
 	jikes = theProperties.getProperty(PROP_JIKES, "false").equalsIgnoreCase("true");
+        String jdk = theProperties.getProperty(PROP_JDK);
+        if (!jikes && isPedantic()) {
+            System.err.println("Jikes must be used to get pedantic warnings");
+        }
 	jikesClassPath = theProperties.getProperty(PROP_JIKES_CLASS_PATH);
+        if (jikesClassPath == null) {
+            if (jdk != null) {
+                jikesClassPath = computeJikesClassPath(jdk);
+                if (debug) System.out.println("jikesClassPath = " + jikesClassPath);
+            } else {
+                if (debug) System.out.println("jikesClassPath = null");
+            }
+        }
 	String third = theProperties.getProperty(PROP_3RD_PARTY_JARS);
 	if (third == null) {
 	    the3rdPartyDirectory = new File(theProjectRoot, "sys");
@@ -130,6 +155,9 @@ public class MakeContext {
 	    the3rdPartyDirectory = new File(third).getCanonicalFile();
 	}
         String jdkToolsJar = theProperties.getProperty(PROP_JDK_TOOLS);
+        if (jdkToolsJar == null && jdk != null) {
+            jdkToolsJar = computeJDKToolsJar(jdk);
+        }
         if (jdkToolsJar != null) {
             theJDKToolsJar = new File(jdkToolsJar);
         }
@@ -140,13 +168,51 @@ public class MakeContext {
 	theCodeGeneratorClasses = new File(theProjectRoot, BUILD_CLASSES);
         theModuleRoots = getProjectRoot().listFiles(new FileFilter() {
             public boolean accept(File f) {
-                if (f.isDirectory() && new File(f, "src").isDirectory()) {
+                if (f.isDirectory() && new File(f, SRC).isDirectory()) {
                     return (theProperties.getProperty(PROP_OMIT + f.getName(), "false")
                             .equals("false"));
                 }
                 return false;
             }
         });
+    }
+
+    private String computeJikesClassPath(String jdk) {
+        File lib = new File(jdk, JDK_LIB);
+        if (lib.isDirectory()) {
+            StringBuffer buf = new StringBuffer();
+            buf.append(new File(lib, RT_JAR));
+            File ext = new File(lib, EXT_DIR);
+            if (ext.isDirectory()) {
+                List jars = new ArrayList();
+                try {
+                    findFiles(jars, ext, ".jar", false, false);
+                    for (Iterator i = jars.iterator(); i.hasNext(); ) {
+                        File jar = (File) i.next();
+                        buf.append(File.pathSeparator);
+                        buf.append(jar.toString());
+                    }
+                } catch (MakeException me) {
+                    me.printStackTrace();
+                    return null;
+                }
+            } else {
+                if (debug) System.out.println("not a directory " + ext);
+            }
+            if (debug) System.out.println(buf);
+            return buf.toString();
+        } else {
+            if (debug) System.out.println("Non a directory " + lib);
+        }
+        return null;
+    }
+
+    private String computeJDKToolsJar(String jdk) {
+        File lib = new File(jdk, JDK_LIB);
+        if (lib.isDirectory()) {
+            return new File(lib, TOOLS_JAR).toString();
+        }
+        return null;
     }
 
     /**
@@ -291,15 +357,21 @@ public class MakeContext {
             theModuleName = aModuleName;
             theModuleRoot = getModuleRoot(theModuleName).getCanonicalFile();
             theSourceRoot = getSourceRoot(theModuleRoot);
+            theExamplesRoot = getExamplesRoot(theModuleRoot);
+            theTestRoot = getTestRoot(theModuleRoot);
             theModuleTemp = getModuleTemp(theModuleRoot);
             theClassesRoot = getClassesRoot(theModuleRoot);
+            theTestClassesRoot = getTestClassesRoot(theModuleRoot);
             theGenCodeRoot = getGenCodeRoot(theModuleRoot);
             if (debug) {
                 System.out.println("Module Name" + COLON + theModuleName);
                 System.out.println("Module Root" + COLON + theModuleRoot);
                 System.out.println("Source Root" + COLON + theSourceRoot);
+                System.out.println("Examples Root" + COLON + theExamplesRoot);
+                System.out.println("Examples Root" + COLON + theTestRoot);
                 System.out.println("Module Temp" + COLON + theModuleTemp);
                 System.out.println("Classes Root" + COLON + theClassesRoot);
+                System.out.println("Classes Root" + COLON + theTestClassesRoot);
             }
         } catch (IOException ioe) {
             throw new MakeException(ioe.toString());
@@ -316,6 +388,36 @@ public class MakeContext {
     public File getSourceRoot(File aModuleRoot) throws MakeException {
         try {
             return new File(aModuleRoot, SRC).getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
+    }
+
+    /**
+     * Get the root of java examples tree (in canonical form)
+     **/
+    public File getExamplesRoot() {
+        return theExamplesRoot;
+    }
+
+    public File getExamplesRoot(File aModuleRoot) throws MakeException {
+        try {
+            return new File(aModuleRoot, EXAMPLES).getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
+    }
+
+    /**
+     * Get the root of java test tree (in canonical form)
+     **/
+    public File getTestRoot() {
+        return theTestRoot;
+    }
+
+    public File getTestRoot(File aModuleRoot) throws MakeException {
+        try {
+            return new File(aModuleRoot, TEST).getCanonicalFile();
         } catch (IOException ioe) {
             throw new MakeException(ioe.toString());
         }
@@ -352,6 +454,22 @@ public class MakeContext {
     public File getClassesRoot(File aModuleRoot) throws MakeException {
         try {
             return new File(getModuleTemp(aModuleRoot), CLASSES)
+                .getCanonicalFile();
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
+    }
+
+    /**
+     * Get the root of java test class tree (in canonical form)
+     **/
+    public File getTestClassesRoot() {
+        return theTestClassesRoot;
+    }
+
+    public File getTestClassesRoot(File aModuleRoot) throws MakeException {
+        try {
+            return new File(getModuleTemp(aModuleRoot), TEST_CLASSES)
                 .getCanonicalFile();
         } catch (IOException ioe) {
             throw new MakeException(ioe.toString());
@@ -482,7 +600,7 @@ public class MakeContext {
     /**
      * Perform a java compilation using javac (or jikes if enabled)
      **/
-    public void javac(File[] sources) throws MakeException {
+    public void javac(File[] sources, boolean testClasses) throws MakeException {
         int offset = 0;
         MakeException e = null;
         while (offset < sources.length) {
@@ -490,14 +608,18 @@ public class MakeContext {
             List command = new ArrayList();
             if (jikes && jikesClassPath != null) {
                 command.addAll(Arrays.asList(JIKES));
+                if (isPedantic()) command.add("+P");
             } else {
                 command.addAll(Arrays.asList(JAVAC));
             }
             if (isDeprecation()) command.add("-deprecation");
             command.add("-classpath");
-            command.add(getClassPath());
+            command.add(getClassPath(testClasses));
             command.add("-d");
-            command.add(getClassesRoot().getPath());
+            if (testClasses)
+                command.add(getTestClassesRoot().getPath());
+            else
+                command.add(getClassesRoot().getPath());
             try {
                 runExecutable(command, sources, offset, nfiles);
             } catch (MakeException me) {
@@ -653,7 +775,7 @@ public class MakeContext {
         } else {
             List command = new ArrayList(Arrays.asList(JAVA));
             command.add("-classpath");
-            command.add(getClassPath());
+            command.add(getClassPath(false));
             command.add(DEFRUNNER_CLASS);
             runExecutable(command, args, 0, args.length);
         }
@@ -834,7 +956,7 @@ public class MakeContext {
 
     private URL[] getClassPathURLs() throws MakeException {
         try {
-            File[] cpe = getClassPathElements();
+            File[] cpe = getClassPathElements(false);
             URL[] result = new URL[cpe.length];
             for (int i = 0; i < result.length; i++) {
                 result[i] = cpe[i].toURL();
@@ -849,39 +971,49 @@ public class MakeContext {
      * Get a classpath for a compilation or running code generators.
      **/
 
-    private String getClassPath() throws MakeException {
-        File[] cpe = getClassPathElements();
+    private String getClassPath(boolean testClasses) throws MakeException {
+        File[] cpe = getClassPathElements(testClasses);
         StringBuffer buf = new StringBuffer();
         for (int i = 0; i < cpe.length; i++) {
-            if (i > 0) buf.append(";");
+            if (i > 0) buf.append(File.pathSeparator);
             buf.append(cpe[i].getPath());
         }
 	if (jikesClassPath != null) {
-	    buf.append(';').append(jikesClassPath);
+	    buf.append(File.pathSeparator).append(jikesClassPath);
 	}
         return buf.substring(0);
     }
 
-    private File[] getClassPathElements() throws MakeException {
+    private void addClassPathElement(List elements, File element) {
+        if (element.exists()) elements.add(element);
+    }
+
+    private File[] getClassPathElements(boolean testClasses) throws MakeException {
         List elements = new ArrayList();
-        elements.add(getSourceRoot());
-        elements.add(getClassesRoot());
+        addClassPathElement(elements, getSourceRoot());
+        addClassPathElement(elements, getExamplesRoot());
+        if (testClasses) {
+            addClassPathElement(elements, getTestRoot());
+            addClassPathElement(elements, getTestClassesRoot());
+        }
+        addClassPathElement(elements, getClassesRoot());
         File genCodeRoot = getGenCodeRoot();
         if (genCodeRoot.isDirectory()) {
-            elements.add(genCodeRoot);
+            addClassPathElement(elements, genCodeRoot);
         }
         String[] prerequisiteModules = getPrerequisites(getModuleName());
         for (int i = 0; i < prerequisiteModules.length; i++) {
-            elements.add(getSourceRoot(getModuleRoot(prerequisiteModules[i])));
-            elements.add(getClassesRoot(getModuleRoot(prerequisiteModules[i])));
-            elements.add(new File(getProjectLib(),
-                                  prerequisiteModules[i] + ".jar"));
+            addClassPathElement(elements, getSourceRoot(getModuleRoot(prerequisiteModules[i])));
+            addClassPathElement(elements, getExamplesRoot(getModuleRoot(prerequisiteModules[i])));
+            addClassPathElement(elements, getClassesRoot(getModuleRoot(prerequisiteModules[i])));
+            addClassPathElement(elements, new File(getProjectLib(),
+                                                   prerequisiteModules[i] + ".jar"));
         }
-        elements.add(theCodeGeneratorClasses);
-        elements.add(theCodeGeneratorJar);
+        addClassPathElement(elements, theCodeGeneratorClasses);
+        addClassPathElement(elements, theCodeGeneratorJar);
         elements.addAll(Arrays.asList(get3rdPartyJars()));
         if (haveJDKTools()) {
-            elements.add(getJDKToolsJar());
+            addClassPathElement(elements, getJDKToolsJar());
         }
         return (File[]) elements.toArray(new File[elements.size()]);
     }
@@ -905,6 +1037,32 @@ public class MakeContext {
 
     public boolean isDeprecation() {
         return theProperties.getProperty(PROP_DEPRECATION, "false").equals("true");
+    }
+
+    public boolean isPedantic() {
+        return theProperties.getProperty(PROP_PEDANTIC, "false").equals("true");
+    }
+
+    public boolean isTestDirectory(File srcDirectory) {
+        File moduleDirectory = getModuleRoot();
+        File testDirectory = new File(moduleDirectory, TEST);
+        File dir = srcDirectory;
+	while (dir != null && !dir.equals(moduleDirectory)) {
+            if (dir.equals(testDirectory)) return true;
+	    dir = dir.getParentFile();
+	}
+	return false;
+    }
+
+    public boolean isExamplesDirectory(File srcDirectory) {
+        File moduleDirectory = getModuleRoot();
+        File examplesDirectory = new File(moduleDirectory, EXAMPLES);
+        File dir = srcDirectory;
+	while (dir != null && !dir.equals(moduleDirectory)) {
+            if (dir.equals(examplesDirectory)) return true;
+	    dir = dir.getParentFile();
+	}
+	return false;
     }
 
     /**
@@ -989,7 +1147,7 @@ public class MakeContext {
         command.add("-d");
         command.add(getClassesRoot().getPath());
         command.add("-classpath");
-        command.add(getClassPath());
+        command.add(getClassPath(false));
         runExecutable(command, classNames, 0, classNames.length);
     }
 }
