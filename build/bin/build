@@ -541,14 +541,16 @@ sub checkout_module {
   $rarg = "-r $tag" if (! ($tag eq "HEAD"));
   if ($checkoutP) {
     # hack to allow us to checkout a branch at a specific time
-    $rarg .= " -D '$opt_D'" if ($opt_D && !pointP);
+    $rarg .= " -D '$opt_D'" if ($opt_D && !$pointP);
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $cvsmod");
   } else {
     if ($opt_D) {
       $rarg .= " -D '$opt_D'";
     } else { 
-      $rarg .= " -D '$rdate'" if (!pointP);
+      if (!$pointP) {
+	$rarg .= " -D '$rdate'"
+      }
     }
     mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
   }
