@@ -64,7 +64,7 @@ if ($opt_h) {
   print STDERR "\t-t tag\tTag to use instead of 'HEAD'\n";
   print STDERR "\t-d file\tData file to use instead of 'default.build'\n";
   print STDERR "\t-k\tDont clean up afterwards (leave leftovers)\n";
-  print STDERR "\t-T dir\tPut temporary files in dir instead of /tmp\n";
+  print STDERR "\t-T dir\tPut temporary files in dir/tag instead of /tmp.\n";
   print STDERR "\t-H host\tPublish to host instead of \"$host\"\n";
   print STDERR "\t-h\tThis usage commend\n";
   exit(-1);
@@ -72,17 +72,17 @@ if ($opt_h) {
 
 $host = $opt_H if $opt_H;
 $cleanup=0 if $opt_k;
+$tag = $opt_t if ($opt_t);
 
 if ($opt_T) {
   $tmp = $opt_T;
 } else {
-  $tmp = "/tmp";
+  $tmp = "/tmp/$tag";
 }
 
 
 $verbose++ if $opt_v;
 $auto = $opt_a if ($opt_a);
-$tag = $opt_t if ($opt_t);
 $data = $opt_d if ($opt_d);
 
 if ($opt_t && !$opt_a) {
