@@ -22,6 +22,9 @@ package org.cougaar.tools.make;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.InputStream;
@@ -58,29 +61,50 @@ public class MakeContext {
     private static final String TOOLS_JAR = "tools.jar";
     private static final String EXT_DIR = "ext";
 
-    public static final String PROP_PREFIX           = "org.cougaar.tools.make.";
-    public static final String PROP_BASEDIR          = PROP_PREFIX + "basedir";
-    public static final String PROP_DEBUG            = PROP_PREFIX + "debug";
-    public static final String PROP_TEST             = PROP_PREFIX + "test";
-    public static final String PROP_JIKES_CLASS_PATH = PROP_PREFIX + "jikes.class.path";
-    public static final String PROP_JIKES            = PROP_PREFIX + "jikes";
-    public static final String PROP_3RD_PARTY_JARS   = PROP_PREFIX + "3rd.party.jars";
-    public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
-    public static final String PROP_JDK              = PROP_PREFIX + "jdk";
-    public static final String PROP_DEFAULT_TARGET   = PROP_PREFIX + "default.target";
-    public static final String PROP_NO_PREREQUISITES = PROP_PREFIX + "no.prerequisites";
-    public static final String PROP_DEPRECATION      = PROP_PREFIX + "deprecation";
-    public static final String PROP_PEDANTIC         = PROP_PREFIX + "pedantic";
-    public static final String PROP_OMIT             = PROP_PREFIX + "omit.module.";
+    public static final String PROP_PREFIX             = "org.cougaar.tools.make.";
+    public static final String PROP_BASEDIR            = PROP_PREFIX + "basedir";
+    public static final String PROP_DEBUG              = PROP_PREFIX + "debug";
+    public static final String PROP_TEST               = PROP_PREFIX + "test";
+    public static final String PROP_JIKES_CLASS_PATH   = PROP_PREFIX + "jikes.class.path";
+    public static final String PROP_JIKES              = PROP_PREFIX + "jikes";
+    public static final String PROP_3RD_PARTY_JARS     = PROP_PREFIX + "3rd.party.jars";
+    public static final String PROP_JDK_TOOLS          = PROP_PREFIX + "jdk.tools";
+    public static final String PROP_JDK                = PROP_PREFIX + "jdk";
+    public static final String PROP_DEFAULT_TARGET     = PROP_PREFIX + "default.target";
+    public static final String PROP_NO_PREREQUISITES   = PROP_PREFIX + "no.prerequisites";
+    public static final String PROP_DEPRECATION        = PROP_PREFIX + "deprecation";
+    public static final String PROP_PEDANTIC           = PROP_PREFIX + "pedantic";
+    public static final String PROP_OMIT               = PROP_PREFIX + "omit.module.";
+    public static final String PROP_DOCLET_CLASS       = PROP_PREFIX + "javadoc.doclet";
+    public static final String PROP_TAG_LIST           = PROP_PREFIX + "javadoc.tags";
+    public static final String PROP_TAG_FLAGS_PREFIX   = PROP_PREFIX + "javadoc.tags.flags.";
+    public static final String PROP_TAG_CLASS_PREFIX   = PROP_PREFIX + "javadoc.tags.class.";
+    public static final String PROP_TAG_TAGHEAD_PREFIX = PROP_PREFIX + "javadoc.tags.taghead.";
 
     public static final String DEFAULT_TARGET = "compileDir";
     public static final String COLON = " -- "; // Redefine COLON to avoid emacs error match
 
+    private static class TagletInfo {
+        private String tag;
+        private String flags;
+        private String taghead;
+        public String tagletClass;
+        public TagletInfo(String t, String f, String th, String c) {
+            tag = t;
+            flags = f == null ? "a" : f;
+            taghead = th == null ? t : th;
+            tagletClass = c;
+        }
+        public String toString() {
+            return tag + ":" + flags + ":" + taghead;
+        }
+    };
     private String theModuleName;
     private File theCurrentDirectory;
     private File theProjectRoot;
     private File theProjectLib;
     private File theProjectBin;
+    private File theProjectJavadoc;
     private File theModuleRoot;
     private File theSourceRoot;
     private File theExamplesRoot;
@@ -95,15 +119,16 @@ public class MakeContext {
     private File theJDKToolsJar;
     private File[] theModuleRoots;
     private Targets theTargets = new Targets(this);
-    private final String[] JAVA  = {"java"};
-    private final String[] JAVAC = {"javac", "-g"};
-    private final String[] JIKES = {"jikes", "+D", "-g"};
-    private final String[] RMIC  = {"rmic"};
-    private final String[] ETAGS = {"etags",
-                                    "-r",
-                                    "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/"
-    };
-    private final String[] JAR   = {"jar"};
+    private final String[] JAVA   = {"java"};
+    private final String[] JAVAC  = {"javac", "-g"};
+    private final String[] JIKES  = {"jikes", "+D", "-g"};
+    private final String[] RMIC   = {"rmic"};
+    private final String[] ETAGS  = {"etags",
+                                     "-r",
+                                     "/.* interface +\\([a-zA-Z0-9_]+\\) ?/\\1/"
+    }; 
+    private final String[] JAR    = {"jar"};
+    private final String[] JAVADOC= {"javadoc"};
     private Class[] targetMethodParameterTypes = new Class[0];
     private Object[] targetMethodParameters = new Class[0];
     private Properties theProperties;
@@ -111,6 +136,8 @@ public class MakeContext {
     public boolean test = false;
     public String jikesClassPath = null;
     public boolean jikes = false;
+    private String theDocletClass;
+    private TagletInfo[] theTaglets;
     private String[] theExtensionsToJar = {
         ".def",
         ".props",
@@ -162,8 +189,25 @@ public class MakeContext {
         if (jdkToolsJar != null) {
             theJDKToolsJar = new File(jdkToolsJar);
         }
+        theDocletClass = theProperties.getProperty(PROP_DOCLET_CLASS);
+        String tagsList = theProperties.getProperty(PROP_TAG_LIST);
+        if (tagsList != null) {
+            List taglets = new ArrayList();
+            StringTokenizer tokens = new StringTokenizer(tagsList, ". ");
+            while (tokens.hasMoreTokens()) {
+                String tag = tokens.nextToken();
+                String flags = theProperties.getProperty(PROP_TAG_FLAGS_PREFIX + tag);
+                String tagletClass = theProperties.getProperty(PROP_TAG_CLASS_PREFIX + tag);
+                String taghead = theProperties.getProperty(PROP_TAG_TAGHEAD_PREFIX + tag);
+                taglets.add(new TagletInfo(tag, flags, taghead, tagletClass));
+            }
+            theTaglets = (TagletInfo[]) taglets.toArray(new TagletInfo[taglets.size()]);
+        } else {
+            theTaglets = null;
+        }
 	theProjectLib = new File(theProjectRoot, "lib").getCanonicalFile();
 	theProjectBin = new File(theProjectRoot, "bin").getCanonicalFile();
+	theProjectJavadoc = new File(theProjectRoot, "javadoc").getCanonicalFile();
         theCurrentDirectory = new File(".").getCanonicalFile();
 	theCodeGeneratorJar = new File(theProjectLib, BUILD_JAR);
 	theCodeGeneratorClasses = new File(theProjectRoot, BUILD_CLASSES);
@@ -443,6 +487,13 @@ public class MakeContext {
      **/
     public File getProjectBin() {
         return theProjectBin;
+    }
+
+    /**
+     * Get the project doc directory (in canonical form)
+     **/
+    public File getProjectJavadoc() {
+        return theProjectJavadoc;
     }
 
     /**
@@ -1169,5 +1220,52 @@ public class MakeContext {
         command.add("-classpath");
         command.add(getClassPath(false));
         runExecutable(command, classNames, 0, classNames.length);
+    }
+
+    public void javadoc(File[] sources) throws MakeException {
+        List command = new ArrayList();
+        command.addAll(Arrays.asList(JAVADOC));
+        command.add("-d");
+        command.add(getProjectJavadoc().getPath());
+        command.add("-classpath");
+        command.add(getClassPath(false));
+        if (theTaglets != null) {
+            command.add("-tagletpath");
+            command.add(theCodeGeneratorJar.getPath());
+            for (int i = 0; i < theTaglets.length; i++) {
+                command.add("-tag");
+                command.add(theTaglets[i].toString());
+                if (theTaglets[i].tagletClass != null) {
+                    command.add("-taglet");
+                    command.add(theTaglets[i].tagletClass);
+                }
+            }
+        }
+        if (theDocletClass != null) {
+            command.add("-docletpath");
+            command.add(theCodeGeneratorJar.getPath());
+            command.add("-doclet");
+            command.add(theDocletClass);
+        }
+        command.add("-breakiterator");
+        File cmdfile;
+        try {
+            cmdfile = File.createTempFile("javadoc", "txt");
+            Writer writer = new FileWriter(cmdfile);
+            PrintWriter cmd = new PrintWriter(writer);
+            try {
+                for (int i = 0; i < sources.length; i++) {
+                    cmd.print(" ");
+                    cmd.print(sources[i].getPath());
+                }
+                cmd.println();
+            } finally {
+                writer.close();
+            }
+        } catch (IOException ioe) {
+            throw new MakeException(ioe.toString());
+        }
+        command.add("@" + cmdfile.getPath());
+        runExecutable(command, null, 0, 0);
     }
 }

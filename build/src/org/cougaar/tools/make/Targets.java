@@ -45,6 +45,10 @@ public class Targets {
 	theContext.insureDirectory(theContext.getProjectLib());
     }
 
+    public void projectJavadoc() throws MakeException {
+	theContext.insureDirectory(theContext.getProjectJavadoc());
+    }
+
     public void projectBin() throws MakeException {
 	theContext.insureDirectory(theContext.getProjectBin());
     }
@@ -474,5 +478,17 @@ public class Targets {
             System.out.println(theContext.getModuleName()
                                + ".rmic: no rmi classes");
         }
+    }
+
+    public void javadoc() throws MakeException {
+	theContext.makeTarget("projectJavadoc");
+        File[] sources = theContext.findFiles(theContext.getSourceRoot(), ".java", true, false);
+        theContext.javadoc(sources);
+    }
+
+    public void javadocDir() throws MakeException {
+	theContext.makeTarget("projectJavadoc");
+        File[] sources = theContext.findFiles(theContext.getCurrentDirectory(), ".java", true, false);
+        theContext.javadoc(sources);
     }
 }
