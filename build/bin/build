@@ -496,6 +496,8 @@ sign_report();
   print "Elapsed time = $min minutes $sec seconds\n" if $verbose;
 }
 
+# this needs to be last so that the autobuild script can pick it up
+success_report();
 exit(0);
 
 #
@@ -1957,6 +1959,19 @@ sub reporttimes {
   foreach $key (sort keys %timers) {
     print "\t$key\t$timers{$key}\n";
   }
+}
+
+sub success_report {
+  my($success) = 1;
+  foreach $m ( %moduleFailed ) {
+    if ($moduleFailed{$m}) {
+      $success = 0;
+      break;
+    }
+  }
+
+  my ($ss) = $success?"SUCCEEDED":"FAILED";
+  print "Build $product $ss\n";
 }
 
 # fix up any .bat files found in the specified directory by
