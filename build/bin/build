@@ -453,8 +453,10 @@ if ($java_home) {
 # build product-support.zip
 &build_3rdparty;
 
+print "Building module unified\n";
 # build unified javadoc
 &build_javadoc("unified", "$product-api") if (!$nodoc);
+print "Done building unified\n";
 
 # add any dist extras
 &add_dist;
@@ -560,7 +562,7 @@ sub build_module {
   checkDeps($mod);
 
   my $mymod = "$srcdir/$mod";
-  print "\nBuilding module $mod\n" if $verbose;
+  print "\nBuilding module $mod\n";
 
   my $mysrc = "$mymod/src";
   my $tmplib = "$tmp/build-lib$$";
@@ -660,7 +662,7 @@ sub build_module {
     mysystem("rm -rf $tmpdir");
   }
 
-  print "Done building $mod\n" if $verbose;
+  print "Done building $mod\n";
   $moduleDone{$mod}=1;
   return 1;
 }
