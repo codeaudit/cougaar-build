@@ -93,7 +93,8 @@ Usage: build [options] [ReleaseDescriptionFile]
 	-t name	Tag (with name) instead of building (also uses -r and -D)
 	-b	When tagging, branch instead of simple tag
 	-F	When tagging, Force the tag (move the tag if it previously existed)
-	-m mod[,...]	Specify a module or modules to build instead of all.
+	-m mod[,...]	Specify a module or modules to build instead of all.  The script
+	        will figure out the right order and all dependencies.
 
 The default ReleaseDescriptionFile is "default.build".  If the file is not
 found as specified, it will try to check from cvs using the current CVSROOT from
@@ -106,6 +107,19 @@ Retroactively point-tag the repositories at a specific date:
 	build  -D '7/31/2001 10:00:11' -t V8_3_0 default.build
 Build blackjack (and all required parts):
 	build -m blackjack default.build
+
+Also, you can set things up so that cvs is not required for the build by:
+  1. unpack (on symbolic link) the cougaar source and support 
+    distributions (*-dev.zip, cougaar-support.zip) in the directory
+	/tmp/cougaar/DATE/src
+    where DATE is the build date in YYMMDDHHmmSS format.
+    For instance, "9/6/2001 20:07:26" becomes "010906200726"
+  2. run the following command:
+	build -SQv -osys.lib=/tmp/cougaar/DATE/src/sys default.build
+    the -osys.lib= specifies the location of the support libs.
+The built jars will be placed in /tmp/cougaar/DATE/lib and the product
+zip files in /tmp/cougaar/DATE/dist as usual.
+
 EOF
 
   exit(1);
@@ -1131,7 +1145,7 @@ sub find_errors {
 
   open(LOG, "<$errout");
   open(ERR, ">$distdir/errors.out");
-  my ($report)="module\terrors\twarnings\n";
+  my ($report)=sprintf "%15s %7d %7d\n", "module", "errors", "warnings";
   my ($te)=0;			# total errors
   my ($tw)=0;			# total warnings
   my ($mn);			# which module are we parsing?
