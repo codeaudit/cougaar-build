@@ -1,0 +1,238 @@
+#!/usr/bin/perl
+
+# <copyright>
+#  Copyright 2001-2003 BBNT Solutions, LLC
+#  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+# 
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the Cougaar Open Source License as published by
+#  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+# 
+#  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+#  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+#  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+#  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+#  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+#  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+#  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+#  PERFORMANCE OF THE COUGAAR SOFTWARE.
+# </copyright>
+
+#
+# Checkout modules from a "repository_list.txt" input file.
+#
+# Run with "--help" for usage information.
+#
+
+use File::Path;
+use Cwd;
+
+sub usage {
+  print STDERR <<EOF;
+Usage: $0 [-n] [-r TAG] [MODULES_FILE]..
+
+  -r TAG    The CVS tag (default is HEAD)
+  -n        Do not create/change any files or directories
+
+Reads one or more ".mod" repository list files and executes cvs
+checkouts or updates to create the modules.  The default repository
+tag is "HEAD".
+
+Example trimmed "cougaar.mod" file:
+  Host: cvs.cougaar.org
+  Repository: /cvsroot/build
+    -build
+  Repository: /cvsroot/core
+    -core
+    -javaiopatch
+    -jars
+When run with the above "cougaar.mod" file, this script will creates
+these directories:
+  ./cvs.cougaar.org/cvsroot/build
+  ./cvs.cougaar.org/cvsroot/core   
+and does the following CVS checkouts (or updates if they already
+exist):
+  cvs -d :ext:$USER:cvs.cougaar.org:/cvsroot/build co build
+  cvs -d :ext:$USER:cvs.cougaar.org:/cvsroot/core co core javaiopatch jars
+resulting in local cvs directories for:
+  ./cvs.cougaar.org/cvsroot/build/build
+  ./cvs.cougaar.org/cvsroot/core/core
+  ./cvs.cougaar.org/cvsroot/core/javaiopatch
+  ./cvs.cougaar.org/cvsroot/core/jars
+Next you can optionally create a symlink to simplify the paths:
+  ln -s cvs.cougaar.org/cvsroot cougaar
+
+Once done, consider running the source unifier:
+  ./unify_sources --help
+EOF
+  exit -1;
+}
+
+$tag="HEAD";
+$print_only=0;
+@mod_files;
+%hosts=();
+
+sub parse_args {
+  while ($#ARGV >= 0) {
+    $_ = shift @ARGV;
+    if (/^-r$/) {
+      usage() if $#ARGV < 0;
+      $tag = shift @ARGV;
+    } elsif (/^-n$/) {
+      $print_only=1;
+    } elsif (/^[^-]/) {
+      push @mod_files, $_;
+    } else {
+      usage();
+    }
+  }
+  usage() if ($#mod_files < 0);
+}
+
+sub run_cmd {
+  # from http://www.rocketaware.com/perl/perlfunc/system.htm
+  my ($cmd_ref) = @_;
+  my $rc = 0xffff & system @$cmd_ref;
+  if ($rc == 0) {
+    # ran with normal exit
+  } else {
+    # failed
+    if ($rc == 0xff00) {
+      print "command failed: $!\n";
+    } elsif ($rc > 0x80) {
+      $rc >>= 8;
+      print "ran with non-zero exit status $rc\n";
+    } else {
+      print "ran with ";
+      if ($rc &   0x80) {
+        $rc &= ~0x80;
+        print "core dump from ";
+      }
+      print "signal $rc\n"
+    }
+    exit -1;
+  }
+}
+
+sub update {
+  my ($host, $rep_name, $action, $tag, $mods_ref) = @_;
+  my $cvsroot_base=":ext:$ENV{USER}\@$host:";
+  my $cvsroot="$cvsroot_base$rep_name";
+  my @cmd = ("cvs", "-d", $cvsroot, $action);
+  if (defined($tag) && $tag ne "" && $tag ne "HEAD") {
+    push (@cmd, "-r");
+    push (@cmd, $tag);
+  }
+  if ($action eq "update") {
+    push(@cmd, "-dP");
+  }
+  my $count=0;
+  foreach (sort keys %$mods_ref) {
+    push(@cmd, $_);
+    $count++;
+  }
+  if ($count == 0) {
+    return;
+  }
+  my $start_dir=cwd;
+  my $target_dir="$host$rep_name";
+  print "cd $target_dir\n";
+  if (!$print_only) {
+    chdir "$target_dir" or die "cd $target_dir: $!\n";
+  }
+  foreach (@cmd) {
+    print "$_ ";
+  }
+  print "\n";
+  run_cmd(\@cmd) unless $print_only;
+  print "cd -\n";
+  chdir $start_dir unless $print_only;
+}
+
+sub parse_files {
+  # build (host -> repository -> modules) table
+  foreach (@mod_files) {
+    my $file=$_;
+
+    unless (open(IN, "<$file")) {
+      print STDERR "Unable to open $file $!\n";
+      exit -1;
+    }
+
+    my $reps_ref;
+    my $mods_ref;
+    while (<IN>) {
+      chomp;
+      my $line=$_;
+      if (/^\s*Host:\s*([a-zA-Z0-9_\.]*)$/) {
+        # host
+        my $host=$1;
+        undef($mods_ref);
+        my %reps=();
+        $reps_ref=\%reps;
+        $hosts{$host}=$reps_ref;
+      } elsif (/^\s*Repository:\s*(\/[\/a-zA-Z0-9_]*)$/) {
+        # repository
+        my $rep_name=$1;
+        if (!defined($reps_ref)) {
+          die "Missing \"Host: \" line\n";
+        }
+        my %mods=();
+        $mods_ref=\%mods;
+        $reps_ref->{$rep_name}=$mods_ref;
+      } elsif (/^\s*-([a-zA-Z0-9_#]*)$/) {
+        # module
+        my $mod_name=$1;
+        if (!defined($mods_ref)) {
+          die "Missing \"Repository: \" line\n";
+        }
+        $mods_ref->{$mod_name}=1;
+      } elsif (/^\s*(\#.*)?$/) {
+        # comment
+      } elsif (/^Searching for repositories under .*$/) {
+        # ignore, old comment
+      } else {
+        die "Unexpected line in $file: $line\n";
+      }
+    }
+    close IN;
+  }
+}
+
+sub do_checkouts {
+  # checkout modules
+  foreach (sort keys %hosts) {
+    my $host=$_;
+    my $reps_ref=$hosts{$host};
+    foreach (sort keys %$reps_ref) {
+      my $rep_name=$_;
+      my $mods_ref=$reps_ref->{$rep_name};
+      my %new_mods=();
+      my %old_mods=();
+      foreach (sort keys %$mods_ref) {
+        my $mod_name=$_;
+        if (-d "$rep_name/$mod_name") {
+          $old_mods{$mod_name}=1;
+        } else {
+          $new_mods{$mod_name}=1;
+        }
+      }
+      next unless keys(%$mods_ref) > 0;
+      if (! -d "$host$rep_name") {
+        print "mkdir -p $host$rep_name\n";
+        if (!$print_only) {
+          mkpath "$host$rep_name"
+            or die "Unable to `mkdir -p $host$rep_name`: $!";
+        }
+      }
+      update($host, $rep_name, "update", $tag, \%old_mods);
+      update($host, $rep_name, "co", $tag, \%new_mods);
+    }
+  }
+}
+
+parse_args();
+parse_files();
+do_checkouts();

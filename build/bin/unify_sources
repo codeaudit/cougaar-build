@@ -1,0 +1,432 @@
+#! /bin/sh
+
+# <copyright>
+#  Copyright 2001-2003 BBNT Solutions, LLC
+#  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+# 
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the Cougaar Open Source License as published by
+#  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+# 
+#  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+#  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+#  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+#  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+#  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+#  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+#  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+#  PERFORMANCE OF THE COUGAAR SOFTWARE.
+# </copyright>
+
+#
+# Creates a unified view of all modules and Java source.
+#
+# Run with "--help" for usage information.
+#
+
+if [ "$1" = "--help" ]; then
+  cat << EOF
+Usage: $0 [--help]
+
+Creates a unified view of all modules and Java source.
+
+The local directory should contain the Cougaar source,
+either from a Cougaar release or CVS checkout by:
+  ./checkout_modules cougaar.mod
+
+An "all" directory is created with symlinks to modules.
+For example:
+  all/core -> cougaar/core/core
+  all/util -> cougaar/core/util
+  all/albbn -> ul/logistics/bbn/bbn
+In a couple cases these views are fixed to place the code in standard
+"src" directories, or to hide misplaced files (e.g. doc files in
+"src").
+
+A "src" directory is created with symlinks to all Java source.
+For example:
+  src/org/cougaar/core/agent -> all/core/src/org/cougaar/core/agent
+  src/org/cougaar/core/component -> all/util/src/org/cougaar/core/component
+  src/java/lang -> \$JAVA_HOME/src/java/lang
+Directories are created as needed to use a minimal number of symlinks.
+EOF
+  exit 1
+fi
+
+# cougaar install path (optional, required for "src" unify)
+if [ -z $CIP ] || [ ! -d $CIP ]; then
+  CIP=$COUGAAR_INSTALL_PATH
+  if [ -z $CIP ] || [ ! -d $CIP ]; then
+    if [ -f ../../clib/build.jar ]; then
+      cd ../..
+      CIP=$PWD
+      cd -
+    else
+      echo "Warn: unable to find COUGAAR_INSTALL_PATH"
+    fi
+  fi
+fi
+
+# cougaar modules (optional)
+if [ -d cougaar ]; then
+  COUGAAR=$PWD/cougaar
+elif [ -d cvs.cougaar.org/cvsroot ]; then
+  COUGAAR=$PWD/cvs.cougaar.org/cvsroot
+elif [ -d $CIP ]; then
+  COUGAAR=$CIP
+else
+  echo "Warn: unable to find Cougaar CVS"
+fi
+
+# ultralog modules (optional)
+UL=$PWD/ul
+
+# unzipped "$JAVA_HOME/src.zip" (optional)
+JDK=$JAVA_HOME
+
+# unzipped VM "sun.*" source (optional)
+VM_SRC=$JAVA_HOME/vm_src
+
+# 3rd-party src (all optional)
+EXT_BASE=~/java
+JAKARTA=$EXT_BASE/jakarta
+XERCES=$JAKARTA/xerces
+JASPER=$JAKARTA/tomcat/jasper
+LOG4J=$JAKARTA/log4j
+SERVLET=$JAKARTA/servletapi
+TOMCAT=$JAKARTA/tomcat
+BCEL=$JAKARTA/bcel
+UDDI4J=$EXT_BASE/uddi4j
+JENA=$EXT_BASE/jena
+JTP=$EXT_BASE/jtp
+PMD=$EXT_BASE/pmd
+JMDNS=$EXT_BASE/jmdns
+
+#
+# the rest shouldn't need changes
+#
+
+make_dir () {
+  mkdir $* || exit 1
+}
+
+link () {
+  if [ -d $1 ] || [ -f $1 ]; then 
+    if [ -z $2 ]; then
+      ext=`echo $1 | sed -e 's/^.*\/\([^\/]*\)$/\1/'`
+    else
+      ext=$2;
+    fi
+    if [ -e $ext ]; then
+      echo link $1 $ext already exists\!;
+      exit 1;
+    fi
+    ln -s $1 $ext || exit 1;
+  fi
+}
+
+echo Creating unified \"all\" directory
+
+make_dir all
+cd all
+
+link $CIP/clib
+link $CIP/lib
+link $CIP/sys
+
+# cougaar modules:
+
+clink () {
+  # $1 is the path to the CVS module
+  dir=$COUGAAR/$1/$2
+  if [ -d $dir ] || [ -f $dir ]; then
+    # from CVS
+    link $dir $3
+  else
+    dir=$COUGAAR/$2
+    if [ -d $dir ] || [ -f $dir ]; then
+      # from CIP
+      link $dir $3
+    fi
+  fi
+}
+
+clink aggagent aggagent
+clink build build
+if [ -d $COUGAAR/community ]; then
+  make_dir community
+  cd community
+    clink community community/src
+    clink community community/examples/src examples
+  cd -
+fi
+clink core core
+clink core jars
+clink core javaiopatch
+clink csmart csmart
+clink glm glm
+clink glm toolkit
+clink mts mtsstd
+clink planning planning
+clink profiler profiler_impl
+clink profiler profiler_servlet
+clink profiler profiler_transform
+clink qos qos
+clink qos quo
+clink qos ping
+clink servicediscovery servicediscovery
+clink tutorials tutorial
+clink util base
+clink util bootstrap
+clink util contract
+clink util server
+clink util util
+clink vishnu vishnuClient
+clink vishnu vishnuServer
+clink webserver webserver
+clink webserver webtomcat
+clink yp yp
+
+# ultralog modules:
+
+link $UL/archive/Caesar Caesar_archive
+link $UL/archive/castellan_FY01
+link $UL/archive/cbr
+link $UL/archive/cids
+link $UL/archive/diva
+link $UL/archive/iet
+link $UL/archive/kaos
+link $UL/archive/maul
+link $UL/archive/mlt
+link $UL/archive/safe safe_archive
+link $UL/archive/sam
+link $UL/archive/sra sra_archive
+link $UL/archive/tachyon
+link $UL/archive/tachyon_10_1_2001
+link $UL/archive/techspecs
+link $UL/archive/zel
+link $UL/commons/acmecommon/acmesecurity
+link $UL/commons/bbn/bbn bbn_commons
+link $UL/commons/bbn/botlets
+link $UL/commons/bbn/ulconfigs
+link $UL/commons/infoether/infoether
+link $UL/commons/isat/AcmeViewer
+link $UL/commons/isat/JabberBeansC\# JabberBeansC
+link $UL/commons/isat/LogManager
+link $UL/commons/isat/MonViewer
+link $UL/commons/isat/SocietyBuilder
+link $UL/commons/isat/ULBrowser
+link $UL/commons/isat/YamlParser
+link $UL/commons/isat/alice
+if [ -d $UL/commons/isat/csmart ]; then
+  make_dir commons_csmart
+  cd commons_csmart
+  link $UL/commons/isat/csmart/src/java src
+  cd -
+fi
+link $UL/commons/isat/oldcsmart
+link $UL/commons/isat/polaris
+link $UL/commons/isat/polaris1
+if [ -d $UL/commons/isat/ticenvironment ]; then
+  make_dir -p ticenvironment/src
+  cd ticenvironment/src
+  link $UL/commons/isat/ticenvironment/src/jcurses
+  link $UL/commons/isat/ticenvironment/src/org
+  cd -
+fi
+link $UL/commons/lmco/ETA
+link $UL/commons/sandia/foo
+link $UL/commons/servicediscovery/servicediscovery ul_servicediscovery
+link $UL/commons/sri/CnCcalc
+link $UL/commons/sri/OutOfBoundsAggagent
+link $UL/commons/sri/automation
+link $UL/commons/sri/chatterbox
+link $UL/dbms/dbms
+link $UL/logistics/21c/21c log_21c
+link $UL/logistics/bbn/bbn albbn
+link $UL/logistics/bbn/datagrabber
+link $UL/logistics/bbn/stoplight
+if [ -d $UL/logistics/psu/castellan ]; then
+  make_dir -p castellan/src/org
+  cd castellan/src/org
+  link $UL/logistics/psu/castellan/src/org/cougaar
+  cd -
+fi
+link $UL/logistics/psu/hydra
+link $UL/logistics/sra/sra
+link $UL/robustness/bbn/bbn robustness
+link $UL/robustness/boeing/exnihilo
+link $UL/robustness/common/common common_robustness
+link $UL/robustness/mic/mgmt_agent
+link $UL/robustness/nai/dist
+link $UL/robustness/nai/doc
+link $UL/robustness/nai/ul_bfs
+link $UL/robustness/nai/vend
+link $UL/robustness/nai/xfer
+link $UL/robustness/objs/Deconfliction
+link $UL/robustness/objs/DeconflictionDemoBranch
+link $UL/robustness/objs/common common_objs
+link $UL/robustness/objs/disconnection
+link $UL/robustness/objs/fakeDefense
+link $UL/robustness/objs/msgAudit
+link $UL/robustness/objs/msglog
+link $UL/robustness/objs/sensors
+link $UL/robustness/telcordia/deconfliction
+link $UL/scalability/bbn/adaptivescalability
+link $UL/scalability/boeing/ExNihilo
+link $UL/scalability/boeing/adaptivesolver
+link $UL/scalability/boeing/release070802
+link $UL/scalability/infoether/utilities
+link $UL/security/bbn/test
+link $UL/security/csi/UML
+link $UL/security/csi/moptools
+link $UL/security/csi/oldMandR
+link $UL/security/csi/overlay
+link $UL/security/csi/safe
+if [ -d $UL/security/csi/securityservices ]; then
+  make_dir -p securityservices/src
+  cd securityservices/src
+  link $UL/security/csi/securityservices/src/com
+  link $UL/security/csi/securityservices/src/org
+  link $UL/security/csi/securityservices/src/edu
+  cd -
+fi
+if [ -d $UL/security/honeywell/Caesar ]; then
+  make_dir -p Caesar/src
+  cd Caesar/src
+  link $UL/security/honeywell/Caesar/src/org 
+  cd -
+fi
+link $UL/security/ihmc/safe safe_ihmc
+link $UL/security/telcordia/AdaptiveMnRFilter
+link $UL/security/umemphis/seccon
+link $UL/survivability/bbn/testbed
+
+# JDK source
+
+if [ -d $JDK ]; then
+  if [ -d $VM_SRC/j2se/src/share/classes/sun ]; then
+    make_dir -p java/src
+    cd java/src
+    # leave "com" for the VM_SRC
+    link $JDK/src/java
+    link $JDK/src/javax
+    link $JDK/src/launcher
+    link $JDK/src/org
+    link $JDK/src/sunw
+    cd -
+  else
+    # link all
+    link $JDK java
+  fi
+fi
+
+# JDK non-released source (e.g. "sun.*")
+
+if [ -d $VM_SRC ]; then
+  make_dir vm_javaws
+  cd vm_javaws
+  link $VM_SRC/deploy/src/javaws/src/share/classes src
+  cd -
+  make_dir vm_javaws_unix
+  cd vm_javaws_unix
+  link $VM_SRC/deploy/src/javaws/src/unix/classes src
+  cd -
+  make_dir vm_plugin
+  cd vm_plugin
+  link $VM_SRC/deploy/src/plugin/src/share/classes src
+  cd -
+  make_dir vm_plugin_conv
+  cd vm_plugin_conv
+  link $VM_SRC/deploy/src/plugin/src/share/converter src
+  cd -
+  make_dir vm_hotspot
+  cd vm_hotspot
+  link $VM_SRC/hotspot/src/share/vm/agent src
+  cd -
+  make_dir -p vm_j2se/src
+  cd vm_j2se/src
+  link $VM_SRC/j2se/src/share/classes/com
+  link $VM_SRC/j2se/src/share/classes/sun
+  cd -
+  make_dir vm_j2se_solaris
+  cd vm_j2se_solaris
+  link $VM_SRC/j2se/src/solaris/classes src
+  cd -
+fi
+
+# 3rd-party modules:
+
+link $XERCES
+if [ -d $LOG4J ]; then
+  make_dir log4j
+  cd log4j
+  link $LOG4J/src/java src
+  cd -
+fi
+if [ -d $SERVLET ]; then
+  make_dir -p servlet/src
+  cd servlet/src
+  link $SERVLET/src/share/javax
+  cd -
+fi
+if [ -d $TOMCAT ]; then
+  make_dir tomcat
+  cd tomcat
+  link $TOMCAT/catalina/src/share src
+  cd -
+
+  make_dir jasper
+  cd jasper
+  link $TOMCAT/jasper/src/share src
+  cd -
+fi
+if [ -d $BCEL ]; then
+  make_dir bcel
+  cd bcel
+  link $BCEL/src/java src
+  cd -
+fi
+link $UDDI4J
+if [ -d $JENA ]; then
+  make_dir -p jena/src
+  cd jena/src
+  link $JENA/src/com
+  cd -
+fi
+if [ -d $JTP ]; then
+  make_dir -p jtp/src/jtp
+  cd jtp/src/jtp
+  JTP_DIRS=`\
+    find $JTP -maxdepth 1 -type d |\
+    egrep -v "^(\.|doc|JTP|junit|lib|misc)$" |\
+    sort`
+  for x in $JTP/*.java $JTP_DIRS; do
+    link $x
+  done
+  cd -
+fi
+link $PMD
+link $JMDNS
+
+ALL_DIR=`pwd | sed -e 's/\/$//' | sed -e 's/\//\\\\\//g'`
+cd ..
+
+# symlinked "src":
+
+if [ -f $CIP/clib/build.jar ]; then
+  echo Creating unified \"src\" directory
+  cd all
+  java \
+    -classpath $CIP/clib/build.jar \
+    org.cougaar.tools.build.UnifySourceScripter | \
+    sed -e "s/^BASE=\\\$COUGAAR_INSTALL_PATH\$/BASE=$ALL_DIR/" > \
+    ../.unify_sources
+  cd -
+  chmod 777 .unify_sources
+  ./.unify_sources
+  # keep this file for debugging
+else
+  echo Unable to create \"src\" directory: $CIP/clib/build.jar not found
+fi
