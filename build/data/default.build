@@ -101,7 +101,7 @@ modules=\
 	community, \
 	albbn, stoplight, datagrabber,\
 	servicediscovery, vishnu,\
-	ulconfigs
+	ulconfigs, pizza
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -230,6 +230,12 @@ vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 tutorial.deps = core,planning,glm,util
 #tutorial.jars = xercesImpl
 tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
+
+# pizza
+# Is YP needed? Will we need xml-apis? uddi?
+pizza.deps = core,planning,util,servicediscovery,yp
+pizza.jars = xercesImpl, servlet
+pizza.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
