@@ -82,6 +82,7 @@ modules=\
 	base,\
 	tutorial,\
 	csmart,\
+	quo,\
 	qos,\
 	deltaeport
 
@@ -90,7 +91,7 @@ modules=\
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
 	glm,scalability,server,aggagent,uiframework,base,tutorial,\
-	tops,datagrabber,glmtrans,vishnu,csmart,qos
+	tops,datagrabber,glmtrans,vishnu,csmart,quo,qos
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -127,6 +128,7 @@ uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
 tutorial.deps = core,glm
 csmart.deps = core,server,glm,planserver,scalability
 qos.deps = core
+quo.deps = core, qos
 deltaeport.deps = core,glm,toolkit,planserver,delta
 
 # module libs (in addition to module deps)
@@ -148,7 +150,8 @@ uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
 csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk
-qos.jars = QuoKernel
+quo.jars = quoSumo, jacorb
+qos.jars = quoSumo
 deltaeport.jars = jsdk,jbcl,xmlparserv2,oracle12
 
 #extra libs to include in distribution
