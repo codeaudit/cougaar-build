@@ -185,7 +185,7 @@ class ParameterListWriter extends HtmlStandardWriter { // was HtmlStandardWriter
     }
   }
 
-  public class Tuple 
+  public static class Tuple 
     implements Comparable
   {
     public Doc doc;
