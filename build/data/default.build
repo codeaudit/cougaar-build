@@ -160,17 +160,12 @@ bootstrap.repository = :ext:cougaar.org:/cvsroot/util
 # util
 util.deps = bootstrap
 util.jars = log4j, xercesImpl, xml-apis
-# 4 implementations of deprecated jdbc methods
-util.warnings = 4
 # Moved to Cougaarforge
 util.repository = :ext:cougaar.org:/cvsroot/util
 
 # core
 core.deps = bootstrap, util
 core.jars = log4j, servlet, concurrent
-# 3 implementations of deprecated jdbc methods
-# 2 implementing blackboard methods
-core.warnings = 5
 # Moved to Cougaarforge
 core.repository = :ext:cougaar.org:/cvsroot/core
 
