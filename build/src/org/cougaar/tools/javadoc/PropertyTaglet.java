@@ -33,7 +33,8 @@ import java.util.Map;
 public class PropertyTaglet implements Taglet {
     
   private String NAME = "property";
-  private String HEADER = "System Property:";
+  private String SINGULAR_HEADER = "System Property:";
+  private String PLURAL_HEADER = "System Properties:";
     
   /**
    * Return the name of this custom tag.
@@ -139,7 +140,7 @@ public class PropertyTaglet implements Taglet {
    */
   public String toString(Tag tag) {
     Tuple t = new Tuple(tag);
-    return "<DT><B>" + HEADER + "</B><DD>"
+    return "<DT><B>" + SINGULAR_HEADER + "</B><DD>"
       + "<table cellpadding=2 cellspacing=0><tr valign=\"top\">"+
       "<td>"+ t.param +"</td>"+
       "<td>"+ t.text +"</td>"+
@@ -155,7 +156,7 @@ public class PropertyTaglet implements Taglet {
     if (tags.length == 0) {
       return null;
     }
-    String result = "\n<DT><B>" + HEADER + "</B><DD>";
+    String result = "\n<DT><B>" + (tags.length == 1 ? SINGULAR_HEADER : PLURAL_HEADER) + "</B><DD>";
     result += "<table cellpadding=2 cellspacing=0>";
     for (int i = 0; i < tags.length; i++) {
       Tuple t = new Tuple((Tag)tags[i]);
