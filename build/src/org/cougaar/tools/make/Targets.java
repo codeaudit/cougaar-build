@@ -186,10 +186,19 @@ public class Targets {
     }
 
     private void cleanDirClassFiles(boolean recurse) throws MakeException {
+        File currentDir = theContext.getCurrentDirectory();
+        File sourceRoot;
+        File classesRoot;
+        if (theContext.isTestDirectory(currentDir)) {
+            sourceRoot = theContext.getTestRoot();
+            classesRoot = theContext.getTestClassesRoot();
+        } else {
+            sourceRoot = theContext.getSourceRoot();
+            classesRoot = theContext.getClassesRoot();
+        }
         String[] tails =
-            theContext.getTails(theContext.getSourceRoot(),
-                                new File[] {theContext.getCurrentDirectory()});
-        File targetDir = new File(theContext.getClassesRoot(), tails[0]);
+            theContext.getTails(sourceRoot, new File[] {currentDir});
+        File targetDir = new File(classesRoot, tails[0]);
         cleanDirectory(targetDir, null, recurse, false);
     }
 
@@ -235,8 +244,11 @@ public class Targets {
         theContext.makeTarget("projectLib");
         theContext.makeTarget("rmic");
         File jarFile = getModuleJarFile();
-        MakeContext.JarSet[] jarSets =
-            getJarSets(theContext.getClassesRoot(), theContext.getSourceRoot(), null, null);
+        MakeContext.JarSet[] jarSets = null;
+        if (theContext.getTestClassesRoot().exists())
+            jarSets = getJarSets(theContext.getTestClassesRoot(),
+                                 theContext.getTestRoot(), null, jarSets);
+        jarSets = getJarSets(theContext.getClassesRoot(), theContext.getSourceRoot(), null, jarSets);
         jarCommon(jarFile, null, jarSets);
     }
 
