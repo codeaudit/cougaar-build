@@ -91,7 +91,8 @@ modules=\
 	quo, qos,\
 	dbms,\
 	server, manager,\
-	webserver, webtomcat
+	webserver, webtomcat,\
+	bol
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
@@ -229,6 +230,15 @@ webserver.deps = core
 webserver.jars = servlet
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
+
+# bol module
+bol.repository = external
+# Lesson1.deps = core,glm,planserver
+# Lesson1.jars = servlet
+# Lesson2.deps = core,glm,planserver
+# Lesson2.jars = servlet,hsql,jess50
+bol.deps = core,glm,planserver
+bol.jars = servlet,hsql,jess50
 
 # dbms module
 dbms.repository = dbms
