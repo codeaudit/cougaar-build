@@ -1319,19 +1319,19 @@ sub tag {
   $barg = "-b" if($branchP);
 
   my (@mods);
-  @mods = @module;
+  @mods = @modules;
+  push @modules, "build" if (! member("build",@modules));
 
   {
     $syslib = opt("sys.lib");
     if ($syslib =~ /^module:(.+)/) {
       my($mod) = $1;
-      push @mods, @mod;
+      push @mods, $mod;
     }
   }
 
   foreach $mod (@mods) {
     my $rep = getCVSROOT($mod);
-
     my $tag = opt("$mod.tag");
     $tag = $rtag if (!$tag);
 
