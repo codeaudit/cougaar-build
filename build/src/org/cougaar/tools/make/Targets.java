@@ -62,7 +62,7 @@ public class Targets {
 	theContext.makeTarget("moduleClasses");
         theContext.makeTarget("compileGenCode");
         compilePrerequisites();
-        File[] sources = theContext.findFiles(srcDirectory, ".java", recurse);
+        File[] sources = theContext.findFiles(srcDirectory, ".java", recurse, false);
         compileCommon(theContext.getSourceRoot(), sources);
     }
 
@@ -70,7 +70,7 @@ public class Targets {
         theContext.makeTarget("generateCode");
         File srcRoot = theContext.getGenCodeRoot();
         if (srcRoot.isDirectory()) {
-            File[] sources = theContext.findFiles(srcRoot, ".java", true);
+            File[] sources = theContext.findFiles(srcRoot, ".java", true, false);
             compileCommon(srcRoot, sources);
         }
     }
@@ -86,17 +86,23 @@ public class Targets {
         System.out.println(theContext.getModuleName() + ".javac: Compiling " + needed.length + " files");
 	theContext.javac(needed);
     }
-    private void cleanSome(File root, String suffix, boolean recurse) throws MakeException {
-        if (root.isDirectory()) {
-            File[] targets = theContext.findFiles(root, suffix, recurse);
-            System.out.println(theContext.getModuleName() + ".delete " + root + ": " + targets.length + " files");
+    private void cleanDirectory(File dir, String suffix, boolean recurse, boolean includeDirectories)
+	throws MakeException
+    {
+        if (dir.isDirectory()) {
+            File[] targets = theContext.findFiles(dir, suffix, recurse, includeDirectories);
+            System.out.println(theContext.getModuleName()
+			       + ".delete "
+			       + dir
+			       + ": "
+			       + targets.length
+			       + " files");
             theContext.delete(targets);
         }
     }
 
     public void clean() throws MakeException {
-        cleanSome(theContext.getClassesRoot(), null, true);
-        cleanSome(theContext.getGenCodeRoot(), null, true);
+        cleanDirectory(theContext.getModuleTemp(), null, true, true);
     }
         
     public void cleanDir() throws MakeException {
@@ -112,12 +118,12 @@ public class Targets {
             theContext.getTails(theContext.getSourceRoot(),
                                 new File[] {theContext.getCurrentDirectory()});
         File targetDir = new File(theContext.getClassesRoot(), tails[0]);
-        cleanSome(targetDir, null, recurse);
+        cleanDirectory(targetDir, null, recurse, false);
     }
 
     public void generateCode() throws MakeException {
         compilePrerequisites();
-	File[] sources = theContext.findFiles(theContext.getSourceRoot(), ".def", true);
+	File[] sources = theContext.findFiles(theContext.getSourceRoot(), ".def", true, false);
         if (sources.length > 0) {
             theContext.makeTarget("moduleGenCode");
             for (int i = 0; i < sources.length; i++) {
@@ -147,18 +153,21 @@ public class Targets {
         String[] extensionsToJar = theContext.getExtensionsToJar();
         MakeContext.JarSet[] jarSets = new MakeContext.JarSet[1 + extensionsToJar.length];
         jarSets[0] = theContext.createJarSet(theContext.getClassesRoot());
+	File[] classFiles = theContext.findFiles(theContext.getClassesRoot(), null, true, false);
+	int fileCount = classFiles.length;
         long maxTime =
-            getMaxModificationTime(theContext.findFiles(theContext.getClassesRoot(), null, true));
+            getMaxModificationTime(classFiles);
         for (int i = 0; i < extensionsToJar.length; i++) {
             jarSets[1 + i] =
                 theContext.createJarSet(theContext.getSourceRoot(), extensionsToJar[i], true);
             maxTime = Math.max(maxTime, getMaxModificationTime(jarSets[1 + i].files));
+	    fileCount += jarSets[1 + i].files.length;
         }
         if (maxTime <= jarFile.lastModified()) {
             System.out.println(theContext.getModuleName() + ".jar is up to date");
             return;
         }
-        System.out.println(theContext.getModuleName() + ".jar: " + jarFile.getName());
+        System.out.println(theContext.getModuleName() + ".jar: " + fileCount + " files");
         theContext.jar(jarFile, null, jarSets);
     }
 
@@ -176,9 +185,10 @@ public class Targets {
     }
 
     public void tags() throws MakeException {
+	theContext.insureDirectory(theContext.getModuleTemp());
         theContext.makeTarget("generateCode");
-        File[] srcSources = theContext.findFiles(theContext.getSourceRoot(), ".java", true);
-        File[] genSources = theContext.findFiles(theContext.getGenCodeRoot(), ".java", true);
+        File[] srcSources = theContext.findFiles(theContext.getSourceRoot(), ".java", true, false);
+        File[] genSources = theContext.findFiles(theContext.getGenCodeRoot(), ".java", true, false);
         File tagsFile = new File(theContext.getModuleTemp(), "TAGS");
         long maxTime = Math.max(getMaxModificationTime(srcSources),
                                 getMaxModificationTime(genSources));

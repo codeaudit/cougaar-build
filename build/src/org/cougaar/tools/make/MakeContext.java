@@ -487,7 +487,7 @@ public class MakeContext {
             }
         }
         String[] argStrings = (String[]) args.toArray(new String[args.size()]);
-        if (haveJDKTools()) {
+        if (false && haveJDKTools()) {
             runJavaMain(JAR_CLASS, argStrings);
         } else {
             runExecutable(new String[] {"jar"}, argStrings, 0, argStrings.length);
@@ -577,15 +577,17 @@ public class MakeContext {
 	}
     }
 
-    public void etags(File tagsFile, File[] sources, File[] tagFiles, boolean append) throws MakeException {
+    public void etags(File tagsFile, File[] sources, File[] tagFiles, boolean append)
+	throws MakeException
+    {
         int offset = 0;
         MakeException e = null;
-        String[] command1 = new String[] {
+        String[] writeCmd = new String[] {
             ETAGS,
             "-o",
             tagsFile.getPath()
         };
-        String[] command2 = new String[] {
+        String[] appendCmd = new String[] {
             ETAGS,
             "-o",
             tagsFile.getPath(),
@@ -594,18 +596,12 @@ public class MakeContext {
         if (sources != null) {
             while (offset < sources.length) {
                 int nfiles = Math.min(sources.length - offset, 20);
-                String[] command;
-                if (append) {
-                    command = command1;
-                } else {
-                    command = command2;
-                }
                 List args = new ArrayList();
                 for (int i = 0; i < nfiles; i++) {
                     args.add(sources[i + offset]);
                 }
                 try {
-                    runExecutable(command, args.toArray(), 0, args.size());
+                    runExecutable(append ? appendCmd : writeCmd, args.toArray(), 0, args.size());
                 } catch (MakeException me) {
                     e = me;
                 }
@@ -620,7 +616,7 @@ public class MakeContext {
                 tagArgs[2*i+1] = tagFiles[i].getPath();
             }
             try {
-                runExecutable(append ? command2 : command1, tagArgs, 0, tagArgs.length);
+                runExecutable(append ? appendCmd : writeCmd, tagArgs, 0, tagArgs.length);
             } catch (MakeException me) {
                 e = me;
             }
@@ -637,19 +633,22 @@ public class MakeContext {
      * means to find all files.
      * @recurse descend into subdirectories recursively if true.
      **/
-    public File[] findFiles(File base, String suffix, boolean recurse) throws MakeException {
+    public File[] findFiles(File base, String suffix, boolean recurse, boolean includeDirectories)
+	throws MakeException
+    {
 	if (!base.isDirectory()) {
             return new File[0];
 	}
         List files = new ArrayList();
-        findFiles(files, base, suffix, recurse);
+        findFiles(files, base, suffix, recurse, includeDirectories);
         return (File[]) files.toArray(new File[files.size()]);
     }
 
     /**
      * Find files and add them to a List.
      **/
-    private void findFiles(List files, File dir, final String suffix, boolean recurse)
+    private void findFiles(List files, File dir, final String suffix,
+			   boolean recurse, boolean includeDirectories)
 	throws MakeException
     {
 	if (!dir.isDirectory()) {
@@ -670,8 +669,11 @@ public class MakeContext {
                 }
             });
 	    for (int i = 0; i < x.length; i++) {
-		findFiles(files, x[i], suffix, true);
+		findFiles(files, x[i], suffix, true, includeDirectories);
 	    }
+	}
+	if (includeDirectories) {
+	    files.add(dir);
 	}
     }
 
@@ -734,7 +736,7 @@ public class MakeContext {
     public File[] get3rdPartyJars() throws MakeException {
 	File dir = get3rdPartyDirectory();
 	if (dir == null || !dir.isDirectory()) return new File[0];
-	return findFiles(dir, ".jar", false);
+	return findFiles(dir, ".jar", false, false);
     }
 
     private URL[] getClassPathURLs() throws MakeException {
@@ -775,7 +777,7 @@ public class MakeContext {
         if (genCodeRoot.isDirectory()) {
             elements.add(genCodeRoot);
         }
-        elements.addAll(Arrays.asList(findFiles(getProjectLib(), ".jar", false)));
+        elements.addAll(Arrays.asList(findFiles(getProjectLib(), ".jar", false, false)));
         elements.addAll(Arrays.asList(get3rdPartyJars()));
         if (haveJDKTools()) {
             elements.add(getJDKToolsJar());
@@ -831,7 +833,7 @@ public class MakeContext {
     }
 
     public JarSet createJarSet(File root, String suffix, boolean recurse) throws MakeException {
-        return new JarSet(root, findFiles(root, suffix, recurse));
+        return new JarSet(root, findFiles(root, suffix, recurse, false));
     }
 
     public static class JarSet {
