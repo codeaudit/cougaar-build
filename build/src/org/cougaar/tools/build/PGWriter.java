@@ -225,6 +225,10 @@ public class PGWriter extends WriterBase {
       return p.getValueFlag(context, PGParser.LOCAL, true, false);
     }
 
+    String getExtraInterface(String context) {
+      return (String) p.getValue(context, "interface", false, null);
+    }
+
     void writeGetterIfc(PrintWriter out, String context, String className) {
       println(out,"/** Primary client interface for "+className+".");
       String doc = (String)p.get(context,"doc");
@@ -242,8 +246,9 @@ public class PGWriter extends WriterBase {
         String dq = (hasDQ(context)?", org.cougaar.planning.ldm.dq.HasDataQuality":"");
         String local = (isLocal(context)?", LocalPG":"");
         String timePhased = (isTimePhased(context)?"TimePhased":"");
-
-        println(out,"public interface "+className+" extends "+timePhased+"PropertyGroup"+dq+local+" {");
+        String xifc = getExtraInterface(context);
+        String xifcs = (xifc==null)?"":(", "+xifc);
+        println(out,"public interface "+className+" extends "+timePhased+"PropertyGroup"+dq+local+xifcs+" {");
       }
 
       // declare the slots
