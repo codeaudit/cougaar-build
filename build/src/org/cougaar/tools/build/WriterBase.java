@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 1997-2001 BBNT Solutions, LLC
+ *  Copyright 1997-2002 BBNT Solutions, LLC
  *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
  * 
  *  This program is free software; you can redistribute it and/or modify
@@ -38,6 +38,32 @@ public class WriterBase {
     protected String getGenFileName() {
         return genFileName;
     }
+
+  // Given a file handle, construct a package name
+  // that matches. Allows each module to have a Version that could 
+  // be different.
+  protected String getPackageFromDir(File directory) {
+    if (directory == null)
+      return ".";
+
+    String dirName = directory.getAbsolutePath();
+
+    // Now: which piece of this is the package?
+    // Assume Version is under a "src" dir
+    if (dirName.indexOf("src") != -1) {
+      dirName = dirName.substring(dirName.indexOf("src") + 4);
+    } else {
+    }
+
+    StringBuffer dirBuf = new StringBuffer(dirName);
+    // put in the "."
+    int ix = 0;
+    while ((ix = dirBuf.indexOf(File.separator)) != -1) {
+      dirBuf.replace(ix, ix+1, ".");
+    }
+
+    return dirBuf.substring(0);
+  }
 
     protected void setDirectories(String defFileName) {
         if (defFileName.equals("-")) {
@@ -91,7 +117,7 @@ public class WriterBase {
   protected final static void writeCR(PrintWriter out, String source) {
     println(out,"/*\n"+
                 " * <copyright>\n"+
-                " *  Copyright 1997-2001 BBNT Solutions, LLC\n"+
+                " *  Copyright 1997-2002 BBNT Solutions, LLC\n"+
                 " *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).\n"+
                 " * \n"+
                 " *  This program is free software; you can redistribute it and/or modify\n"+
