@@ -20,7 +20,8 @@ import java.io.*;
  **/
 public class FixFood extends Fix {
     /**
-     * This cluster list includes two battalions and _only_ subsistence. No transportation
+     * This cluster list includes two battalions and _only_
+     * subsistence. No transportation
      **/
     public static final String[] SHORT_CLUSTERS = {
         "NCA",
@@ -61,40 +62,11 @@ public class FixFood extends Fix {
         "SubsistenceICP",
     };
 
+    private File[] files;
+
     protected Fixer[] getFixes() {
-        String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
-        String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
-        String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
-        String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SubsistenceInventoryPlugIn";
-        return new Fixer[] {
-            new Fix.PlugIn("plugin = org.cougaar.domain.css."),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.MedicalInventoryPlugIn"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.LimitResourcesPolicyPlugIn"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportExpanderPlugIn"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAggregatorPlugIn"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAllocatorPlugIn"),
-            new Fix.DeleteParameter(pi1, "StrategicTransportation", true),
-            new Fix.DeleteParameter(pi1, "Consumable", true),
-            new Fix.DeleteParameter(pi1, "BulkPOL", true),
-            new Fix.DeleteParameter(pi1, "PackagedPOL", true),
-            new Fix.DeleteParameter(pi1, "ClassVIIIMedical", true),
-            new Fix.DeleteParameter(pi2, "+BulkPOLInventory"),
-            new Fix.DeleteParameter(pi2, "+PackagedPOLInventory"),
-            new Fix.DeleteParameter(pi2, "+ConsumableInventory"),
-            new Fix.DeleteParameter(pi2, "+FuelsSourcingAllocator"),
-            new Fix.DeleteParameter(pi2, "+PackagedPOLTransport"),
-            new Fix.DeleteParameter(pi4, "+ClassISubsistenceTransport"),
-            new Fix.DeleteParameter(pi2, "+BulkPOLTransport"),
-            new Fix.DeleteParameter(pi3, "BulkPOL"),
-            new Fix.DeleteParameter(pi3, "PackagedPOL"),
-            new Fix.DeleteParameter(pi3, "Consumable"),
-            new Fix.DeleteParameter(pi3, "Ammunition"),
-        };
+        return concatenateFixers(new Fixer[][] {
+            Remove.ammo, Remove.pol, Remove.construction, Remove.sra, Remove.transport});
     }
 
     private static ClusterOptionSet[] clusterSetOptions = {
