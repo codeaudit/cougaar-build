@@ -179,7 +179,7 @@ toolkit.jars = xerces
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart,servlet
-glm.extras = m-mysql-2
+glm.extras = mm-mysql-2
 
 # scalability testing kit
 scalability.deps = core,planning,glm,util
