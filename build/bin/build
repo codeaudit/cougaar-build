@@ -1274,6 +1274,12 @@ sub find_errors {
       $nl = max($nl,1);
     }
 
+    # catch junit errors
+    if (/^There was (\d+) error/) {
+      $ec++;
+      $nl = max($nl,4);
+    }
+
     # search for build errors/warnings
     if (/^Warning:/) {
       $wc++;
