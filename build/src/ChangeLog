@@ -1,3 +1,21 @@
+2001-09-06  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/readme.txt:
+	Update documentation of new properties and options.
+
+	* org/cougaar/tools/make/Targets.java:
+	Make examples and tests along with usual sources.
+
+	* org/cougaar/tools/make/MakeContext.java:
+	Compute jikes classpath from a new org.cougaar.tools.make.jdk
+	property. This is an alternative to the direct specification of
+	the jikes classpath using org.cougaar.tools.make.jikes.class.path.
+	Also, compute org.cougaar.tools.make.jdk.tools the same way.
+
+	* org/cougaar/tools/make/Make.java:
+	Add -jikes to invoke jikes compiler from command line and
+	-pendantic to perform pedantic checking.
+
 2001-09-05  Michael Thome  <mthome@bbn.com>
 
 	* VersionWriter
