@@ -750,8 +750,10 @@ sub build_module {
     $builtjar = &build_module_main($mod,$mymod,"");
   }
 
+  # Generate compile.jarlist variable for substitution in moduleTemplate.xml
+  # Used in compiling code
   {
-    my @ccp = split(/:/,get_classpath($mod));
+    my @ccp = split(/$cpsep/,get_classpath($mod));
     my @pccp;
     foreach $_ (@ccp) {
       next if ($_ eq ".");	# skip cwd
@@ -764,6 +766,21 @@ sub build_module {
     sopt($mod, "compile.jarlist", join(",",@pccp));
   }
 
+  # Generate run.jarlist variable for substitution in moduleTemplate.xml
+  # Used in running unit tests
+  {
+    my @ccp = split(/$cpsep/,get_classpath($mod,1)); # Include .extras too
+    my @pccp;
+    foreach $_ (@ccp) {
+      next if ($_ eq ".");	# skip cwd
+      s/$java_home/\$\{java.home\}/;
+      s/$libdir/\$\{target.lib\}/;
+      s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
+      s/$syslib/\$\{target.sys\}/;
+      push @pccp, $_;
+    }
+    sopt($mod, "run.jarlist", join(",",@pccp));
+  }
 
   generateAntRecipe($mod);
 
