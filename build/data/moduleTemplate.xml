@@ -152,6 +152,7 @@
 
     <!-- javadoc package spec for building javadocs -->
     <property name="javadoc.packages" value="%{javadoc.packages}"/>
+
     <!-- Extra jars needed at run / unit-test time. -->
     <!-- WARNING: Only relative paths work here. -->
     <property name="run.jarlist" value="%{run.jarlist}"/>
@@ -351,6 +352,9 @@
     <target name="compile" depends="prepare, defrunner, really-compile, rmic-source"
 	    description="Compile the source Code"> </target>
 
+    <!-- FIXME: defrunner generated files are always being recompiled,
+    even when not necessary? -->
+
     <!-- See if the jarfile needs recompiling -->
     <!-- Note that module-date.jar is not checked, just module.jar -->
     <!-- Also the property set here is _not_ currently used. -->
@@ -404,6 +408,7 @@
       <delete>
       <!-- FIXME: What about the -(date) jar files? -->
 	<fileset dir="${target.lib}" includes="**/${module}.jar" />
+<!--	<fileset dir="${target.lib}" includes="**/${module}-*.jar" /> -->
       </delete>
     </target>
 
@@ -527,6 +532,7 @@
 	    <exclude name="**/*#"/>
 	    <exclude name="**/*~"/>
 	    <exclude name="**/*.class"/>
+	    <exclude name="**/*.flc"/>
 	    <exclude name="**/.cvsignore"/>
 	  </patternset>
 	</fileset>
