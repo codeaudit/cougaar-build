@@ -103,8 +103,51 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
 </target>
 
 <target name="clean">
+  <!-- now dist the modules -->
+  <antcall target="clean.module">
+    <param name="module" value="build"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="javaiopatch"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="core"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="toolkit"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="planserver"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="glm"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="contract"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="scalability"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="server"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="tutorial"/>
+  </antcall>
+  <antcall target="clean.module">
+    <param name="module" value="configgen"/>
+  </antcall>
+
   <!-- Delete the ${tmpdir} and ${dist} directory trees -->
   <delete dir="${tmpdir}" />
+</target>
+
+<target name="clean.module">
+  <!-- requires that ${module} be set -->
+  <ant antfile="${module.xml}" target="clean" dir="${basedir}/${module}">
+    <property name="module.name" value="${module}"/>
+    <property name="codegen.jar" value="${distdir}/lib/build.jar"/>
+  </ant>
 </target>
 
 

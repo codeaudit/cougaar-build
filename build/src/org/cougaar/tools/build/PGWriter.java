@@ -299,9 +299,6 @@ class PGWriter {
                   findPackage(context)+".New"+className+"\";");
       out.println("  /** the factory class **/");
       out.println("  public static final Class factoryClass = "+findPackage("global")+".PropertyGroupFactory.class;");
-      out.println("  /** the (immutable) class type returned by domain factory **/");
-      out.println("  public static final String immutableClass = \""+
-                  findPackage(context)+"."+className+"\";");
 
       out.println("  /** the (immutable) class type returned by domain factory **/");
       out.println("  public static final Class primaryClass = "+
@@ -409,7 +406,6 @@ class PGWriter {
       out.println("  public PropertyGroup lock(Object key) { return null; }");
       out.println("  public PropertyGroup lock() { return null; }");
       out.println("  public PropertyGroup copy() { return null; }");
-      out.println("  public String getImmutableClass(){return immutableClass;}");
       out.println("  public Class getPrimaryClass(){return primaryClass;}");
       out.println("  public String getAssetGetMethod() {return assetGetter;}");
       out.println("  public String getAssetSetMethod() {return assetSetter;}");
@@ -530,7 +526,6 @@ class PGWriter {
       out.println("  public PropertyGroup lock(Object key) { return null; }");
       out.println("  public PropertyGroup lock() { return null; }");
       out.println("  public PropertyGroup copy() { return null; }");
-      out.println("  public String getImmutableClass(){return immutableClass;}");
       out.println("  public Class getPrimaryClass(){return primaryClass;}");
       out.println("  public String getAssetGetMethod() {return assetGetter;}");
       out.println("  public String getAssetSetMethod() {return assetSetter;}");
@@ -1111,9 +1106,6 @@ class PGWriter {
       out.println();
 
       // introspection methods
-      out.println("  public String getImmutableClass() {\n"+
-                  "    return immutableClass;\n"+
-                  "  }");
       out.println("  public Class getPrimaryClass() {\n"+
                   "    return primaryClass;\n"+
                   "  }");
@@ -1309,9 +1301,6 @@ class PGWriter {
       }
 
       // introspection method of locked
-      out.println("    public String getImmutableClass() {\n"+
-                  "      return immutableClass;\n"+
-                  "    }");
       out.println("    public Class getPrimaryClass() {\n"+
                   "      return primaryClass;\n"+
                   "    }");
