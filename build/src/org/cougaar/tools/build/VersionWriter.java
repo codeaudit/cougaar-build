@@ -21,9 +21,16 @@
 
 package org.cougaar.tools.build;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Write a class Version.java using <code>version.def</code> to get the Version number,

@@ -24,17 +24,24 @@ package org.cougaar.tools.javadoc;
 // note that this requires that the tools.jar from jdk be present at compile-time.
 
 // basic packages
-import com.sun.tools.doclets.*;
-import com.sun.javadoc.*;
-import java.util.*;
-import java.io.*;
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-// support for hacking the RootDoc to quiet warnings
-import java.lang.reflect.*;
-
-// Standard doclet 
-import com.sun.tools.doclets.standard.*;
-import com.sun.tools.doclets.standard.tags.*;
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.Doc;
+import com.sun.javadoc.MemberDoc;
+import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Tag;
+import com.sun.tools.doclets.DocletAbortException;
+import com.sun.tools.doclets.standard.ConfigurationStandard;
+import com.sun.tools.doclets.standard.HtmlStandardWriter;
+import com.sun.tools.doclets.standard.Standard;
 
 /**
  * An extension of the "Standard" Doclet for generating files which 

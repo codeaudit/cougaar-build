@@ -21,9 +21,16 @@
 
 package org.cougaar.tools.build;
 
-import java.io.*;
-import java.util.*;
-import java.lang.reflect.*;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /** A tool for executing various COUGAAR code generators as specified by 
  * .def files.  This supports the ANT build method.

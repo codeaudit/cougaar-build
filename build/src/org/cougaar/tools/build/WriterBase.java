@@ -21,7 +21,8 @@
 
 package org.cougaar.tools.build;
 
-import java.io.*;
+import java.io.File;
+import java.io.PrintWriter;
 
 public class WriterBase {
 

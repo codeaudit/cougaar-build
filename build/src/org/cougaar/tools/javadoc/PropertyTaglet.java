@@ -22,9 +22,10 @@ package org.cougaar.tools.javadoc;
  * Based on ToDo example taglet.
  */
 
-import com.sun.tools.doclets.Taglet;
-import com.sun.javadoc.*;
 import java.util.Map;
+
+import com.sun.javadoc.Tag;
+import com.sun.tools.doclets.Taglet;
 
 /**
  * A simple Taglet representing @property. 

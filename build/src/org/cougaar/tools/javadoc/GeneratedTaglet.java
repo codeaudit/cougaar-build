@@ -11,9 +11,10 @@ package org.cougaar.tools.javadoc;
  *
  */
 
-import com.sun.tools.doclets.Taglet;
-import com.sun.javadoc.*;
 import java.util.Map;
+
+import com.sun.javadoc.Tag;
+import com.sun.tools.doclets.Taglet;
 
 /**
  * A sample Taglet representing @generated. This tag can be used in any kind of
