@@ -277,12 +277,15 @@ albbn.deps = core,planserver,util,toolkit,glm,vishnu
 albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 albbn.module = bbn
+albbn.runtime = bin,configs
+
 
 # AL SRA
 alsra.deps = core,planserver,util,toolkit,glm,vishnu,albbn
 alsra.jars = xerces,openmap,fesi-111,jcchart,servlet
 alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
 alsra.module = sra
+alsra.runtime = configs
 
 #
 # distribution settings
