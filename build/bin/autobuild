@@ -2,7 +2,7 @@
 # -*- Perl -*-
 
 # <copyright>
-#  Copyright 2001 BBNT Solutions, LLC
+#  Copyright 2001-2002 BBNT Solutions, LLC
 #  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
 # 
 #  This program is free software; you can redistribute it and/or modify
@@ -82,15 +82,6 @@ $tag = $opt_t if ($opt_t);
 $extraargs = $opt_o if ($opt_o);
 $javahome = $opt_j if ($opt_j);
 
-if ($opt_T) {
-  $tmp = $opt_T;
-} else {
-  $tmp = "/tmp";
-}
-&mkd($tmp);
-$tmp = "$tmp/$tag";
-&mkd($tmp);
-
 $verbose++ if $opt_v;
 $auto = $opt_a if ($opt_a);
 $data = $opt_d if ($opt_d);
@@ -98,6 +89,17 @@ $data = $opt_d if ($opt_d);
 if ($opt_t && !$opt_a) {
   $auto = $opt_t;
 }
+
+if ($opt_T) {
+  $tmp = $opt_T;
+} else {
+  $tmp = "/tmp";
+}
+
+&mkd($tmp);
+$tmp = "$tmp/$tag";
+&mkd($tmp);
+
 
 $lockfile = "$tmp/LOCK";
 acquireLock();
@@ -172,6 +174,9 @@ if ($data =~ /\//) {
 }
 $keep = $opt_n if $opt_n;	# reset the keep value if we need to
 
+cleanRemote();
+exit(0);
+
 # clean up any waxy yellow buildup
 mysystem("rm -rf $builddir");
 &mkd($builddir);
@@ -196,31 +201,12 @@ scp("$builddir/$built/dist/* $host:$auto/$built");
 ssh("$host cd $auto \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
-open(B, "$ssh $host ls $auto|");
-@alldirs = <B>;
-close(B);
-
-@alldirs = grep /[0-9]*/, @alldirs;
-@alldirs = sort @alldirs;
-
-# skip over keepers
-$i=0;
-while ($i <= $keep && ($_= pop @alldirs)) {
-  $i++;
-}
-
-while ( ($_ = pop @alldirs)) {
-  chomp;
-  ssh("$host rm -rf $auto/$_");
-}
+cleanRemote();
 
 mysystem("rm -rf $tmpdir");
-
 mysystem("rm -rf $builddir") if $cleanup;
-
 releaseLock();
 logMessage("Finished");
-
 
 exit 0;
 
@@ -304,3 +290,86 @@ sub logMessage {
   print LOG "$d\t$s\n";
   close(LOG);
 }
+
+
+sub cleanRemote {
+  open(B, "$ssh $host ls $auto|");
+  @alldirs = <B>;
+  close(B);
+
+  @alldirs = grep /^[0-9]*$/, @alldirs;
+  @alldirs = sort @alldirs;
+
+  my $lsucc;
+  my $lfail;
+
+  # scan, oldest first
+  foreach $dir (reverse @alldirs) {
+    chomp $dir;
+    my $status = checkRemoteStatus($dir);
+    $status{$dir} = $status;
+    $lsucc = $dir if ($status eq "SUCCEEDED");
+    $lfail = $dir if ($status eq "FAILED");
+  }
+
+  # if we saw a success or failure, then we're watching complient builds
+  if ($lsucc || $lfail) {
+
+    # delete the last failure if there's been a more recent success
+    if ($lsucc > $lfail) {
+      undef $lfail;
+    }
+
+    my ($cmd) = "$host cd $auto \\; rm -f latest_success latest_failure";
+    $cmd .= " \\; ln -s $lsucc latest_success" if ($lsucc);
+    $cmd .= " \\; ln -s $lsucc latest_failure" if ($lfail);
+    ssh($cmd);
+
+    # delete everything but the marked last ones
+    foreach $dir (@alldirs) {
+      chomp $dir;
+      if (! ($dir eq $lsucc ||
+	     $dir eq $lfail)) {
+	rrm($dir);
+      }
+    }
+
+  } else {
+    # older-style builds: keep the most recent N builds
+
+    # skip over keepers
+    $i=0;
+    while ($i <= $keep && ($_= pop @alldirs)) {
+      $i++;
+    }
+
+    while ( ($_ = pop @alldirs)) {
+      chomp;
+      rrm($_);
+    }
+  }
+}
+
+sub rrm {
+  my ($p) = @_;
+  ssh("$host rm -rf $auto/$p");
+}
+
+sub checkRemoteStatus {
+  my ($rd) = @_;
+
+  open(R, "$ssh $host tail -1 $auto/$rd/build.out|");
+  my @lines;
+  @lines = <R>;
+  close(R);
+
+  my $line = $lines[0];
+  my $result = "UNKNOWN";
+  if ( ($line =~ /SUCCEEDED/)) {
+    $result = "SUCCEEDED";
+  } elsif (($line =~ /FAILED/)) {
+    $result = "FAILED";
+  }
+  $result;
+}
+
