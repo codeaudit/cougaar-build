@@ -1,3 +1,9 @@
+2001-10-02  Ray Tomlinson  <RTomlinson@HEFEWEIZEN>
+
+	* org/cougaar/tools/make/make_properties.txt (Repository):
+	Added a prototypical make.properties file for building cougaar
+	modules. This should reduce the learning curve for using make.
+
 2001-09-06  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/tools/make/readme.txt:
