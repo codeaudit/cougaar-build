@@ -26,6 +26,7 @@ the project directory that have a src subdirectory.
 The current targets are:
 
 projectLib*    -- creates the lib directory of the project
+projectJavadoc*-- creates the javadoc directory of the project
 moduleClasses* -- creates the tmpdir/classes directory
 moduleGenCode* -- creates the tmpdir/gencode directory
 compileDir     -- compiles all the sources in the current directory
@@ -68,6 +69,14 @@ rmic           -- makes the compile target and then runs rmic to
                   is removed.
 rmicDir        -- makes the compileDir target and the runs rmic only
                   one .rmic files found in the current directory
+javadoc        -- runs javadoc all on the sources of the current
+                  module and puts the result in the project javadoc
+                  directory. Note this target and the javadocDir
+                  target below are not designed for producing release
+                  documentation. It is intended only for debugging.
+javadocDir     -- runs javadoc all on the sources of the current
+                  directory and puts the result in the project javadoc
+                  directory.
 
 Targets marked with * are used internally and there is no reason for
 them to be used by a user.
@@ -162,6 +171,27 @@ org.cougaar.tools.make.no.prerequisites
        disables the checking and compilation of prerequisite modules.
        It is generally a bad idea to set the property except through
        the -noprerequisites option.
+org.cougaar.tools.make.javadoc.doclet
+        Specifies the name of the class of an alternate root doclet.
+org.cougaar.tools.make.javadoc.tags
+        Specifies a list of tags requiring special handling. A -tags
+        option will be added to the javadoc command line for each tag
+        listed here. The option value will be <tag>:<flags>:<taghead>
+        where <tag> is an element of this list, <flags> and <taghead>
+        are taken from org.cougaar.tools.make.javadoc.tags.flags.<tag>
+        and org.cougaar.tools.make.javadoc.tags.flags.<taghead>
+        respectively.
+org.cougaar.tools.make.javadoc.tags.flags.<tag>
+        Specifies the flags for <tag>. <tag> must be one of the tags
+        listed for org.cougaar.tools.make.javadoc.tags above.
+org.cougaar.tools.make.javadoc.tags.flags.<taghead>
+        Specifies the taghead for <tag>. <tag> must be one of the tags
+        listed for org.cougaar.tools.make.javadoc.tags above.
+org.cougaar.tools.make.extensionsToJar
+        Specifies the extensions of files that should be included in a
+       .jar file in addition to class files. The extensions may be
+       listed with or without dots and separated by comma or space.
+       Defaults to: .def, .props, .gif, .png, .html, .htm, .q
 
 Prerequisites
 

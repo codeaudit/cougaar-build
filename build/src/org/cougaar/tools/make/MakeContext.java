@@ -80,6 +80,7 @@ public class MakeContext {
     public static final String PROP_TAG_FLAGS_PREFIX   = PROP_PREFIX + "javadoc.tags.flags.";
     public static final String PROP_TAG_CLASS_PREFIX   = PROP_PREFIX + "javadoc.tags.class.";
     public static final String PROP_TAG_TAGHEAD_PREFIX = PROP_PREFIX + "javadoc.tags.taghead.";
+    public static final String PROP_EXTENSIONS_TO_JAR  = PROP_PREFIX + "extensionsToJar";
 
     public static final String DEFAULT_TARGET = "compileDir";
     public static final String COLON = " -- "; // Redefine COLON to avoid emacs error match
@@ -138,7 +139,8 @@ public class MakeContext {
     public boolean jikes = false;
     private String theDocletClass;
     private TagletInfo[] theTaglets;
-    private String[] theExtensionsToJar = {
+    private String[] theExtensionsToJar;
+    private String[] defaultExtensionsToJar = {
         ".def",
         ".props",
         ".gif",
@@ -220,6 +222,21 @@ public class MakeContext {
                 return false;
             }
         });
+        String exts = theProperties.getProperty(PROP_EXTENSIONS_TO_JAR);
+        if (exts == null) {
+            theExtensionsToJar = defaultExtensionsToJar;
+        } else {
+            StringTokenizer tokens = new StringTokenizer(exts, ", ");
+            List l = new ArrayList();
+            while (tokens.hasMoreTokens()) {
+                String token = tokens.nextToken();
+                if (!token.startsWith(".")) {
+                    token = "." + token;
+                }
+                l.add(token);
+            }
+            theExtensionsToJar = (String[]) l.toArray(new String[l.size()]);
+        }
     }
 
     private String computeJikesClassPath(String jdk) {
