@@ -51,7 +51,7 @@ above settings point directly as specific directories. e.g.:
 
     <!-- These are target base directories -->
     <property name="target.lib" value="${TARGETBASE}/lib" />
-    <property name="sys" value="${TARGETBASE}/sys" />
+    <property name="target.sys" value="${TARGETBASE}/sys" />
     <!-- Single module Javadocs go in doc/javadoc.  Not used if is.unified.javadoc -->
     <property name="javadoc.target" value="${TARGETBASE}/${module}/doc/api" />
     <!-- Target tree for modules which contribute to the unified javadoc  -->
@@ -59,7 +59,7 @@ above settings point directly as specific directories. e.g.:
 
     <!-- These are source base directories -->
     <property name="src" value="${MODSOURCE}/src" />
-    <property name="lib" value="${MODSOURCE}/lib" />
+    <property name="local.lib" value="${MODSOURCE}/lib" />
     <property name="regress" value="${MODSOURCE}/regress" />
     <property name="examples" value="${MODSOURCE}/examples" />
     <property name="bin" value="${MODSOURCE}/bin" />
@@ -75,12 +75,16 @@ above settings point directly as specific directories. e.g.:
     <!-- Set paths for use in creating zip files -->
     <property name="zipbase" value="${TMP}/zip"/>
     
+    <!-- where oh where oh where is java? Used to find tools.jar and such -->
+    <property name="java.home" value="${JAVA_HOME}"/>
+    
     <!-- ================ Parameters ================ -->
+    <!-- These properties are filled out by the autobuilder -->
+    
+    <!-- jarfiles required by this module, relative to various other paths -->
+    <property name="compile.jarlist" value="%{compile.jarlist}"/>
+    <!-- javadoc package spec for building javadocs -->
     <property name="javadoc.packages" value="%{javadoc.packages}"/>
-    <property name="rmicfiles.list" value="%{rmifiles.list}"/>
-    <property name="libjars.list" value="%{libjars.list}"/>
-    <property name="sysjars.list" value="%{sysjars.list}"/>
-    <!-- <property name="locjars.list" value="%{locjars.list}"/> -->
     
     <!-- ================ Tool options ================ -->
 
@@ -97,9 +101,7 @@ above settings point directly as specific directories. e.g.:
 
     <!-- What are the dependencies of this module at compile time -->
     <path id="compile.classpath">
-      <filelist dir="${target.lib}" files="${libjars.list}"/>
-      <filelist dir="${sys}" files="${sysjars.list}"/>
-      <filelist dir="${sys}" files="${locjars.list}"/>
+      <filelist dir="${target.lib}" files="${compile.jarlist}"/>
     </path>
     
     <!-- Build up classpath for junit.jar and classes when running tests -->
@@ -155,7 +157,7 @@ above settings point directly as specific directories. e.g.:
 	    unless="rmic.notRequired" if="has.build">
       <rmic base="${build}" stubversion="1.2" verify="true"
 	    debug="${build.compiler.debug}"
-	    includes="${rmicfiles.list}"> 
+	    includes="**/*Impl.class"> 
 	<classpath>
 	  <path location="${build}" />
 	  <path refid="compile.classpath"/>
@@ -266,7 +268,7 @@ above settings point directly as specific directories. e.g.:
       <!-- Check if rmic is required -->
       <uptodate property="rmic.notRequired">
 	<srcfiles dir="${build}"
-		  includes="${rmicfiles.list}"/>
+		  includes="**/*Impl.java"/>
 	<!-- FIXME: What am I looking for here? -->
 	<mapper type="identity"/>
       </uptodate>		

@@ -750,6 +750,21 @@ sub build_module {
     $builtjar = &build_module_main($mod,$mymod,"");
   }
 
+  {
+    my @ccp = split(/:/,get_classpath($mod));
+    my @pccp;
+    foreach $_ (@ccp) {
+      next if ($_ eq ".");	# skip cwd
+      s/$java_home/\$\{java.home\}/;
+      s/$libdir/\$\{target.lib\}/;
+      s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
+      s/$syslib/\$\{target.sys\}/;
+      push @pccp, $_;
+    }
+    sopt($mod, "compile.jarlist", join(",",@pccp));
+  }
+
+
   generateAntRecipe($mod);
 
   $moduleFailed{$mod} = !$builtjar;
@@ -875,33 +890,23 @@ sub get_classpath {
   # fill this up with required jars
   my @cp;
 
-  my @mjs;
   foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
     my $jar = findjar($dep, @alljars);
     if ($jar eq "") {
       print "Warning: could not find $dep module for $mod\n";
     } else {
-      if ($jar =~ /.*\/([^\/]+.(jar|zip))/) {
-	push @mjs, $1;
-      }
       push @cp, $jar;
     }
   }
-  sopt($mod, "libjars.list", join(",",@mjs));
 
-  my @sjs;
   foreach $dep (split /\s*,\s*/, opt("$mod.jars")) {
     my $jar = findjar($dep, @alljars);
     if ($jar eq "") {
       print "Warning: could not find $dep jar for $mod\n";
     } else {
-      if ($jar =~ /.*\/([^\/]+.(jar|zip))/) {
-	push @sjs, $1;
-      }
       push @cp, $jar;
     }
   }
-  sopt($mod, "sysjars.list", join(",",@sjs));
 
   if ($xp) {
     foreach $dep (split /\s*,\s*/, opt("$mod.extras")) {
@@ -1576,12 +1581,14 @@ sub gopt {
 
 sub sopt {
   my ($mod, $key, $value) = @_;
-  my ($old) = gopt($mod,$key);
+  my $old = gopt($mod,$key);	# scalar context!
   if ($old eq "") {
     $opts{"$mod.$key"}=$value;
   }
   else {
-    print STDERR "Skipping set of $mod.$key from $old to $value\n";
+    if (! ($old eq $value)) {
+      print STDERR "Skipping set of $mod.$key from $old to $value\n";
+    }
   }
 }
 
@@ -2130,9 +2137,9 @@ sub generateAntRecipe {
 
   my $template = "$srcdir/build/data/moduleTemplate.xml";
   my $recipe = "$srcdir/$mod/build.xml";
-
+  my $backup = "";
   if (-e $recipe) {
-    my $backup = "$srcdir/$mod/build.bak";
+    $backup = "$srcdir/$mod/build.bak";
     unlink $backup;
     rename $recipe, $backup;
   }
@@ -2155,5 +2162,12 @@ sub generateAntRecipe {
   close(O);
   close(I);
 
-  # maybe we should check to see if the old one has changed.
+  # check to see if the build.xml changed - if it was checked in, then
+  # we want to warn that the old (checked-in) version is stale.
+  if ($backup ne "") {
+    my $rc = mysystem("diff -q $backup $recipe");
+    if ($rc) {
+      print STDERR "Warning: Old version of $recipe is stale.\n";
+    }
+  }
 }
