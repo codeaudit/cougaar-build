@@ -273,9 +273,10 @@ webtomcat.jars = servlet, tomcat_40
 webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
 
 # community
-# added bootstrap for junit tests.
-community.deps = util,core,bootstrap
+community.deps = util,core
 community.jars = log4j,xercesImpl,servlet,concurrent
+# added bootstrap for junit tests.
+community.extras = bootstrap
 community.repository = :ext:cougaar.org:/cvsroot/community
 
 #

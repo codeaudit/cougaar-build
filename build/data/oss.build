@@ -90,7 +90,7 @@ modules=\
 	server,\
 	webserver, webtomcat,\
 	community, \
-	servicediscovery, vishnu
+	servicediscovery, vishnu, pizza
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -215,9 +215,15 @@ vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 #uiframework.extras = mm-mysql-2
 
 # tutorials
-tutorial.deps = core,planning,glm,util
+tutorial.deps = core,planning,util
 #tutorial.jars = xercesImpl
 tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
+
+# pizza
+# Is YP needed? Will we need xml-apis? uddi?
+pizza.deps = core,planning,util,servicediscovery,yp,community
+pizza.jars = xercesImpl,servlet,xml-apis,jena,uddi4j
+pizza.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
@@ -255,9 +261,10 @@ webtomcat.jars = servlet, tomcat_40
 webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
 
 # community
+community.deps = util,core
+community.jars = log4j,xercesImpl,servlet,concurrent
 # added bootstrap for junit tests.
-community.deps = util,core,planning,glm,webserver,bootstrap
-community.jars = log4j,xercesImpl,xml-apis,servlet,concurrent
+community.extras = bootstrap
 community.repository = :ext:cougaar.org:/cvsroot/community
 
 #
