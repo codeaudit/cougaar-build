@@ -278,15 +278,15 @@ sub build_module {
 
   print "Building module $mod\n" if $verbose;
 
-
   my $tmplib = "/tmp/build-lib$$";
   mysystem("rm -rf $tmplib");
-  mkd $tmplib;
 
   my $cp = get_classpath($mod);
 
   if (-d $mysrc) {		# src exists
     print "Generating code for $mod\n" if $verbose;
+
+    mkd $tmplib;
     # run code generators
     generate_code($mysrc, $cp);
 
