@@ -1,3 +1,25 @@
+2002-06-14  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/MakeContext.java:
+	Use command files for more commands to avoid "too many arguments"
+	restrictions of shells.
+
+2002-05-06  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/readme.txt:
+	Document javadoc target and extensionsToJar property.
+
+	* org/cougaar/tools/make/MakeContext.java:
+	Allow extensionsToJar to be set from the make.properties file. Use
+	the old, fixed value as a default.
+
+2002-04-29  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/javadoc/PropertyTaglet.java:
+	Bug 1234
+	Add valign="top" to <tr> tag of property table making it easier to
+	read.
+
 2002-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/tools/make/Targets.java:

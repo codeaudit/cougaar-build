@@ -672,44 +672,53 @@ public class MakeContext {
     public void javac(File[] sources, boolean testClasses) throws MakeException {
         int offset = 0;
         MakeException e = null;
-        while (offset < sources.length) {
-            int nfiles = Math.min(sources.length - offset, 200);
-            List command = new ArrayList();
-            if (jikes && jikesClassPath != null) {
-                command.addAll(Arrays.asList(JIKES));
-                if (isPedantic()) command.add("+P");
-            } else {
-                command.addAll(Arrays.asList(JAVAC));
-            }
-            if (isDeprecation()) command.add("-deprecation");
-	    command.add("-g");
-            command.add("-classpath");
-            command.add(getClassPath(testClasses));
-            command.add("-d");
-            if (testClasses)
-                command.add(getTestClassesRoot().getPath());
-            else
-                command.add(getClassesRoot().getPath());
-            try {
-                runExecutable(command, sources, offset, nfiles);
-            } catch (MakeException me) {
-                e = me;
-            }
-            offset += nfiles;
+        List command = new ArrayList();
+        if (jikes && jikesClassPath != null) {
+            command.addAll(Arrays.asList(JIKES));
+            if (isPedantic()) command.add("+P");
+        } else {
+            command.addAll(Arrays.asList(JAVAC));
         }
-        if (e != null) throw e;
+        if (isDeprecation()) command.add("-deprecation");
+        command.add("-g");
+        command.add("-classpath");
+        command.add(getClassPath(testClasses));
+        command.add("-d");
+        if (testClasses)
+            command.add(getTestClassesRoot().getPath());
+        else
+            command.add(getClassesRoot().getPath());
+        runExecutable(command, sources, 0, sources.length, "javac");
     }
 
     /**
      * Run an executable program in a subprocess. The standard out and
      * error streams are copied.
      **/
-    private void runExecutable(List command, Object[] xargs, int offset, int nargs)
+    private void runExecutable(List command, Object[] xargs, int offset, int nargs, String cmdFileName)
         throws MakeException
     {
         List argList = new ArrayList(command);
-        for (int i = 0; i < nargs; i++) {
-            argList.add(xargs[i + offset].toString());
+        if (cmdFileName != null) {
+            try {
+                File cmdFile = File.createTempFile(cmdFileName, "txt");
+                Writer writer = new FileWriter(cmdFile);
+                PrintWriter cmd = new PrintWriter(writer);
+                try {
+                    for (int i = 0; i < nargs; i++) {
+                        cmd.println(xargs[i + offset].toString());
+                    }
+                } finally {
+                    writer.close();
+                }
+                argList.add("@" + cmdFile.getPath());
+            } catch (IOException ioe) {
+                throw new MakeException(ioe.toString());
+            }
+        } else {
+            for (int i = 0; i < nargs; i++) {
+                argList.add(xargs[i + offset].toString());
+            }
         }
         String[] args = (String[]) argList.toArray(new String[argList.size()]);
         if (debug) {
@@ -790,7 +799,7 @@ public class MakeContext {
             }
         }
         String[] argStrings = (String[]) args.toArray(new String[args.size()]);
-        runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length);
+        runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length, "jar");
         for (Iterator i = redo.iterator(); i.hasNext(); ) {
             JarSet jarSet = (JarSet) i.next();
             args.clear();
@@ -800,7 +809,7 @@ public class MakeContext {
             args.add(jarSet.root.getPath());
             args.add(".");
             argStrings = (String[]) args.toArray(new String[args.size()]);
-            runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length);
+            runExecutable(Arrays.asList(JAR), argStrings, 0, argStrings.length, "jar");
         }
     }
 
@@ -865,7 +874,7 @@ public class MakeContext {
             command.add("-classpath");
             command.add(getClassPath(false));
             command.add(DEFRUNNER_CLASS);
-            runExecutable(command, args, 0, args.length);
+            runExecutable(command, args, 0, args.length, null);
         }
     }
 	    
@@ -904,7 +913,7 @@ public class MakeContext {
                     args.add(sources[i + offset]);
                 }
                 try {
-                    runExecutable(append ? appendCmd : writeCmd, args.toArray(), 0, args.size());
+                    runExecutable(append ? appendCmd : writeCmd, args.toArray(), 0, args.size(), null);
                 } catch (MakeException me) {
                     e = me;
                 }
@@ -919,7 +928,7 @@ public class MakeContext {
                 tagArgs[2*i+1] = tagFiles[i].getPath();
             }
             try {
-                runExecutable(append ? appendCmd : writeCmd, tagArgs, 0, tagArgs.length);
+                runExecutable(append ? appendCmd : writeCmd, tagArgs, 0, tagArgs.length, null);
             } catch (MakeException me) {
                 e = me;
             }
@@ -1236,7 +1245,7 @@ public class MakeContext {
         command.add(getClassesRoot().getPath());
         command.add("-classpath");
         command.add(getClassPath(false));
-        runExecutable(command, classNames, 0, classNames.length);
+        runExecutable(command, classNames, 0, classNames.length, null);
     }
 
     public void javadoc(File[] sources) throws MakeException {
@@ -1265,24 +1274,6 @@ public class MakeContext {
             command.add(theDocletClass);
         }
         command.add("-breakiterator");
-        File cmdfile;
-        try {
-            cmdfile = File.createTempFile("javadoc", "txt");
-            Writer writer = new FileWriter(cmdfile);
-            PrintWriter cmd = new PrintWriter(writer);
-            try {
-                for (int i = 0; i < sources.length; i++) {
-                    cmd.print(" ");
-                    cmd.print(sources[i].getPath());
-                }
-                cmd.println();
-            } finally {
-                writer.close();
-            }
-        } catch (IOException ioe) {
-            throw new MakeException(ioe.toString());
-        }
-        command.add("@" + cmdfile.getPath());
-        runExecutable(command, null, 0, 0);
+        runExecutable(command, sources, 0, sources.length, "javadoc");
     }
 }
