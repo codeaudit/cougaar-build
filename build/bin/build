@@ -519,6 +519,7 @@ sub checkout {
   mkd $srcdir;
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
+  my ($time0) = time;
   foreach $mod (@modules) {
     if ($isUpdating) {
       update_module($mod,$srcdir);
@@ -528,7 +529,8 @@ sub checkout {
       checkout_module($mod,$srcdir);
     }
   }
-
+  my ($time1) = time;
+  addtime("cvs",$time1-$time0);
   print "Checkout complete\n" if $verbose;
 }
 
