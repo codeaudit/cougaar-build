@@ -456,7 +456,7 @@ sub checkout_module {
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $mod");
   } else {
-    $rarg .= " -D '$rdate'" if (!pointP);
+    $rarg .= " -D '$rdate'" if ($rarg eq "" || !pointP);
     mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $mod");
   }
 }

@@ -110,6 +110,7 @@ mysystem("rm -rf $tmpdir");
 mkd($tmpdir);
 {
   my($rarg) = "-r $tag" if (! ($tag eq "HEAD"));
+  $rarg .= " -D now" if (!$opt_p);
   mysystem("cd $tmpdir ; cvs -Q export $rarg build/bin build/data");
 }
 $basedir = "$tmpdir/build";
