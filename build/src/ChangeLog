@@ -1,3 +1,23 @@
+2001-04-16  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/MakeContext.java:
+	Add -g option to jikes and javac commands to get debug symbols.
+
+	* org/cougaar/tools/fixconfig/FixFood.java:
+	Moved some common functions into the Fix superclass.
+
+	* org/cougaar/tools/fixconfig/FixAmmo.java:
+	Similar to FixFood but excises non-ammo plugins (e.g. medical,
+	subsistence, construction, etc.).
+
+	* org/cougaar/tools/fixconfig/Fix.java:
+	Move some methods from FixFood to here. Fix is no longer abstract
+	and can be used to abstract a subset of clusters based on a set of
+	Role/Relationships. E.g.:
+	... Fix -role AmmunitionProvider -role FoodProvider 3-69-ARBN
+	will print the contents of a Node ini file suitable for providing
+	a complete food and ammunition supply chain.
+
 2001-03-13  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* fixconfig
