@@ -445,7 +445,9 @@ if ($java_home) {
 &build;
 
 # build unified source tree
-&unify;
+if (! $opt_m || $nodoc) {
+  &unify;
+}
 
 # build product.zip
 &build_runtime;
@@ -555,6 +557,79 @@ sub checkDeps {
   pop @depstack;		# pop the current mod from the stack
 }
 
+sub build_module_src {
+  # $mod is the actual module (e.g. key to opt($mod))
+  # $mysrc is the src to build
+  # $jname is the name of the jarfile (without .jar) to build the sources into
+  my ($mod, $mysrc, $jname, $extrajars, $pass)= @_;
+
+  my $builtjar = 0;
+  my $tmplib = "$tmp/build-lib$$";
+
+  my $nojar = $pass;
+  my $examples_p = ($pass eq "examples");
+  my $junit_p = ($pass eq "junit");
+
+  $extrajars = "$extrajars$cpsep$syslib/junit.jar" if ($junit_p);
+
+  if (-d $mysrc) {
+    print "Compiling $jname sources:\n" if $verbose;
+    mysystem("rm -rf $tmplib");
+    mkd $tmplib;
+
+    if (compile_dir($mod, $mysrc, $tmplib, $extrajars) && (! $nojar)) {
+      print "Preparing jar for $jname\n" if $verbose;
+      chdir ($tmplib);
+      jar("$product/$jname runtime", $tmplib, $libdir, $jname, "$mysrc/manifest.mf");
+      $builtjar = 1;
+    }
+    if ($junit_p) {
+      print "Running $jname regression tests:\n" if $verbose;
+      junit($mod, $tmplib, $extrajars);
+    }
+    # clean up
+    chdir ($mysrc);
+    mysystem("rm -rf $tmplib");
+  }
+  return $builtjar;
+}
+
+
+sub compute_path {
+  my ($base,$type,$pext) = @_;
+  my $tmp = "$base/$type";
+  $tmp = "$tmp/$pext" if $pext;
+  return $tmp;
+}
+
+sub build_module_main {
+  my ($mod, $mypath, $pext) = @_;
+
+  my $jname = $mod;
+  $jname = "${jname}_$pext" if $pext;
+
+  my $mysrc = &compute_path($mypath, "src", $pext);
+  my $builtjar = &build_module_src($mod,$mysrc,$jname);
+  my $extrajars = "$libdir/$jname.jar";
+
+  my $myex = &compute_path($mypath, "examples", $pext);
+  if ( -d $myex) {
+    print "Compiling $jname examples:\n" if $verbose;
+    &build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+  }
+
+  my $myreg = &compute_path($mypath, "regress", $pext);
+  if (-d $myreg) {
+    print "Compiling $jname regression tests:\n" if $verbose;
+    &build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+  }
+
+  # sign only after doing examples and regress
+  sign_jar("$libdir/$jname.jar", $mod) if ($builtjar);
+
+  return $builtjar;
+}
+
 sub build_module {
   my ($mod) = @_;
   return if ($moduleDone{$mod});
@@ -568,62 +643,16 @@ sub build_module {
   my $tmplib = "$tmp/build-lib$$";
   my $builtjar = 0;
 
-  if (-d $mysrc) {
-    print "Compiling $mod src:\n" if $verbose;
-    mysystem("rm -rf $tmplib");
-    mkd $tmplib;
-
-    if (compile_dir($mod, $mysrc, $tmplib)) {
-      print "Preparing jar for $mod\n" if $verbose;
-      # create jar
-      chdir ($tmplib);
-      jar("$product/$mod runtime", $tmplib, $libdir, $mod, "$mysrc/manifest.mf");
-      $builtjar = 1;
+  # deal with splits properly
+  my @splits = &opt("$mod.split");
+  my $split_p = ($#splits >= 0);
+  if ($split_p) {
+    foreach $split (@splits) {
+      &build_module_main($mod, $mymod, $split);
     }
-    # clean up
-    chdir ($mysrc);
-    mysystem("rm -rf $tmplib");
+  } else {
+    $builtjar = &build_module_main($mod,$mymod,"");
   }
-
-  my $myex = "$mymod/examples";
-  if ( -d $myex) {
-    print "Compiling $mod examples:\n" if $verbose;
-    mysystem("rm -rf $tmplib");
-    mkd $tmplib;
-
-    # compile examples, but don't jar the results up
-    compile_dir($mod, $myex, $tmplib, "$libdir/$mod.jar");
-
-    # clean up
-    chdir ($mysrc);
-    mysystem("rm -rf $tmplib");
-  }
-
-  my $myreg = "$mymod/regress";
-  if (-d $myreg) {
-    print "Compiling $mod regression tests:\n" if $verbose;
-    mysystem("rm -rf $tmplib");
-    mkd $tmplib;
-    my $extrajars = "$libdir/$mod.jar";
-    my $syslib = $syslib;
-    if (-e "$syslib/junit.jar") {
-      $extrajars = "$extrajars$cpsep$syslib/junit.jar";
-    } else {
-      print "Warning: could not find $syslib/junit.jar -- regression tests will probably fail.\n";
-    }
-    # compile regress tests, but don't jar the results up
-    compile_dir($mod, $myreg, $tmplib, $extrajars);
-
-    print "Running $mod regression tests:\n" if $verbose;
-    junit($mod, $tmplib, "$libdir/$mod.jar");
-
-    # clean up
-    chdir ($mysrc);
-    mysystem("rm -rf $tmplib");
-
-  }
-
-  sign_jar("$libdir/$mod.jar", $mod) if ($builtjar);
 
   # now create the product-module.zip file
   if (isPublic($mod)) {
@@ -633,32 +662,67 @@ sub build_module {
     mkd "$tmpdist";
 
     chdir "$srcdir/$mod";
+
+    my $make_zip = 0;		# should we emit a zipfile?
+    my $standalone_p = opt("$mod.standalone");
+
+    my $pkg_name;
+    if ( $standalone_p) {
+      $pkg_name = "$mod";
+    } else {
+      $pkg_name = "$mod-dev";
+    }
+
+    if ($standalone_p && $split_p) {
+      # make install some jars in the dist package
+      my $tlib = "$tmpdist/lib";
+      mkd $tlib;
+      foreach $split (@splits) {
+	my $pjar = "$libdir/${mod}_$split.jar";
+	my $djar = "$tlib/${split}.jar";
+	if (-e $pjar) {
+	  &cp($pjar,$djar);
+	  $make_zip++;
+	}
+      }
+    }
+
     # bin,data,configs are now shipped as runtime parts.
     # Ship "dev" as a hack location for non-java and codegen source
     # placeholder.
     my @shipped_subdirs = ( "src", "examples", "regress", "dev" );
+    my @maybe_subdirs = @shipped_subdirs;
     my @subdirs = ();
-    foreach $sub (@shipped_subdirs) {
+    my @runtime_subdirs = ("bin", "data", "configs", "doc");
+    @maybe_subdirs = (@maybe_subdirs,@runtime_subdirs) if ($standalone_p);
+
+    foreach $sub (@maybe_subdirs) {
       if (-d "$srcdir/$mod/$sub") {
 	push @subdirs, $sub ;
       }
     }
 
+    if ($standalone_p) {
+      push @subdirs, "lib";
+    }
+
     my $subdirs = join(" ", @subdirs);
     if ($subdirs) {
+      $make_zip = 1;		# something to emit
       mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
 
-      # only do javadoc if it is not part of the unified build
-      if (! isUnified($mod)) {
+      # only do javadoc if it is not part of the unified build, and not split
+      if ((! $split_p) && (! isUnified($mod))) {
 	mkd "$tmpdist/doc";
 	mkd "$tmpdist/doc/api";
 	javadoc($mod, $mysrc, "$tmpdist/doc/api") if (!$nodoc);
       }
 
-      zip("$product $module", $tmpdir, $distdir, "$mod-dev");
     }
 
-    chdir($mysrc);
+    zip("$product $module", $tmpdir, $distdir, $pkg_name) if $make_zip;
+
+    chdir($mymod);
     mysystem("rm -rf $tmpdir");
   }
 
@@ -666,6 +730,7 @@ sub build_module {
   $moduleDone{$mod}=1;
   return 1;
 }
+
 
 # try to find exactly the set of jars needed based on dependencies, etc
 # if second arg!=0, will include .extras
@@ -840,6 +905,11 @@ sub unify {
   mkd "$mysrc";
 
   foreach $m (@modules) {
+    my $standalone_p = opt("$m.standalone");
+    if ($standalone_p) {
+      print "Skipping standalone $mod\n" if $verbose;
+      next;
+    }
     print "Adding module $m sources\n" if $verbose;
     if (isUnified($m) && opt("$mod.javadoc",1)) {
       my $nbase = "$srcdir/$m";
@@ -862,6 +932,13 @@ sub build_runtime {
   my $tl = "$tmpdir/lib";
   mkd $tl;
   foreach $mod (@modules) {
+    # skip standalone modules
+    my $standalone_p = opt("${mod}.standalone");
+    if ($standalone_p) {
+      print "Skipping standalone $mod\n" if $verbose;
+      next;
+    }
+
     print "Adding $mod runtime\n" if $verbose;
     if (-e "$build_dir/lib/$mod.jar") {
       cp("$build_dir/lib/$mod.jar", "$tl");

@@ -93,7 +93,7 @@ modules=\
 	server,\
 	manager,\
 	webserver, webtomcat,\
-	mic
+	mic, bol
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
@@ -242,16 +242,23 @@ webtomcat.jars = servlet, tomcat_40
 
 # bol module
 bol.repository = external
-# Lesson1.deps = core,glm,planserver
-# Lesson1.jars = servlet
-# Lesson2.deps = core,glm,planserver
-# Lesson2.jars = servlet,hsql,jess50
-bol.deps = core,glm,planserver
+bol.deps = util,core,glm,planserver
 bol.jars = servlet,hsql,jess50
+# Split bol packages into sub packages of src
+bol.split = lesson1,lesson2
+# bol is an add-on, don't make it part of the runtime
+bol.standalone = 1
+# might want to do the following at some point.
+#bol.lesson1.deps = core,glm,planserver
+#bol.lesson1.jars = servlet
+#bol.lesson2.deps = core,glm,planserver
+#bol.lesson2.jars = servlet,hsql,jess50
+# bol needs javac for now
+bol.compiler=javac
 
 # mic
 mic.repository = external
-mic.deps = core,util,glm,planserver
+mic.deps = core,glm,planserver
 mic.jars = log4j,xerces
 
 # dbms module
