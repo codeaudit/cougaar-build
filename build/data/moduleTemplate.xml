@@ -216,6 +216,7 @@
       <path location="${module.classes}" />
       <path location="${module.regress}" />
       <filelist dir="." files="${run.jarlist}"/>
+      <pathelement path="${target.clib}/build.jar"/>
       <pathelement path="${run.abs.jarlist}"/>
     </path>
 
