@@ -128,6 +128,11 @@ if we have the jar by setting have.jar -->
 <param name="module" value="planserver"/>
 </antcall>
 </target>
+<target name="aggagent.jar">
+<antcall target="insure.jar">
+<param name="module" value="aggagent"/>
+</antcall>
+</target>
 <target name="scalability.jar">
 <antcall target="insure.jar">
 <param name="module" value="scalability"/>
@@ -157,6 +162,7 @@ if we have the jar by setting have.jar -->
 <target name="core.prerequisites"        depends="build.jar"                                    />
 <target name="toolkit.prerequisites"     depends="build.jar"                                    />
 <target name="planserver.prerequisites"  depends="build.jar,core.jar"                           />
+<target name="aggagent.prerequisites"    depends="build.jar,core.jar,planserver.jar,glm.jar"    />
 <target name="glm.prerequisites"         depends="build.jar,core.jar,toolkit.jar,planserver.jar"/>
 <target name="contract.prerequisites"    depends="build.jar,core.jar"                           />
 <target name="scalability.prerequisites" depends="build.jar,core.jar"                           />
@@ -349,6 +355,9 @@ if we have the jar by setting have.jar -->
   </antcall>
   <antcall target="for.one.module">
     <param name="module" value="planserver"/>
+  </antcall>
+  <antcall target="for.one.module">
+    <param name="module" value="aggagent"/>
   </antcall>
   <antcall target="for.one.module">
     <param name="module" value="scalability"/>
