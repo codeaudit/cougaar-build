@@ -98,10 +98,12 @@ if ($skip) {
   opendir D, $build_root;
   @alldirs = grep !/^\./, readdir D;
   closedir D;
-  @alldirs = grep /[0-9]*/, @alldirs;
+  @alldirs = grep /[0-9]+/, @alldirs;
   @alldirs = sort @alldirs;
+  @alldirs = reverse @alldirs;
 
   $bdate = $alldirs[0];
+  print STDERR "Latest = $bdate\n";
 }
 
 # absolute path of directory we are building into
@@ -152,9 +154,14 @@ $srcdir = "$build_dir/src";
 
 $product = opt("product.name");
 
+$latest_dir = "$build_root/latest";
+
 # create the build dirs
 mkdir "$build_root";
 mkdir $build_dir;
+unlink "$latest_dir";
+print "ln -s $build_dir $latest_dir\n" if $verbose;
+symlink "$build_dir", "$latest_dir";
 mkdir $srcdir;
 # libdir is where we store built jars
 $libdir = "$build_dir/lib";
