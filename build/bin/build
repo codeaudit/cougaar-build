@@ -374,7 +374,7 @@ $start_time = time;
 
 
 # subdir containing all the sources
-$srcdir = "$build_dir/src";
+$srcdir = opt("src.dir", "$build_dir/src");
 
 $product = opt("product.name");
 $product = "cougaar" if ($product eq "");
@@ -1001,7 +1001,7 @@ sub get_unified_classpath {
 
 sub findjar {
   local($name, @jars) = @_;
-  my $pat = "\/$name\.(jar|zip)\$";
+  my $pat = ".*\/$name\.(jar|zip)\$";
   foreach $_ (@jars) {
     return $_ if (/$pat/);
   }
