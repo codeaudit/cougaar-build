@@ -347,9 +347,10 @@ public class Targets {
         }
     }
 
-    private void readRMICFile(Set classes, File rmicFile)
+    private int readRMICFile(Set classes, File rmicFile)
         throws MakeException
     {
+        int skipped = 0;
         try {
             BufferedReader reader =
                 new BufferedReader(new FileReader(rmicFile));
@@ -359,7 +360,16 @@ public class Targets {
                     line = line.trim();
                     if (line.startsWith("#")) continue;
                     if (line.startsWith("//")) continue;
-                    classes.add(line);
+                    File classFile = new File(theContext.getClassesRoot(),
+                                              line.replace('.', '/') + ".class");
+                    File stubFile = new File(theContext.getClassesRoot(),
+                                             line.replace('.', '/') + "_Stub.class");
+                    if (!stubFile.exists() || !classFile.exists()
+                        || classFile.lastModified() > stubFile.lastModified()) {
+                        classes.add(line);
+                    } else {
+                        skipped++;
+                    }
                 }
             } finally {
                 reader.close();
@@ -367,6 +377,7 @@ public class Targets {
         } catch (IOException ioe) {
             throw new MakeException(ioe.toString());
         }
+        return skipped;
     }
 
     public void rmic() throws MakeException {
@@ -385,11 +396,29 @@ public class Targets {
         File[] rmicFiles =
             theContext.findFiles(srcDirectory, ".rmic", recurse, false);
         Set classNames = new TreeSet();
+        int skipped = 0;
         for (int i = 0; i < rmicFiles.length; i++) {
-            readRMICFile(classNames, rmicFiles[i]);
+            skipped += readRMICFile(classNames, rmicFiles[i]);
         }
-        if (classNames.size() > 0) {
+        int count = classNames.size();
+        int total = count + skipped;
+        if (count > 0) {
+            System.out.println(theContext.getModuleName()
+                               + ".rmic: "
+                               + count
+                               + " of "
+                               + total
+                               + (total == 1 ? " class" : " classes"));
             theContext.rmic((String[]) classNames.toArray(new String[0]));
+        } else if (skipped > 0) {
+            System.out.println(theContext.getModuleName()
+                               + ".rmic: "
+                               + skipped
+                               + (skipped == 1 ? " class is" : " classes are")
+                               + " up to date");
+        } else {
+            System.out.println(theContext.getModuleName()
+                               + ".rmic: no rmi classes");
         }
     }
 }
