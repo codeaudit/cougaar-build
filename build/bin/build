@@ -536,8 +536,9 @@ sub build_module {
 
       # only do javadoc if it is not part of the unified build
       if (! isUnified($mod)) {
-	mkd "$tmpdist/api";
-	javadoc($mod, $mysrc, "$tmpdist/api") if (!$nodoc);
+	mkd "$tmpdist/doc";
+	mkd "$tmpdist/doc/api";
+	javadoc($mod, $mysrc, "$tmpdist/doc/api") if (!$nodoc);
       }
 
       zip("$product $module", $tmpdir, "$distdir/$mod-dev.zip");
@@ -715,7 +716,7 @@ sub unify {
 
   foreach $m (@modules) {
     print "Adding module $m sources\n" if $verbose;
-    if (isUnified($m)) {
+    if (isUnified($m) && opt("$mod.javadoc",1)) {
       my $nbase = "$srcdir/$m";
       my $nsrc = "$nbase/src";
       chdir $nsrc;
@@ -810,6 +811,7 @@ sub build_3rdparty {
 sub build_javadoc {
   local($mod,$dest)=@_;
 
+  return if (!opt("$mod.javadoc",1));
   $dest = "$mod-api" if ($dest eq "");
 
   print "\nBuilding javadoc of $mod\n" if $verbose;
@@ -817,8 +819,9 @@ sub build_javadoc {
   # generate javadoc from unified source
   my $tmpdir = "/tmp/javadoc.$$";
   mkd $tmpdir;
-  mkd "$tmpdir/api";
-  javadoc($mod, "$srcdir/$mod/src", "$tmpdir/api");
+  mkd "$tmpdir/doc";
+  mkd "$tmpdir/doc/api";
+  javadoc($mod, "$srcdir/$mod/src", "$tmpdir/doc/api");
 
   chdir $tmpdir;
   zip("$product javadoc apis", $tmpdir, "$distdir/$dest.zip");
