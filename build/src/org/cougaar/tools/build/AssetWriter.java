@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 1997-2000 Defense Advanced Research Projects
+ *  Copyright 1997-2001 Defense Advanced Research Projects
  *  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
  *  Raytheon Systems Company (RSC) Consortium).
  *  This software to be used only in accordance with the
@@ -180,7 +180,7 @@ public class AssetWriter extends WriterBase {
     }
 
     public void noteFile(String s) {
-      filelist.println(s);
+      println(filelist,s);
     }
 
     public void done() {
@@ -310,25 +310,25 @@ public class AssetWriter extends WriterBase {
       try {
         noteFile(path);
         PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),path))));
-        writeCR(out);
+        writeCR(out,deffilename);
       
-        out.println("package " + asset_package + ";");
-        out.println("import org.cougaar.domain.planning.ldm.asset.EssentialAssetFactory;");
-        out.println();
-        out.println("public class AssetFactory extends EssentialAssetFactory {");
-        out.println("  public static String[] assets = {");
+        println(out,"package " + asset_package + ";");
+        println(out,"import org.cougaar.domain.planning.ldm.asset.EssentialAssetFactory;");
+        println(out);
+        println(out,"public class AssetFactory extends EssentialAssetFactory {");
+        println(out,"  public static String[] assets = {");
 
         for (Enumeration cds = classds.elements(); cds.hasMoreElements(); ) {
           ClassD cd = (ClassD) cds.nextElement();
           String name = cd.getName();
-          out.print("    \""+asset_package+"."+name+"\"");
-          if (cds.hasMoreElements()) out.print(",");
-          out.println();
+          print(out,"    \""+asset_package+"."+name+"\"");
+          if (cds.hasMoreElements()) print(out,",");
+          println(out);
         }
 
 
-        out.println("  };");
-        out.println("}");
+        println(out,"  };");
+        println(out,"}");
 
         out.close();
       } catch (Exception e) {
@@ -354,44 +354,44 @@ public class AssetWriter extends WriterBase {
         try {
           noteFile(path);
           PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),path))));
-          writeCR(out);
+          writeCR(out,deffilename);
 
-	  out.println("package " + asset_package + ";");
-          out.println("import org.cougaar.domain.planning.ldm.asset.*;");
-          out.println("import java.io.ObjectOutputStream;");
-          out.println("import java.io.ObjectInputStream;");
-          out.println("import java.io.IOException;");
-          out.println("import java.util.Vector;");
-          out.println("import java.beans.PropertyDescriptor;" );
-          out.println("import java.beans.IndexedPropertyDescriptor;" );
-          out.println("import java.beans.IntrospectionException;" );
+	  println(out,"package " + asset_package + ";");
+          println(out,"import org.cougaar.domain.planning.ldm.asset.*;");
+          println(out,"import java.io.ObjectOutputStream;");
+          println(out,"import java.io.ObjectInputStream;");
+          println(out,"import java.io.IOException;");
+          println(out,"import java.util.Vector;");
+          println(out,"import java.beans.PropertyDescriptor;" );
+          println(out,"import java.beans.IndexedPropertyDescriptor;" );
+          println(out,"import java.beans.IntrospectionException;" );
 
           for (Enumeration imps = cd.getImports().elements();
                imps.hasMoreElements(); ) {
-            out.println("import "+imps.nextElement()+";");
+            println(out,"import "+imps.nextElement()+";");
           }
 
           String doc = cd.getDoc();
           if (doc != null) {
-            out.println("/** "+doc+" **/");
-            out.println();
+            println(out,"/** "+doc+" **/");
+            println(out);
           }
 
           String name = cd.getName();
-          out.print("public class "+name);
+          print(out,"public class "+name);
 
           String ext = cd.getBase();
           if (ext != null && ! ext.equals("")) {
-            out.print(" extends "+ext);
+            print(out," extends "+ext);
           }
-          out.println(" {");
-          out.println();
+          println(out," {");
+          println(out);
           
           // constructor
           // is public so that anyone can construct assets.
           // may be a problem if we reintroduce internal links to cluster
           // state.
-          out.println("  public "+name+"() {");
+          println(out,"  public "+name+"() {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
@@ -401,18 +401,18 @@ public class AssetWriter extends WriterBase {
 
             // for time phased, want snameSchedule
             if (!sd.getTimePhased()) {
-              out.println("    my"+sname+" = null;"); 
+              println(out,"    my"+sname+" = null;"); 
             } else {
-              out.println("    my"+sname+"Schedule = null;"); 
+              println(out,"    my"+sname+"Schedule = null;"); 
             }
           }
           
-          out.println("  }");
-          out.println();
+          println(out,"  }");
+          println(out);
 
           // Prototype constructor
-          out.println("  public "+name+"("+name+" prototype) {");
-          out.println("    super(prototype);");
+          println(out,"  public "+name+"("+name+" prototype) {");
+          println(out,"    super(prototype);");
 
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
@@ -425,17 +425,17 @@ public class AssetWriter extends WriterBase {
 
             if (! sd.getTrans()) {
               // values default to prototype
-              out.println("    my"+sname+"=null;");
+              println(out,"    my"+sname+"=null;");
             } else {
-              out.println("    my"+sname+"="+sd.getInit()+";  //non-property");
+              println(out,"    my"+sname+"="+sd.getInit()+";  //non-property");
             }
           }
-          out.println("  }");
-          out.println();
+          println(out,"  }");
+          println(out);
 
           // clone - used by copy
-          out.println("  /** For infrastructure only - use org.cougaar.domain.planning.ldm.Factory.copyInstance instead. **/");
-          out.println("  public Object clone() throws CloneNotSupportedException {\n"+
+          println(out,"  /** For infrastructure only - use org.cougaar.domain.planning.ldm.Factory.copyInstance instead. **/");
+          println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
                       "    "+name+" _thing = ("+name+") super.clone();");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
@@ -450,32 +450,32 @@ public class AssetWriter extends WriterBase {
               if (!sd.getExact()) { // if it's a property, we'll need to lock it
                 vv = vv+".lock()";
               }
-              out.println("    if ("+vname+"!=null) _thing.set"+sname+"("+vv+");");
+              println(out,"    if ("+vname+"!=null) _thing.set"+sname+"("+vv+");");
             } else {
               vname = vname+"Schedule";
-              out.println("    if (_thing."+vname+"!=null) _thing."+vname+".lockPGs();");
+              println(out,"    if (_thing."+vname+"!=null) _thing."+vname+".lockPGs();");
             }
           }
-          out.println("    return _thing;\n"+
+          println(out,"    return _thing;\n"+
                       "  }\n");
 
           // create the base instance for copies.
-          out.println("  /** create an instance of the right class for copy operations **/\n"+
+          println(out,"  /** create an instance of the right class for copy operations **/\n"+
                       "  public Asset instanceForCopy() {\n"+
                       "    return new "+name+"();\n"+
                       "  }\n");
 
 
           // create the base instance for copies.
-          out.println("  /** create an instance of this prototype **/\n"+
+          println(out,"  /** create an instance of this prototype **/\n"+
                       "  public Asset createInstance() {\n"+
                       "    return new "+name+"(this);\n"+
                       "  }\n");
 
 
           // property filler
-          out.println("  protected void fillAllPropertyGroups(Vector v) {");
-          out.println("    super.fillAllPropertyGroups(v);");
+          println(out,"  protected void fillAllPropertyGroups(Vector v) {");
+          println(out,"    super.fillAllPropertyGroups(v);");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) { 
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
@@ -485,15 +485,15 @@ public class AssetWriter extends WriterBase {
 
             String stype = sd.getType();
             if (!sd.hasInit()) {
-              out.println("    { Object _tmp = get"+sname+"();\n"+
+              println(out,"    { Object _tmp = get"+sname+"();\n"+
                           // LATE?
                           "    if (_tmp != null && !(_tmp instanceof Null_PG)) {\n"+
                           "      v.addElement(_tmp);\n"+
                           "    } }");
             }
           }
-          out.println("  }");
-          out.println();
+          println(out,"  }");
+          println(out);
 
           // slot hackery
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) { 
@@ -509,14 +509,14 @@ public class AssetWriter extends WriterBase {
             String var = "my"+sname;
             if (stimephased) {
               var = var+"Schedule";
-              out.println("  private transient PropertyGroupSchedule "+var+";");
+              println(out,"  private transient PropertyGroupSchedule "+var+";");
             } else {
-              out.println("  private transient "+stype+" "+var+";");
+              println(out,"  private transient "+stype+" "+var+";");
             }
-            out.println();
+            println(out);
             
             if (sdoc != null) {
-              out.println("  /** "+sdoc+" **/");
+              println(out,"  /** "+sdoc+" **/");
             }
 
             String argType = "";
@@ -528,125 +528,125 @@ public class AssetWriter extends WriterBase {
               argStr = argType+" "+argName;
             }
               
-            out.println("  public "+stype+" get"+sname+"("+argStr+") {");
+            println(out,"  public "+stype+" get"+sname+"("+argStr+") {");
             if (exact) {
-              out.println("    if ("+var+" != null) return "+var+";");
-              out.println("    if (myPrototype instanceof "+name+")\n"+
+              println(out,"    if ("+var+" != null) return "+var+";");
+              println(out,"    if (myPrototype instanceof "+name+")\n"+
                           "      return (("+name+")myPrototype).get"+sname+"("+argName+");");
-              out.println("    return null;");
+              println(out,"    return null;");
             } else {
-              out.println("    "+sname+" _tmp = ("+var+" != null) ?");
+              println(out,"    "+sname+" _tmp = ("+var+" != null) ?");
               if (stimephased) {
-                out.println("      ("+sname+")"+var+".intersects(time) :");
-                out.println("      ("+sname+")resolvePG("+sname+".class, time);");
+                println(out,"      ("+sname+")"+var+".intersects(time) :");
+                println(out,"      ("+sname+")resolvePG("+sname+".class, time);");
               } else {
-                out.println("      "+var+" : ("+sname+")resolvePG("+sname+".class);");
+                println(out,"      "+var+" : ("+sname+")resolvePG("+sname+".class);");
               }
-              out.println("    return (_tmp == "+sname+".nullPG)?null:_tmp;");
+              println(out,"    return (_tmp == "+sname+".nullPG)?null:_tmp;");
             }
-            out.println("  }");
+            println(out,"  }");
 
             if (stimephased) {
               String fname = "get"+sname+"Schedule";
 
-              out.println("  public PropertyGroupSchedule "+fname+"() {");
+              println(out,"  public PropertyGroupSchedule "+fname+"() {");
 
-              out.println("    if ("+var+"==null) {\n"+
+              println(out,"    if ("+var+"==null) {\n"+
                           "      if (myPrototype != null) {");
 
               if (exact) {
-                out.println("         // exact slots must delegate to same class proto");
-                out.println("         if (myPrototype instanceof "+name+")");
-                out.println("           return (("+name+")myPrototype)."+fname+"();");
-                out.println("         else");
-                out.println("           return null;");
+                println(out,"         // exact slots must delegate to same class proto");
+                println(out,"         if (myPrototype instanceof "+name+")");
+                println(out,"           return (("+name+")myPrototype)."+fname+"();");
+                println(out,"         else");
+                println(out,"           return null;");
               } else {
-                out.println("         if (myPrototype instanceof "+name+") {\n"+
+                println(out,"         if (myPrototype instanceof "+name+") {\n"+
                             "           return (("+name+")myPrototype)."+fname+"();\n"+
                             "         } else {\n"+
                             "           return myPrototype.searchForPropertyGroupSchedule("+stype+".class);\n"+
                             "         }");
               }
-              out.println("      } else {\n"+
+              println(out,"      } else {\n"+
                           "         "+var+" = "+sd.getInit()+";\n"+
                           "      }\n"+
                           "    }");
-              out.println("    return ("+var+" instanceof Null_PG)?null:"+var+";");
-              out.println("  }");
-              out.println();
+              println(out,"    return ("+var+" instanceof Null_PG)?null:"+var+";");
+              println(out,"  }");
+              println(out);
             }
 
             String arg = "arg_"+sname;
 
             if (exact) {
               // exact slots aren't PropertyGroups
-              out.println("  public void set"+sname+"("+stype+" "+arg+") {");
-              out.println("    my"+sname+"= "+arg+";");
-              out.println("  }");
+              println(out,"  public void set"+sname+"("+stype+" "+arg+") {");
+              println(out,"    my"+sname+"= "+arg+";");
+              println(out,"  }");
             } else {
               // non-exact slots have setters which just take PropertyGroup
-              out.println("  public void set"+sname+"(PropertyGroup "+arg+") {");
-              out.println("    if (!("+arg+" instanceof "+stype+"))\n"+
+              println(out,"  public void set"+sname+"(PropertyGroup "+arg+") {");
+              println(out,"    if (!("+arg+" instanceof "+stype+"))\n"+
                           "      throw new IllegalArgumentException(\"set"+
                           sname+" requires a "+stype+" argument.\");");
               if (stimephased) {
-                out.println("    if ("+var+" == null) {");
-                out.println("      "+var+" = get"+sname+"Schedule();");
-                out.println("    }");
-                out.println();
-                out.println("    "+var+".add("+arg+");");
+                println(out,"    if ("+var+" == null) {");
+                println(out,"      "+var+" = get"+sname+"Schedule();");
+                println(out,"    }");
+                println(out);
+                println(out,"    "+var+".add("+arg+");");
               } else {
-                out.println("    "+var+" = ("+stype+") "+arg+";");
+                println(out,"    "+var+" = ("+stype+") "+arg+";");
               }
-              out.println("  }");
-              out.println();
+              println(out,"  }");
+              println(out);
             }
             
             if (stimephased) {
               arg = "arg_"+name+"Schedule";
               // non-exact slots have setters which just take PropertyGroup
-              out.println("  public void set"+sname+"Schedule(PropertyGroupSchedule "+arg+") {");
-              out.println("    if (!("+arg+".getPGClass() != "+stype+".class))\n"+
+              println(out,"  public void set"+sname+"Schedule(PropertyGroupSchedule "+arg+") {");
+              println(out,"    if (!("+arg+".getPGClass() != "+stype+".class))\n"+
                           "      throw new IllegalArgumentException(\"set"+
                           sname+"Schedule requires a PropertyGroupSchedule of"+sname+"s.\");");
-              out.println();
-              out.println("    "+var+" = "+arg+";");
-              out.println("  }");
-              out.println();
+              println(out);
+              println(out,"    "+var+" = "+arg+";");
+              println(out,"  }");
+              println(out);
             }
           }
 
-          out.println("  // generic search methods");
+          println(out,"  // generic search methods");
 
-          out.println("  public PropertyGroupSchedule searchForPropertyGroupSchedule(Class c) {");
+          println(out,"  public PropertyGroupSchedule searchForPropertyGroupSchedule(Class c) {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
             String init = sd.getInit();
             // for time phased, want snameSchedule
             if (!sd.getExact() && sd.getTimePhased()) {
-              out.println("    if ("+sname+".class.equals(c)) return get"+sname+
+              println(out,"    if ("+sname+".class.equals(c)) return get"+sname+
                           "Schedule();");
             }
           }
-          out.println("    return super.searchForPropertyGroupSchedule(c);");
-          out.println("  }");
-          out.println();
+          println(out,"    return super.searchForPropertyGroupSchedule(c);");
+          println(out,"  }");
+          println(out);
 
 
-          out.println("  public PropertyGroup getLocalPG(Class c, long t) {");
+          println(out,"  public PropertyGroup getLocalPG(Class c, long t) {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             if (!sd.getExact()) {
               String sname = sd.getName();
               // for time phased, want snameSchedule
               String var = "my"+sname;
-              out.println("    if ("+sname+".class.equals(c)) {");
+              println(out,"    if ("+sname+".class.equals(c)) {");
               if (!sd.getTimePhased()) {
-                out.println("      return ("+var+"=="+sname+".nullPG)?null:"+var+";");
+                println(out,"      return ("+var+"=="+sname+".nullPG)?null:"+var+";");
               } else {
                 var = var+"Schedule";
-                out.println("      if ("+var+"==null) {\n"+
+                println(out,"      if ("+var+"==null) {\n"+
                             "        return null;\n"+
                             "      } else {\n"+
                             "        if (t == UNSPECIFIED_TIME) {\n"+
@@ -656,63 +656,63 @@ public class AssetWriter extends WriterBase {
                             "        }\n"+
                             "      }");
               }
-              out.println("    }");
+              println(out,"    }");
             }
           }
-          out.println("    return super.getLocalPG(c,t);");
-          out.println("  }");
-          out.println();
+          println(out,"    return super.getLocalPG(c,t);");
+          println(out,"  }");
+          println(out);
 
 
-          out.println("  public void setLocalPG(Class c, PropertyGroup pg) {");
+          println(out,"  public void setLocalPG(Class c, PropertyGroup pg) {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             if (!sd.getExact()) {
               String sname = sd.getName();
               // for time phased, want snameSchedule
               String var = "my"+sname;
-              out.println("    if ("+sname+".class.equals(c)) {");
+              println(out,"    if ("+sname+".class.equals(c)) {");
               if (!sd.getTimePhased()) {
-                out.println("      "+var+"=("+sname+")pg;");
+                println(out,"      "+var+"=("+sname+")pg;");
               } else {
                 var = var+"Schedule";
-                out.println("      if ("+var+"==null) "+var+" = "+sd.getInit()+";\n"+
+                println(out,"      if ("+var+"==null) "+var+" = "+sd.getInit()+";\n"+
                             "      "+var+".add(pg);");
               }
-              out.println("    } else");
+              println(out,"    } else");
             }
           }
-          out.println("      super.setLocalPG(c,pg);");
-          out.println("  }");
-          out.println(); 
+          println(out,"      super.setLocalPG(c,pg);");
+          println(out,"  }");
+          println(out); 
 
-          out.println("  public PropertyGroup generateDefaultPG(Class c) {");
+          println(out,"  public PropertyGroup generateDefaultPG(Class c) {");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             if (!sd.getExact()) {
               String sname = sd.getName();
               // for time phased, want snameSchedule
               String var = "my"+sname;
-              out.println("    if ("+sname+".class.equals(c)) {");
+              println(out,"    if ("+sname+".class.equals(c)) {");
               if (!sd.getTimePhased()) {
-                out.println("      return ("+var+"= new "+sname+"Impl());");
+                println(out,"      return ("+var+"= new "+sname+"Impl());");
               } else {
-                out.println("      return null;");
+                println(out,"      return null;");
               }
-              out.println("    } else");
+              println(out,"    } else");
             }
           }
-          out.println("      return super.generateDefaultPG(c);");
-          out.println("  }");
-          out.println(); 
+          println(out,"      return super.generateDefaultPG(c);");
+          println(out,"  }");
+          println(out); 
 
 
-          out.println("  // dumb serialization methods");
-          out.println();
+          println(out,"  // dumb serialization methods");
+          println(out);
           
           // writer
-          out.println("  private void writeObject(ObjectOutputStream out) throws IOException {");
-          out.println("    out.defaultWriteObject();");
+          println(out,"  private void writeObject(ObjectOutputStream out) throws IOException {");
+          println(out,"    out.defaultWriteObject();");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
 
@@ -724,19 +724,19 @@ public class AssetWriter extends WriterBase {
               if (sd.getTimePhased()) {
                 var = var+"Schedule";
               }
-              out.println("      if ("+var+" instanceof Null_PG || "+var+" instanceof Future_PG) {\n"+
+              println(out,"      if ("+var+" instanceof Null_PG || "+var+" instanceof Future_PG) {\n"+
                           "        out.writeObject(null);\n"+
                           "      } else {\n"+
                           "        out.writeObject("+var+");\n"+
                           "      }");
             }
           }
-          out.println("  }");
-          out.println();
+          println(out,"  }");
+          println(out);
 
           // reader
-          out.println("  private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {");
-          out.println("    in.defaultReadObject();");
+          println(out,"  private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {");
+          println(out,"    in.defaultReadObject();");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
             String sname = sd.getName();
@@ -749,17 +749,17 @@ public class AssetWriter extends WriterBase {
             }
 
             if (! sd.getTrans()) {
-              out.println("      "+var+"=("+stype+")in.readObject();");
+              println(out,"      "+var+"=("+stype+")in.readObject();");
             } else {
-              out.println("      "+var+"="+sd.getInit()+";");
+              println(out,"      "+var+"="+sd.getInit()+";");
             }
           }
-          out.println("  }");
+          println(out,"  }");
 
-          out.println("  // beaninfo support");
+          println(out,"  // beaninfo support");
           writeBeanInfoBody(out,cd);
 
-          out.println("}");
+          println(out,"}");
           
           out.close();
         } catch (Exception e) {
@@ -773,15 +773,15 @@ public class AssetWriter extends WriterBase {
       String name = cd.getName();
 
       try {
-        out.println("  private static PropertyDescriptor properties[];\n"+
+        println(out,"  private static PropertyDescriptor properties[];\n"+
                     "  static {");
         Vector v = cd.getSlots(); //cd.getAllSlots();
         int l = v.size();
         if (l == 0) {
-          out.println("    properties = new PropertyDescriptor["+l+"];");
+          println(out,"    properties = new PropertyDescriptor["+l+"];");
         } else {
-          out.println("    try {");
-          out.println("      properties = new PropertyDescriptor["+l+"];");
+          println(out,"    try {");
+          println(out,"      properties = new PropertyDescriptor["+l+"];");
 
           int i = 0;
           for (Enumeration sls = v.elements(); sls.hasMoreElements(); ) {  
@@ -790,12 +790,12 @@ public class AssetWriter extends WriterBase {
             String stype = sd.getType();
             
             if (sd.getTimePhased()) {
-              out.println("      properties["+i+"] = new PropertyDescriptor(\""+
+              println(out,"      properties["+i+"] = new PropertyDescriptor(\""+
                           sname+"Schedule\", PropertyGroupSchedule.class, "+
                           "\"get"+sname+"Schedule\", "+
                           "null);");
             } else {
-              out.println("      properties["+i+"] = new PropertyDescriptor(\""+
+              println(out,"      properties["+i+"] = new PropertyDescriptor(\""+
                           sname+"\", "+
                           name+".class, "+
                           "\"get"+sname+"\", "+
@@ -804,11 +804,11 @@ public class AssetWriter extends WriterBase {
             }
             i++;
           }
-          out.println("    } catch (IntrospectionException ie) {}");
+          println(out,"    } catch (IntrospectionException ie) {}");
         }
-        out.println("  }");
-        out.println();
-        out.println("  public PropertyDescriptor[] getPropertyDescriptors() {\n"+
+        println(out,"  }");
+        println(out);
+        println(out,"  public PropertyDescriptor[] getPropertyDescriptors() {\n"+
                     "    PropertyDescriptor[] pds = super.getPropertyDescriptors();\n"+
                     "    PropertyDescriptor[] ps = new PropertyDescriptor[pds.length+"+
                     l+"];\n"+
@@ -846,25 +846,25 @@ public class AssetWriter extends WriterBase {
         try {
           noteFile(path);
           PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),path))));
-          writeCR(out);
+          writeCR(out,deffilename);
 
-          out.println();
-	  out.println("package " + asset_package + ";");
-          out.println("import java.beans.*;");
-          out.println();
-          out.println("/** BeanInfo for "+name+" **/");
-          out.println();
+          println(out);
+	  println(out,"package " + asset_package + ";");
+          println(out,"import java.beans.*;");
+          println(out);
+          println(out,"/** BeanInfo for "+name+" **/");
+          println(out);
           
         
           for (Enumeration imps = cd.getImports().elements();
                imps.hasMoreElements(); ) {
-            out.println("import "+imps.nextElement()+";");
+            println(out,"import "+imps.nextElement()+";");
           }
 
 
-          out.println("public class "+name+"BeanInfo"+ext+" {");
+          println(out,"public class "+name+"BeanInfo"+ext+" {");
           writeBeanInfoBody(out, cd);
-          out.println("}");
+          println(out,"}");
           out.close();
         } catch (Exception e) {
           System.err.println("Caught "+e);
@@ -947,6 +947,7 @@ public class AssetWriter extends WriterBase {
         stream = new java.io.DataInputStream(System.in);
       } else {
         debug("Reading \""+assetFilename+"\".");
+        deffilename=assetFilename;
         stream = new FileInputStream(assetFilename);
       }
 
@@ -1017,26 +1018,11 @@ public class AssetWriter extends WriterBase {
 
     processFile(assetsFile);
   }
+
+  public String deffilename=null;
   
   public AssetWriter(String args[]) {
     arguments = args;
-  }
-
-  protected void writeCR(PrintWriter out) {
-    out.println("/*\n"+
-                " * <copyright>\n"+
-                " * Copyright 1997-2000 Defense Advanced Research Projects Agency (DARPA)\n"+
-                " * and ALPINE (A BBN Technologies (BBN) and Raytheon Systems Company\n"+
-                " * (RSC) Consortium). This software to be used in accordance with the\n"+
-                " * COUGAAR license agreement.  The license agreement and other\n"+
-                " * information on the Cognitive Agent Architecture (COUGAAR) Project can\n"+
-                " * be found at http://www.cougaar.org or email: info@cougaar.org.\n"+
-                " * </copyright>\n"+
-                " */");
-    out.println();
-    out.println("// source machine generated at "+new java.util.Date()+" - Do not edit");
-    out.print("/* @"+"generated */");
-    out.println();
   }
 
   public static void main(String argv[]) {

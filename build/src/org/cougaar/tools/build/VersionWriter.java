@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 1997-2000 Defense Advanced Research Projects
+ *  Copyright 1997-2001 Defense Advanced Research Projects
  *  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
  *  Raytheon Systems Company (RSC) Consortium).
  *  This software to be used only in accordance with the
@@ -20,6 +20,8 @@ public class VersionWriter extends WriterBase {
   boolean didIt = false;
 
   String version = null;
+  String deffilename = null;
+
 
   private void readFile(String filename) {
     InputStream stream = null;
@@ -29,6 +31,7 @@ public class VersionWriter extends WriterBase {
         debug("Reading from standard input.");
         stream = new java.io.DataInputStream(System.in);
       } else {
+        deffilename = filename;
         debug("Reading \""+filename+"\".");
         stream = new FileInputStream(filename);
       }
@@ -61,27 +64,15 @@ public class VersionWriter extends WriterBase {
   public void writeFile() {
     try {
       PrintWriter filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),"version.gen"))));
-      filelist.println("Version.java");
+      println(filelist,"Version.java");
       filelist.close();
 
       PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),"Version.java"))));
-    out.println("/*\n"+
-                " * <copyright>\n"+
-                " * Copyright 1997-2000 Defense Advanced Research Projects Agency (DARPA)\n"+
-                " * and ALPINE (A BBN Technologies (BBN) and Raytheon Systems Company\n"+
-                " * (RSC) Consortium). This software to be used in accordance with the\n"+
-                " * COUGAAR license agreement.  The license agreement and other\n"+
-                " * information on the Cognitive Agent Architecture (COUGAAR) Project can\n"+
-                " * be found at http://www.cougaar.org or email: info@cougaar.org.\n"+
-                " * </copyright>\n"+
-                " */");
-      out.println();
-      out.println("// source machine generated at "+new java.util.Date()+" - Do not edit");
-      out.println("/* @"+"generated */");
-      out.println();
-      out.println("package org.cougaar;");
+      writeCR(out, deffilename);
+      println(out);
+      println(out,"package org.cougaar;");
       if (version == null) version = "unknown";
-      out.println("public final class Version {\n"+
+      println(out,"public final class Version {\n"+
                   "  public final static String version = \""+version+"\";\n"+
                   "  public final static long buildTime = "+System.currentTimeMillis()+"L;\n"+
                   "}");
@@ -122,7 +113,7 @@ public class VersionWriter extends WriterBase {
     if (!didIt) {
       readFile("version.def");
     }
-
+    
     writeFile();
   }
 

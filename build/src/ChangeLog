@@ -1,3 +1,15 @@
+2001-01-30  Michael Thome  <mthome@bbn.com>
+
+	* all
+	Moved CR writer to static in WriterBase.  Added '\n' to println()
+	methods to WriterBase and updated all the writer code to use the
+	new methods.  Also updated CR notice to 2001.
+
+	* DefRunner
+	If the classname doesn't have a "." in it prefix it with
+	"org.cougaar.tools.build." This allows def files to have simply
+	"#!VersionWriter" instead of ";!generate: org.cougaar.tools.build.VersionWriter"
+	
 2000-09-22  Michael Thome  <mthome@bbn.com>
 
 	* MeasureWriter

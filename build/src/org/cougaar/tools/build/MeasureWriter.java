@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 1997-2000 Defense Advanced Research Projects
+ *  Copyright 1997-2001 Defense Advanced Research Projects
  *  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
  *  Raytheon Systems Company (RSC) Consortium).
  *  This software to be used only in accordance with the
@@ -115,7 +115,7 @@ public class MeasureWriter extends WriterBase {
     }
 
     public void noteFile(String s) {
-      filelist.println(s);
+      println(filelist,s);
     }
     public void done() {
       filelist.close();
@@ -187,32 +187,15 @@ public class MeasureWriter extends WriterBase {
       return s;
     }
 
-    void writeCR(PrintWriter out) {
-    out.println("/*\n"+
-                " * <copyright>\n"+
-                " * Copyright 1997-2000 Defense Advanced Research Projects Agency (DARPA)\n"+
-                " * and ALPINE (A BBN Technologies (BBN) and Raytheon Systems Company\n"+
-                " * (RSC) Consortium). This software to be used in accordance with the\n"+
-                " * COUGAAR license agreement.  The license agreement and other\n"+
-                " * information on the Cognitive Agent Architecture (COUGAAR) Project can\n"+
-                " * be found at http://www.cougaar.org or email: info@cougaar.org.\n"+
-                " * </copyright>\n"+
-                " */");
-      out.println();
-      out.println("// source machine generated at "+new java.util.Date()+" - Do not edit");
-      out.println("/* @"+"generated */");
-      out.println();
-    }
-
     void writePrelude(PrintWriter out, String context, String className, String outname) {
-      writeCR(out);
-      out.println("/** Immutable implementation of "+className+".");
-      out.println(" **/");
-      out.println();
-      out.println();
-      out.println("package org.cougaar.domain.planning.ldm.measure;");
-      out.println("import java.io.*;");
-      out.println();
+      writeCR(out,deffilename);
+      println(out,"/** Immutable implementation of "+className+".");
+      println(out," **/");
+      println(out);
+      println(out);
+      println(out,"package org.cougaar.domain.planning.ldm.measure;");
+      println(out,"import java.io.*;");
+      println(out);
     }
     
     Vector explode(String s) {
@@ -316,13 +299,13 @@ public class MeasureWriter extends WriterBase {
     void writeClass(PrintWriter out, String context, String className) {
       String isDep = p.get(context,"deprecated");
       if (isDep!=null) {
-        out.println("/** @deprecated "+isDep+" **/");
+        println(out,"/** @deprecated "+isDep+" **/");
       }
 
       String ext = p.get(context,"extends");
       if (ext == null) ext = "AbstractMeasure";
       boolean isFinal = !("false".equals(p.get(context,"final")));
-      out.println("public "+
+      println(out,"public "+
                   (isFinal?"final ":"")+
                   "class "+className+" extends "+ext+" implements Externalizable {");
       // get units
@@ -333,7 +316,7 @@ public class MeasureWriter extends WriterBase {
       String baseC = toConstantName(base);
       
       // write static factors
-      out.println("  // Conversion factor constants");
+      println(out,"  // Conversion factor constants");
       Enumeration ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
@@ -341,47 +324,47 @@ public class MeasureWriter extends WriterBase {
           // f is the factor of (1 unit) = f * (1 baseunit);
           String fact1 = toConstantName(base+"_PER_"+unit);
           double fromf = computeFromFactor(context,unit);
-          out.println("  public static final double "+fact1+" = "+fromf+";");
+          println(out,"  public static final double "+fact1+" = "+fromf+";");
           String fact2 = toConstantName(unit+"_PER_"+base);
           double tof = computeToFactor(context,unit);
-          out.println("  public static final double "+fact2+" = "+tof+";");
+          println(out,"  public static final double "+fact2+" = "+tof+";");
         }
       }
-      out.println();
+      println(out);
 
       // the storage
-      out.println("  // the value is stored as "+base);
-      out.println("  private double theValue;");
-      out.println();
+      println(out,"  // the value is stored as "+base);
+      println(out,"  private double theValue;");
+      println(out);
 
-      out.println("  /** No-arg constructor is only for use by serialization **/");
-      out.println("  public "+className+"() {}");
-      out.println();
+      println(out,"  /** No-arg constructor is only for use by serialization **/");
+      println(out,"  public "+className+"() {}");
+      println(out);
 
       // constructor
-      out.println("  // private constructor");
-      out.println("  private "+className+"(double v) {");
-      out.println("    theValue = v;");
-      out.println("  }");
-      out.println();
+      println(out,"  // private constructor");
+      println(out,"  private "+className+"(double v) {");
+      println(out,"    theValue = v;");
+      println(out,"  }");
+      println(out);
 
       // public constructor
-      out.println("  /** parameterized constructor **/");
-      out.println("  public "+className+"(double v, int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      theValue = v*convFactor[unit];");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"  /** parameterized constructor **/");
+      println(out,"  public "+className+"(double v, int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      theValue = v*convFactor[unit];");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
-      out.println("  /** takes strings of the form \"Number unit\" **/");
-      out.println("  public "+className+"(String s) {");
-      out.println("    int i = indexOfType(s);");
-      out.println("    if (i < 0) throw new UnknownUnitException();");
-      out.println("    double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();");
-      out.println("    String u = s.substring(i).trim().toLowerCase();");
-      out.print("    ");
+      println(out,"  /** takes strings of the form \"Number unit\" **/");
+      println(out,"  public "+className+"(String s) {");
+      println(out,"    int i = indexOfType(s);");
+      println(out,"    if (i < 0) throw new UnknownUnitException();");
+      println(out,"    double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();");
+      println(out,"    String u = s.substring(i).trim().toLowerCase();");
+      print(out,"    ");
       ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
@@ -390,16 +373,16 @@ public class MeasureWriter extends WriterBase {
         if (!unit.equals(base)) {
           fexpr = "*"+toConstantName(base+"_PER_"+unit);
         }
-        out.println("if (u.equals(\""+unitName.toLowerCase()+"\")) ");
-        out.println("      theValue=n"+fexpr+";");
-        out.print("    else ");
+        println(out,"if (u.equals(\""+unitName.toLowerCase()+"\")) ");
+        println(out,"      theValue=n"+fexpr+";");
+        print(out,"    else ");
       }
-      out.println("\n      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"\n      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
       // Named type factory methods
-      out.println("  // TypeNamed factory methods");
+      println(out,"  // TypeNamed factory methods");
       ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
@@ -408,50 +391,50 @@ public class MeasureWriter extends WriterBase {
         if (!unit.equals(base)) {
           fexpr = "*"+toConstantName(base+"_PER_"+unit);
         }
-        out.println("  public static final "+className+" new"+unitName+"(double v) {");
-        out.println("    return new "+className+"(v"+fexpr+");");
-        out.println("  }");
-        out.println("  public static final "+className+" new"+unitName+"(String s) {");
-        out.println("    return new "+className+"((Double.valueOf(s).doubleValue())"+fexpr+");");
-        out.println("  }");
+        println(out,"  public static final "+className+" new"+unitName+"(double v) {");
+        println(out,"    return new "+className+"(v"+fexpr+");");
+        println(out,"  }");
+        println(out,"  public static final "+className+" new"+unitName+"(String s) {");
+        println(out,"    return new "+className+"((Double.valueOf(s).doubleValue())"+fexpr+");");
+        println(out,"  }");
       }
-      out.println();
+      println(out);
 
       // common unit support - mostly a bogon
-      out.println();
-      out.println("  public int getCommonUnit() {");
+      println(out);
+      println(out,"  public int getCommonUnit() {");
       String cus = p.get(context, "common");
       if (cus == null) { 
-        out.println("    return 0;");
+        println(out,"    return 0;");
       } else {        
-        out.println("    return "+cus.toUpperCase()+";");
+        println(out,"    return "+cus.toUpperCase()+";");
       }
-      out.println("  }");
-      out.println();
-      out.println("  public int getMaxUnit() { return MAXUNIT; }");
-      out.println();
+      println(out,"  }");
+      println(out);
+      println(out,"  public int getMaxUnit() { return MAXUNIT; }");
+      println(out);
 
-      out.println("  // unit names for getUnitName");
-      out.println("  private static final String unitNames[]={");
+      println(out,"  // unit names for getUnitName");
+      println(out,"  private static final String unitNames[]={");
       ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
-        out.print("    \""+unit+"\"");
+        print(out,"    \""+unit+"\"");
         if (ue.hasMoreElements())
-          out.println(",");
+          println(out,",");
         else
-          out.println();
+          println(out);
       }
-      out.println("  };");
-      out.println();
-      out.println("  public String getUnitName(int unit) {");
-      out.println("    return unitNames[unit];");
-      out.println("  }");
-      out.println();
+      println(out,"  };");
+      println(out);
+      println(out,"  public String getUnitName(int unit) {");
+      println(out,"    return unitNames[unit];");
+      println(out,"  }");
+      println(out);
 
       // index typed factory methods
-      out.println("  // Index Typed factory methods");
-      out.println("  static final double convFactor[]={");
+      println(out,"  // Index Typed factory methods");
+      println(out,"  static final double convFactor[]={");
       ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
@@ -460,52 +443,52 @@ public class MeasureWriter extends WriterBase {
         if (!unit.equals(base)) {
           fexpr = toConstantName(base+"_PER_"+unit);
         }
-        out.print("    "+fexpr);
+        print(out,"    "+fexpr);
         if (ue.hasMoreElements())
-          out.println(",");
+          println(out,",");
         else
-          out.println();
+          println(out);
       }
-      out.println("  };");
-      out.println("  // indexes into factor array");
+      println(out,"  };");
+      println(out,"  // indexes into factor array");
       ue = units.elements();
       int i = 0;
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
         String unitName = toConstantName(unit);
-        out.println("  public static final int "+unitName+" = "+i+";");
+        println(out,"  public static final int "+unitName+" = "+i+";");
         i++;
       }
-      out.println("  static final int MAXUNIT = "+(i-1)+";");
-      out.println();
-      out.println("  // Index Typed factory methods");
-      out.println("  public static final "+className+" new"+className+"(double v, int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      return new "+className+"(v*convFactor[unit]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
-      out.println("  public static final "+className+" new"+className+"(String s, int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      return new "+className+"((Double.valueOf(s).doubleValue())*convFactor[unit]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"  static final int MAXUNIT = "+(i-1)+";");
+      println(out);
+      println(out,"  // Index Typed factory methods");
+      println(out,"  public static final "+className+" new"+className+"(double v, int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      return new "+className+"(v*convFactor[unit]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
+      println(out,"  public static final "+className+" new"+className+"(String s, int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      return new "+className+"((Double.valueOf(s).doubleValue())*convFactor[unit]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
       // abstractmeasure-level concretefactory
-      out.println("  // Support for AbstractMeasure-level constructor");
-      out.println("  public static final AbstractMeasure newMeasure(String s, int unit) {");
-      out.println("    return new"+className+"(s, unit);");
-      out.println("  }");
-      out.println("  public static final AbstractMeasure newMeasure(double v, int unit) {");
-      out.println("    return new"+className+"(v, unit);");
-      out.println("  }");
+      println(out,"  // Support for AbstractMeasure-level constructor");
+      println(out,"  public static final AbstractMeasure newMeasure(String s, int unit) {");
+      println(out,"    return new"+className+"(s, unit);");
+      println(out,"  }");
+      println(out,"  public static final AbstractMeasure newMeasure(double v, int unit) {");
+      println(out,"    return new"+className+"(v, unit);");
+      println(out,"  }");
 
 
       // getters
-      out.println("  // Unit-based Reader methods");
+      println(out,"  // Unit-based Reader methods");
       ue = units.elements();
       while (ue.hasMoreElements()) {
         String unit = (String)ue.nextElement();
@@ -514,45 +497,45 @@ public class MeasureWriter extends WriterBase {
         if (!unit.equals(base)) {
           fexpr = "*"+toConstantName(unit+"_PER_"+base);
         }
-        out.println("  public double get"+unitName+"() {");
-        out.println("    return (theValue"+fexpr+");");
-        out.println("  }");
+        println(out,"  public double get"+unitName+"() {");
+        println(out,"    return (theValue"+fexpr+");");
+        println(out,"  }");
       }
-      out.println();
+      println(out);
 
       // unit-as-argument getter
-      out.println("  public double getValue(int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      return (theValue/convFactor[unit]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"  public double getValue(int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      return (theValue/convFactor[unit]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
       // equals et al
-      out.println("  public boolean equals(Object o) {");
-      out.println("    return ( o instanceof "+className+" &&");
-      out.println("             theValue == (("+className+") o).theValue);");
-      out.println("  }");
-      out.println("  public String toString() {");
-      out.println("    return Double.toString(theValue) + \""+
+      println(out,"  public boolean equals(Object o) {");
+      println(out,"    return ( o instanceof "+className+" &&");
+      println(out,"             theValue == (("+className+") o).theValue);");
+      println(out,"  }");
+      println(out,"  public String toString() {");
+      println(out,"    return Double.toString(theValue) + \""+
                   baseabbrev+"\";");
-      out.println("  }");
-      out.println("  public int hashCode() {");
-      out.println("    return (new Double(theValue)).hashCode();");
-      out.println("  }");
+      println(out,"  }");
+      println(out,"  public int hashCode() {");
+      println(out,"    return (new Double(theValue)).hashCode();");
+      println(out,"  }");
 
-      out.println();
-      out.println("  // serialization");
-      out.println("  public void writeExternal(ObjectOutput out) throws IOException {\n"+
+      println(out);
+      println(out,"  // serialization");
+      println(out,"  public void writeExternal(ObjectOutput out) throws IOException {\n"+
                   "    out.writeDouble(theValue);\n"+
                   "  }");
-      out.println("  public void readExternal(ObjectInput in) throws IOException {\n"+
+      println(out,"  public void readExternal(ObjectInput in) throws IOException {\n"+
                   "    theValue = in.readDouble();\n"+
                   "  }");
 
       // that's all, folks
-      out.println("}");
+      println(out,"}");
 
     }
 
@@ -601,86 +584,86 @@ public class MeasureWriter extends WriterBase {
 
       String isDep = p.get(context,"deprecated");
       if (isDep!=null) {
-        out.println("/** @deprecated "+isDep+" **/");
+        println(out,"/** @deprecated "+isDep+" **/");
       }
 
       // the class def
       String ext = p.get(context,"extends");
       if (ext == null) ext = "AbstractMeasure";
-      out.println("public final class "+className+" extends "+ext);
-      out.print("  implements Externalizable, Derivative");
+      println(out,"public final class "+className+" extends "+ext);
+      print(out,"  implements Externalizable, Derivative");
       String denC = p.get(dtC,"denominator_class");
       if (denC != null) {
-        out.print(", "+denC);
+        print(out,", "+denC);
       }
-      out.println(" {");
+      println(out," {");
       
       // the storage
-      out.println("  // the value is stored as "+dB+"/"+unpluralize(dtB));
-      out.println("  private double theValue;");
-      out.println();
+      println(out,"  // the value is stored as "+dB+"/"+unpluralize(dtB));
+      println(out,"  private double theValue;");
+      println(out);
 
-      out.println("  /** No-arg constructor is only for use by serialization **/");
-      out.println("  public "+className+"() {}");
-      out.println();
+      println(out,"  /** No-arg constructor is only for use by serialization **/");
+      println(out,"  public "+className+"() {}");
+      println(out);
 
       // constructor
-      out.println("  // private constructor");
-      out.println("  private "+className+"(double v) {");
-      out.println("    theValue = v;");
-      out.println("  }");
-      out.println();
+      println(out,"  // private constructor");
+      println(out,"  private "+className+"(double v) {");
+      println(out,"    theValue = v;");
+      println(out,"  }");
+      println(out);
 
       // public constructor
-      out.println("  /** @param unit One of the constant units of "+className+" **/");
-      out.println("  public "+className+"(double v, int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      theValue = v/convFactor[unit];");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
-      out.println("  /** @param unit1 One of the constant units of "+dC+"\n"+
+      println(out,"  /** @param unit One of the constant units of "+className+" **/");
+      println(out,"  public "+className+"(double v, int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      theValue = v/convFactor[unit];");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
+      println(out,"  /** @param unit1 One of the constant units of "+dC+"\n"+
                   "   *  @param unit2 One of the constant units of "+dtC+"\n"+
                   "   **/");
-      out.println("  public "+className+"(double v, int unit1, int unit2) {");
-      out.println("    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
+      println(out,"  public "+className+"(double v, int unit1, int unit2) {");
+      println(out,"    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
                   "        unit2 >= 0 && unit2 <= "+dtC+".MAXUNIT)");
-      out.println("      theValue = v*"+dC+".convFactor[unit1]/"+dtC+".convFactor[unit2];");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"      theValue = v*"+dC+".convFactor[unit1]/"+dtC+".convFactor[unit2];");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
-      out.println("  /** @param num An instance of "+dC+" to use as numerator\n"+
+      println(out,"  /** @param num An instance of "+dC+" to use as numerator\n"+
                   "   *  @param den An instance of "+dtC+"to use as denominator\n"+
                   "   **/");
-      out.println("  public "+className+"("+dC+" num, "+dtC+" den) {");
-      out.println("    theValue = num.getValue(0)/den.getValue(0);");
-      out.println("  }");
-      out.println();
+      println(out,"  public "+className+"("+dC+" num, "+dtC+" den) {");
+      println(out,"    theValue = num.getValue(0)/den.getValue(0);");
+      println(out,"  }");
+      println(out);
 
-      out.println("  /** takes strings of the form \"Number unit\" **/");
-      out.println("  public "+className+"(String s) {");
-      out.println("    int i = indexOfType(s);");
-      out.println("    if (i < 0) throw new UnknownUnitException();");
-      out.println("    double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();");
-      out.println("    String u = s.substring(i).trim().toLowerCase();");
-      out.print("    ");
+      println(out,"  /** takes strings of the form \"Number unit\" **/");
+      println(out,"  public "+className+"(String s) {");
+      println(out,"    int i = indexOfType(s);");
+      println(out,"    if (i < 0) throw new UnknownUnitException();");
+      println(out,"    double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();");
+      println(out,"    String u = s.substring(i).trim().toLowerCase();");
+      print(out,"    ");
       for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
         UnitTuple ut = (UnitTuple) ti.next();
-        out.println("if (u.equals(\""+
+        println(out,"if (u.equals(\""+
                     toClassName(ut.num+"per"+ut.sden).toLowerCase()+
                     "\")) ");
-        out.println("      theValue=n/"+ut.factor+";");
-        out.print("    else ");
+        println(out,"      theValue=n/"+ut.factor+";");
+        print(out,"    else ");
       }
-      out.println("\n      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"\n      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
       // Named type factory methods
-      out.println("  // TypeNamed factory methods");
+      println(out,"  // TypeNamed factory methods");
       for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
         UnitTuple ut = (UnitTuple) ti.next();
 
@@ -688,21 +671,21 @@ public class MeasureWriter extends WriterBase {
         String unitName = toClassName(unit);
         String fexpr="*"+(1.0/ut.factor)+"";
 
-        out.println("  public static final "+className+" new"+unitName+"(double v) {");
-        out.println("    return new "+className+"(v"+fexpr+");");
-        out.println("  }");
-        out.println("  public static final "+className+" new"+unitName+"(String s) {");
-        out.println("    return new "+className+"((Double.valueOf(s).doubleValue())"+fexpr+");");
-        out.println("  }");
+        println(out,"  public static final "+className+" new"+unitName+"(double v) {");
+        println(out,"    return new "+className+"(v"+fexpr+");");
+        println(out,"  }");
+        println(out,"  public static final "+className+" new"+unitName+"(String s) {");
+        println(out,"    return new "+className+"((Double.valueOf(s).doubleValue())"+fexpr+");");
+        println(out,"  }");
       }
-      out.println();
+      println(out);
 
       // common unit support - mostly a bogon
-      out.println();
-      out.println("  public int getCommonUnit() {");
+      println(out);
+      println(out,"  public int getCommonUnit() {");
       String cus = p.get(context, "common");
       if (cus == null) { 
-        out.println("    return 0;");
+        println(out,"    return 0;");
       } else {        
         Vector v = explodeC(cus,'/');
         String n=(String)v.elementAt(0);
@@ -711,207 +694,207 @@ public class MeasureWriter extends WriterBase {
         for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
           UnitTuple ut = (UnitTuple)ti.next();
           if (n.equals(ut.num) && d.equals(ut.sden)) {
-            out.println("    return "+i+";");
+            println(out,"    return "+i+";");
             break;
           }
           i++;
         }
         if (i==tuples.size()){
           System.err.println("Couldn't find a matching tuple for \""+cus+"\".");
-          out.println("     return 0;");
+          println(out,"     return 0;");
         }
       }
-      out.println("  }");
-      out.println();
+      println(out,"  }");
+      println(out);
 
-      out.println("  public int getMaxUnit() { return MAXUNIT; }");
-      out.println();
+      println(out,"  public int getMaxUnit() { return MAXUNIT; }");
+      println(out);
 
-      out.println("  // unit names for getUnitName");
-      out.println("  private static final String unitNames[]={");
+      println(out,"  // unit names for getUnitName");
+      println(out,"  private static final String unitNames[]={");
       for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
         UnitTuple ut = (UnitTuple)ti.next();
         String unit = ut.num+"/"+ut.sden;
-        out.print("    \""+unit+"\"");
+        print(out,"    \""+unit+"\"");
         if (ti.hasNext())
-          out.println(",");
+          println(out,",");
         else
-          out.println();
+          println(out);
       }
-      out.println("  };");
-      out.println();
+      println(out,"  };");
+      println(out);
 
-      out.println("  /** @param unit One of the constant units of "+className+" **/");
-      out.println("  public final String getUnitName(int unit) {");
-      out.println("    return unitNames[unit];");
-      out.println("  }");
-      out.println();
+      println(out,"  /** @param unit One of the constant units of "+className+" **/");
+      println(out,"  public final String getUnitName(int unit) {");
+      println(out,"    return unitNames[unit];");
+      println(out,"  }");
+      println(out);
 
       // index typed factory methods
-      out.println("  // Index Typed factory methods");
-      out.println("  static final double convFactor[]={");
+      println(out,"  // Index Typed factory methods");
+      println(out,"  static final double convFactor[]={");
       for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
         UnitTuple ut = (UnitTuple)ti.next();
-        out.print("    "+ut.factor+"");
+        print(out,"    "+ut.factor+"");
         if (ti.hasNext())
-          out.println(",");
+          println(out,",");
         else
-          out.println();
+          println(out);
       }
-      out.println("  };");
+      println(out,"  };");
 
-      out.println("  // indexes into factor array");
+      println(out,"  // indexes into factor array");
       int i = 0;
       for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
         UnitTuple ut = (UnitTuple)ti.next();
         String unit = ut.num+"_per_"+ut.sden;
         String unitName = toConstantName(unit);
-        out.println("  public static final int "+unitName+" = "+i+";");
+        println(out,"  public static final int "+unitName+" = "+i+";");
         i++;
       }
 
-      out.println("  static final int MAXUNIT = "+(i-1)+";");
-      out.println();
-      out.println("  // Index Typed factory methods");
-      out.println("  /** @param unit One of the constant units of "+className+" **/");
-      out.println("  public static final "+className+" new"+className+"(double v, int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      return new "+className+"(v*convFactor[unit]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
-      out.println("  /** @param unit One of the constant units of "+className+" **/");
-      out.println("  public static final "+className+" new"+className+"(String s, int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      return new "+className+"((Double.valueOf(s).doubleValue())*convFactor[unit]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"  static final int MAXUNIT = "+(i-1)+";");
+      println(out);
+      println(out,"  // Index Typed factory methods");
+      println(out,"  /** @param unit One of the constant units of "+className+" **/");
+      println(out,"  public static final "+className+" new"+className+"(double v, int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      return new "+className+"(v*convFactor[unit]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
+      println(out,"  /** @param unit One of the constant units of "+className+" **/");
+      println(out,"  public static final "+className+" new"+className+"(String s, int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      return new "+className+"((Double.valueOf(s).doubleValue())*convFactor[unit]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
-      out.println("  // Index Typed factory methods");
-      out.println("  /** @param unit1 One of the constant units of "+dC+"\n"+
+      println(out,"  // Index Typed factory methods");
+      println(out,"  /** @param unit1 One of the constant units of "+dC+"\n"+
                   "   *  @param unit2 One of the constant units of "+dtC+"\n"+
                   "   **/");
-      out.println("  public static final "+className+" new"+className+"(double v, int unit1, int unit2) {");
-      out.println("    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
+      println(out,"  public static final "+className+" new"+className+"(double v, int unit1, int unit2) {");
+      println(out,"    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
                   "        unit2 >= 0 && unit2 <= "+dtC+".MAXUNIT)");
-      out.println("      return new "+className+"(v*"+dC+".convFactor[unit1]/"+dtC+".convFactor[unit2]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"      return new "+className+"(v*"+dC+".convFactor[unit1]/"+dtC+".convFactor[unit2]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
-      out.println("  /** @param num An instance of "+dC+" to use as numerator\n"+
+      println(out,"  /** @param num An instance of "+dC+" to use as numerator\n"+
                   "   *  @param den An instance of "+dtC+"to use as denominator\n"+
                   "   **/");
-      out.println("  public static final "+className+" new"+className+"("+dC+" num, "+dtC+" den) {");
-      out.println("    return new "+className+"(num.getValue(0)/den.getValue(0));");
-      out.println("  }");
-      out.println();
+      println(out,"  public static final "+className+" new"+className+"("+dC+" num, "+dtC+" den) {");
+      println(out,"    return new "+className+"(num.getValue(0)/den.getValue(0));");
+      println(out,"  }");
+      println(out);
 
 
-      out.println("  /** @param unit1 One of the constant units of "+dC+"\n"+
+      println(out,"  /** @param unit1 One of the constant units of "+dC+"\n"+
                   "   *  @param unit2 One of the constant units of "+dtC+"\n"+
                   "   **/");
-      out.println("  public static final "+className+" new"+className+"(String s, int unit1, int unit2) {");
-      out.println("    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
+      println(out,"  public static final "+className+" new"+className+"(String s, int unit1, int unit2) {");
+      println(out,"    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
                   "        unit2 >= 0 && unit2 <= "+dtC+".MAXUNIT)");
-      out.println("      return new "+className+"((Double.valueOf(s).doubleValue())*"+dC+".convFactor[unit1]/"+dtC+".convFactor[unit2]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"      return new "+className+"((Double.valueOf(s).doubleValue())*"+dC+".convFactor[unit1]/"+dtC+".convFactor[unit2]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
       // abstractmeasure-level concretefactory
-      out.println("  // Support for AbstractMeasure-level constructor");
-      out.println("  public static final AbstractMeasure newMeasure(String s, int unit) {");
-      out.println("    return new"+className+"(s, unit);");
-      out.println("  }");
-      out.println("  public static final AbstractMeasure newMeasure(double v, int unit) {");
-      out.println("    return new"+className+"(v, unit);");
-      out.println("  }");
+      println(out,"  // Support for AbstractMeasure-level constructor");
+      println(out,"  public static final AbstractMeasure newMeasure(String s, int unit) {");
+      println(out,"    return new"+className+"(s, unit);");
+      println(out,"  }");
+      println(out,"  public static final AbstractMeasure newMeasure(double v, int unit) {");
+      println(out,"    return new"+className+"(v, unit);");
+      println(out,"  }");
 
 
       // getters
-      out.println("  // Unit-based Reader methods");
+      println(out,"  // Unit-based Reader methods");
       for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
         UnitTuple ut = (UnitTuple)ti.next();
         String unit = ut.num+"_per_"+ut.sden;
         String unitName = toClassName(unit);
-        out.println("  public double get"+unitName+"() {");
-        out.println("    return (theValue*"+ut.factor+");");
-        out.println("  }");
+        println(out,"  public double get"+unitName+"() {");
+        println(out,"    return (theValue*"+ut.factor+");");
+        println(out,"  }");
       }
-      out.println();
+      println(out);
 
       // unit-as-argument getter
-      out.println("  /** @param unit One of the constant units of "+className+" **/");
-      out.println("  public double getValue(int unit) {");
-      out.println("    if (unit >= 0 && unit <= MAXUNIT)");
-      out.println("      return (theValue*convFactor[unit]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"  /** @param unit One of the constant units of "+className+" **/");
+      println(out,"  public double getValue(int unit) {");
+      println(out,"    if (unit >= 0 && unit <= MAXUNIT)");
+      println(out,"      return (theValue*convFactor[unit]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
-      out.println("  /** @param unit1 One of the constant units of "+dC+"\n"+
+      println(out,"  /** @param unit1 One of the constant units of "+dC+"\n"+
                   "   *  @param unit2 One of the constant units of "+dtC+"\n"+
                   "   **/");
-      out.println("  public double getValue(int unit1, int unit2) {");
-      out.println("    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
+      println(out,"  public double getValue(int unit1, int unit2) {");
+      println(out,"    if (unit1 >= 0 && unit1 <= "+dC+".MAXUNIT &&\n"+
                   "        unit2 >= 0 && unit2 <= "+dtC+".MAXUNIT)");
-      out.println("      return (theValue*"+dtC+".convFactor[unit2]/"+dC+".convFactor[unit1]);");
-      out.println("    else");
-      out.println("      throw new UnknownUnitException();");
-      out.println("  }");
-      out.println();
+      println(out,"      return (theValue*"+dtC+".convFactor[unit2]/"+dC+".convFactor[unit1]);");
+      println(out,"    else");
+      println(out,"      throw new UnknownUnitException();");
+      println(out,"  }");
+      println(out);
 
       // equals et al
-      out.println("  public boolean equals(Object o) {");
-      out.println("    return ( o instanceof "+className+" &&");
-      out.println("             theValue == (("+className+") o).theValue);");
-      out.println("  }");
-      out.println("  public String toString() {");
-      out.println("    return Double.toString(theValue) + \""+
+      println(out,"  public boolean equals(Object o) {");
+      println(out,"    return ( o instanceof "+className+" &&");
+      println(out,"             theValue == (("+className+") o).theValue);");
+      println(out,"  }");
+      println(out,"  public String toString() {");
+      println(out,"    return Double.toString(theValue) + \""+
                   baseabbrev+"\";");
-      out.println("  }");
-      out.println("  public int hashCode() {");
-      out.println("    return (new Double(theValue)).hashCode();");
-      out.println("  }");
-      out.println();
+      println(out,"  }");
+      println(out,"  public int hashCode() {");
+      println(out,"    return (new Double(theValue)).hashCode();");
+      println(out,"  }");
+      println(out);
 
       // derivative implementation
-      out.println("  // Derivative");
-      out.println("  public final Class getNumeratorClass() { return "+dC+".class; }");
-      out.println("  public final Class getDenominatorClass() { return "+dtC+".class; }");
-      out.println();
+      println(out,"  // Derivative");
+      println(out,"  public final Class getNumeratorClass() { return "+dC+".class; }");
+      println(out,"  public final Class getDenominatorClass() { return "+dtC+".class; }");
+      println(out);
 
-      out.println("  private final static "+dC+" can_num = new "+dC+"(0.0,0);");
-      out.println("  public final Measure getCanonicalNumerator() { return can_num; }");
-      out.println("  private final static "+dtC+" can_den = new "+dtC+"(0.0,0);");
-      out.println("  public final Measure getCanonicalDenominator() { return can_den; }");      
-      out.println("  public final Measure computeNumerator(Measure den) {\n"+
+      println(out,"  private final static "+dC+" can_num = new "+dC+"(0.0,0);");
+      println(out,"  public final Measure getCanonicalNumerator() { return can_num; }");
+      println(out,"  private final static "+dtC+" can_den = new "+dtC+"(0.0,0);");
+      println(out,"  public final Measure getCanonicalDenominator() { return can_den; }");      
+      println(out,"  public final Measure computeNumerator(Measure den) {\n"+
                   "    if (!(den instanceof "+dtC+")) throw new IllegalArgumentException();\n"+
                   "    return new "+dC+"(theValue*den.getValue(0),0);\n"+
                   "  }");
-      out.println("  public final Measure computeDenominator(Measure num) {\n"+
+      println(out,"  public final Measure computeDenominator(Measure num) {\n"+
                   "    if (!(num instanceof "+dC+")) throw new IllegalArgumentException();\n"+
                   "    return new "+dtC+"(num.getValue(0)/theValue,0);\n"+
                   "  }");
-      out.println();
+      println(out);
 
-      out.println("  // serialization");
-      out.println("  public void writeExternal(ObjectOutput out) throws IOException {\n"+
+      println(out,"  // serialization");
+      println(out,"  public void writeExternal(ObjectOutput out) throws IOException {\n"+
                   "    out.writeDouble(theValue);\n"+
                   "  }");
-      out.println("  public void readExternal(ObjectInput in) throws IOException {\n"+
+      println(out,"  public void readExternal(ObjectInput in) throws IOException {\n"+
                   "    theValue = in.readDouble();\n"+
                   "  }");
 
       // that's all, folks
-      out.println("}");
+      println(out,"}");
 
     }
 
@@ -965,14 +948,14 @@ public class MeasureWriter extends WriterBase {
       PrintWriter out = new PrintWriter(osw);
       
       writePrelude(out, context, className, outname);
-      out.println("/** Implemented by Measures which represent derivatives with\n"+
+      println(out,"/** Implemented by Measures which represent derivatives with\n"+
                   " * respect to "+toClassName(context)+".\n"+
                   " *\n"+
                   " * Derivative.getDenominatorClass() will always\n"+
                   " * return "+toClassName(context)+"\n"+
                   " **/");
-      out.println("public interface "+className+" extends Derivative {");
-      out.println("}");
+      println(out,"public interface "+className+" extends Derivative {");
+      println(out,"}");
       out.close();
     }
 
@@ -1014,6 +997,7 @@ public class MeasureWriter extends WriterBase {
         stream = new java.io.DataInputStream(System.in);
       } else {
         debug("Reading \""+filename+"\".");
+        deffilename = filename;
         stream = new FileInputStream(filename);
       }
 
@@ -1063,6 +1047,7 @@ public class MeasureWriter extends WriterBase {
     }
   }
 
+  public String deffilename = null;
 
   public MeasureWriter(String args[]) {
     arguments=args;

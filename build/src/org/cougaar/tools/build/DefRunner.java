@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 2000-2000 Defense Advanced Research Projects
+ *  Copyright 2000-2001 Defense Advanced Research Projects
  *  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
  *  Raytheon Systems Company (RSC) Consortium).
  *  This software to be used only in accordance with the
@@ -41,7 +41,12 @@ public class DefRunner {
 
     String[] args = (String[]) nargs.toArray(new String[nargs.size()]);
 
-    if (true) {
+    // prepend the standard build prefix when it is probably wrong.
+    if (classname.indexOf('.')==-1) {
+      classname = "org.cougaar.tools.build."+classname;
+    }
+
+    if (false) {
       System.err.print(classname+".main([");
       for (int k=0;k<args.length;k++) {
         if (k!=0) System.err.print(", ");
