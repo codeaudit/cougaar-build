@@ -214,6 +214,8 @@ mkd $libdir;
 $distdir = "$build_dir/dist";
 mkd $distdir;
 
+chdir($distdir) || die("Couldn't chdir to $distdir");
+
 # redirect streams to file
 $errout = "$distdir/build.out";
 open(SAVEOUT, ">&STDOUT");
