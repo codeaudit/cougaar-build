@@ -86,7 +86,7 @@ class VersionWriter {
       out.println("// source machine generated at "+new java.util.Date()+" - Do not edit");
       out.println("/* @"+"generated */");
       out.println();
-      out.println("package alp;");
+      out.println("package org.cougaar;");
       if (version == null) version = "unknown";
       out.println("public final class Version {\n"+
                   "  public final static String version = \""+version+"\";\n"+
