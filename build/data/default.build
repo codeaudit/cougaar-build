@@ -146,7 +146,7 @@ core.jars = log4j, servlet, concurrent
 
 # yellow pages
 yp.deps = util, core
-yp.jars = uddi4j
+yp.jars = uddi4j, soapuddi, hsqldb
 
 # planning
 planning.deps = util, core
