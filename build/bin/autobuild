@@ -60,20 +60,20 @@ $extraargs="";
 
 &Getopts('vm:a:t:d:hkT:H:po:n:j:');
 if ($opt_h) {
-  print STDERR "Usage: autobuild [args]\n";
-  print STDERR "\t-v\tVerbose mode\n";
-  print STDERR "\t-a name\tDirectory name instead of 'auto'\n";
-  print STDERR "\t-t tag\tTag to use instead of 'HEAD'\n";
-  print STDERR "\t-d file\tData file to use instead of 'default.build'\n";
-  print STDERR "\t-k\tDont clean up afterwards (leave leftovers)\n";
-  print STDERR "\t-T dir\tPut temporary files in dir/tag instead of /tmp/tag\n";
-  print STDERR "\t-H host\tPublish to host instead of \"$host\"\n";
-  print STDERR "\t-h\tThis usage commend\n";
-  print STDERR "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
-  print STDERR "\t-o string\tPass string as extra arguments to build\n";
-  print STDERR "\t-n N\tKeep the last N builds online (default is $keep).\n";
-  print STDERR "\t-j path\tSet java.home to path.\n";
-  print STDERR "\t-m address\tSend email to address if the build fails\n";
+  print STDOUT "Usage: autobuild [args]\n";
+  print STDOUT "\t-v\tVerbose mode\n";
+  print STDOUT "\t-a name\tDirectory name instead of 'auto'\n";
+  print STDOUT "\t-t tag\tTag to use instead of 'HEAD'\n";
+  print STDOUT "\t-d file\tData file to use instead of 'default.build'\n";
+  print STDOUT "\t-k\tDont clean up afterwards (leave leftovers)\n";
+  print STDOUT "\t-T dir\tPut temporary files in dir/tag instead of /tmp/tag\n";
+  print STDOUT "\t-H host\tPublish to host instead of \"$host\"\n";
+  print STDOUT "\t-h\tThis usage commend\n";
+  print STDOUT "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
+  print STDOUT "\t-o string\tPass string as extra arguments to build\n";
+  print STDOUT "\t-n N\tKeep the last N builds online (default is $keep).\n";
+  print STDOUT "\t-j path\tSet java.home to path.\n";
+  print STDOUT "\t-m address\tSend email to address if the build fails\n";
   exit(-1);
 }
 
@@ -260,7 +260,7 @@ exit 0;
 sub mysystem {
   local($command)= @_;
 
-  print STDERR "$command\n" if ($verbose>1);
+  print STDOUT "$command\n" if ($verbose>1);
   if ($pretend) {
     return 0;
   }
@@ -274,23 +274,23 @@ sub mysystem {
     if ($rc != 0) {
       $sawerror++;
       if ($rc == 0xff00) {
-	print STDERR "Command failed: $command $!\n";
+	print STDOUT "Command failed: $command $!\n";
       } elsif ($rc > 0x80) {
 	$rc >>= 8;
-	print STDERR "Completed with exit status of $rc\n";
+	print STDOUT "Completed with exit status of $rc\n";
       } else {
-	print STDERR "Ran with ";
+	print STDOUT "Ran with ";
 	if ($rc &  0x80) {
 	  $rc &= 0x80;
-	  print STDERR "coredump from ";
+	  print STDOUT "coredump from ";
 	}
-	print STDERR "signal $rc\n";
+	print STDOUT "signal $rc\n";
       }
     }
   } elsif (defined $pid) {
     # child
     exec $command;
-    print STDERR "$command: $!\n";
+    print STDOUT "$command: $!\n";
     exit(-1);
   } else {
     logMessage("Failed: Couldn't run @_");
