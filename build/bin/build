@@ -1199,14 +1199,14 @@ sub zip {
   local($comment, $dir, $destdir, $destfile) = @_;
   chdir $dir;
   my ($dest) = "$destdir/$destfile.zip";
-  add_info($comment, $dir, $destfile);
+  add_info("$destfile.zip",$comment, $dir, $destfile);
   mysystem("zip -qr $dest *");
 }
 
 sub jar {
   local($comment, $dir, $destdir, $destfile, $mf) = @_;
   chdir $dir;
-  add_info($comment, $dir, $destfile);
+  add_info("$destfile.jar",$comment, $dir, $destfile);
   my ($dest) = "$destdir/$destfile.jar";
   if (-r $mf) {
     mysystem("$jar_command cmf $mf $dest *");
@@ -1216,13 +1216,14 @@ sub jar {
 }
 
 sub add_info {
-  local($comment, $dir, $destfile) = @_;
+  local($arch,$comment, $dir, $destfile) = @_;
   my($mandir) = "$dir/Manifest";
   mkd($mandir);
   open(OUT, ">$mandir/$destfile.version");
-  print OUT "COMMENT = $comment\n";
-  print OUT "REPOSITORY_TAG = $rtag\n";
-  print OUT "REPOSITORY_TIME = $rdate\n";
+  print OUT "NAME=$arch\n";
+  print OUT "COMMENT=$comment\n";
+  print OUT "REPOSITORY_TAG=$rtag\n";
+  print OUT "REPOSITORY_TIME=$rdate\n";
   local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
   $yr = $yr+1900;
   $mon++;
@@ -1230,7 +1231,7 @@ sub add_info {
   $sec="0$sec" if ($sec<10);
   # default repository date
   my $d ="$mon/$mday/$yr $hour:$min:$sec";
-  print OUT "ARCHIVE_TIME = $d\n";
+  print OUT "ARCHIVE_TIME=$d\n";
   close OUT;
 }
 
