@@ -4,26 +4,34 @@ product.name=cougaar
 
 java = /usr/local/java/jdk1.3/bin/java
 
-# note that -g disabled until emitswitch jikes bug is fixed.
-javac = jikes
-# other jikes options:
-# +P	pedantic compilation - issue lots of style/usage warnings
-# -g	include as much debugging info as possible (local vars)
-# -deprecation report uses of deprecated features.
-# this is a good recipe for finding potential problems
-#javac = jikes +P -deprecation
+# which compiler to use.  valid options are "javac" and "jikes" and
+# the actual command executed will depend on the $javac.command
+# options below
+compiler = jikes
 
-#javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
-# -g	include as much debugging info as possible (local vars)
-# -deprecation report uses of deprecated features.
+# these may be modified to have full path names
+javac.command = javac
+jikes.command = jikes
+
+# other compiler options.  May be module prefixed (e.g. core.compiler.pedantic=1)
+# pedantic compilation - issue lots of style/usage warnings (jikes only)
+#compiler.pedantic = 1
+# include as much debugging info as possible (local vars)
+#compiler.debug = 1
+# report uses of deprecated features.
+#compiler.deprecation = 1
+# optimize bytecode
+#compiler.optimize = 1
+
+# arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
+#javac.arguments = -J-Xmx128m -J-Xms128m
+#jikes.arguments =
 
 javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
 
 # java = /usr/local/java/jdk1.3/bin/java
 # #java = /usr/local/java/jdk1.4/bin/java
 # #javadoc = /usr/local/java/jdk1.4/bin/javadoc
-# javac = jikes -g
-# #javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/
@@ -87,8 +95,10 @@ modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggage
 ## module-specific flags
 ##
 
-# per-module javac:
-#uiframework.javac=javac
+# per-module compiler selection:
+# all of the compiler.* options may be prefixed by a module name:
+#core.compiler.pedantic = 1
+#core.compiler.deprecation = 1
 
 # module deps
 #bogon

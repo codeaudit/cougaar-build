@@ -99,16 +99,21 @@ if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
   parse_config("$ENV{HOME}/.cougaar-build-system-specific");
 }
 
-#$javac_command = "jikes -g";
-$javac_command = "javac -J-Xmx128m -J-Xms128m -g";
-%javac_commands = (
-		   "javac" => "javac -J-Xmx128m -J-Xms128m -g",
-		   "jikes" => "jikes -g",
-		   );
+#$compiler_command = "jikes";
+$compiler_command = "javac";
+addopt("javac.command", "javac");
+addopt("jikes.command", "jikes");
+addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
+
+sub addopt {
+  my ($key, $val) = @_;
+  $opts{$key} = $val if (! exists $opts{$key});
+}
+
 $rmic_command = "rmic -g -v1.2";
 
 $java_command = "java";
-$javac_command = opt("javac",$javac_command);
+$compiler_command = opt("compiler",$compiler_command);
 $java_command = opt("java", $java_command);
 $javadoc_command = opt("javadoc", $javadoc_command);
 
@@ -185,7 +190,7 @@ $sysclasspath;
 $augmented_classpath = $sysclasspath;
 @rtjars;
 # hack for jikes until it is Java2 complient
-if ( $javac_command =~ /jikes/ ) {
+if ( $compiler_command =~ /jikes/ ) {
   my $javahome;
   if ( $java_command =~ /^(.+)\/bin\/java$/ ) {
     $javahome = $1;
@@ -1168,13 +1173,11 @@ sub compile_dir {
     chdir $from;
     my $tmpfile = "/tmp/build.$$";
     mysystem("find . -name '*.java' -print>$tmpfile");
-    my $jc = $javac_command;
-    $jco = opt("$mod.javac");
-    if ($jco) { $jc = $javac_commands{$jco}; }
+    my $jc = compiler_command($mod);
     if (-s $tmpfile) {
       mysystem("$jc -d $to -classpath $cp \@$tmpfile");
     } else {
-      print "Error: Module $mod examples does not seem to actually have any examples\n";
+      print "Error: Module $mod $from does not seem to actually have any sources to compile\n";
     }
     unlink($tmpfile);
 
@@ -1201,4 +1204,26 @@ sub compile_dir {
 sub java {
   my ($cp, $args) = @_;
   mysystem("$java_command -classpath $cp $args");
+}
+
+sub compiler_command {
+  my ($mod) = @_;
+  my $jco = opt("$mod.compiler", "$compiler_command");
+  my $jc = opt("$jco.command");
+
+  my $pedantic = opt("$mod.compiler.pedantic") || opt("compiler.pedantic");
+  my $debug = opt("$mod.compiler.debug") || opt("compiler.debug");
+  my $deprecation = opt("$mod.compiler.deprecation") || opt("compiler.deprecation");
+  my $optimize = opt("$mod.compiler.optimize") || opt("compiler.optimize");
+  my $args = opt("$mod.$jco.arguments") || opt("$jco.arguments");
+
+  my $command = $jc;
+  # pedantic only works for jikes
+  $command .= " +P" if ($pedantic && $jco eq "jikes");
+  $command .= " -g" if ($debug);
+  $command .= " -deprecation" if ($deprecation);
+  $command .= " -O" if ($optimize);
+  $command .= " $args" if ($args ne "");
+
+  return $command;
 }
