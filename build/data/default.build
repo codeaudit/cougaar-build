@@ -240,6 +240,7 @@ dbms.repository = dbms
 # AL BBN
 albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 albbn.module = bbn
+albbn.tag = COUGAAR10_4
 #albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 albbn.deps = core,planning,util,toolkit,glm,vishnu
 albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
@@ -247,12 +248,14 @@ albbn.runtime = bin,configs
 
 # AL datagrabber
 datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+datagrabber.tag = COUGAAR10_4
 #datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 datagrabber.deps = core,planning,glm,toolkit,util,albbn
 datagrabber.jars = xerces,chart,openmap,servlet
 
 # AL stoplight
 stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+stoplight.tag = COUGAAR10_4
 #stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent,uiframework
 stoplight.jars = xerces,servlet
