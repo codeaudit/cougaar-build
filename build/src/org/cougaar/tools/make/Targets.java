@@ -382,6 +382,8 @@ public class Targets {
         for (int i = 0; i < rmicFiles.length; i++) {
             readRMICFile(classNames, rmicFiles[i]);
         }
-        theContext.rmic((String[]) classNames.toArray(new String[0]));
+        if (classNames.size() > 0) {
+            theContext.rmic((String[]) classNames.toArray(new String[0]));
+        }
     }
 }
