@@ -126,6 +126,7 @@ $javadoc_command = opt("javadoc", $javadoc_command);
 
 if ($opt_m) {
   @modules = compute_modules($opt_m);
+  push @modules, "build" if (! member("build",@modules));
   my $foo = join(", ", @modules);
   print "Computed modules from $opt_m = \n\t$foo\n";
 }
@@ -144,7 +145,7 @@ sub compute_modules {
 sub compute_modules1 {
   my ($mod) = @_;
   return if ($done{$mod});
-  if (grep /^$mod\$/, @stack) {
+  if (member($mod,@stack)) {
     die "Fatal error: dependency loop: $mod in @acc\n";
   }
   push @stack, $mod;
@@ -386,7 +387,7 @@ sub checkDeps {
   my ($mod) = @_;
   return if ($moduleDone{$mod}); # don't bother to check
   # check for loops
-  if (grep /^$mod\$/, @depstack) {
+  if (member($mod, @depstack)) {
     die "Fatal Error: detected dependency loop: $mod @depstack\n";
   }
   push @depstack, $mod;		# add the current mod to the stack
@@ -474,7 +475,6 @@ sub build_module {
 
     chdir "$srcdir/$mod";
     # bin,data,configs are now shipped as runtime parts.
-    #my @shipped_subdirs = ("bin", "doc", "examples", "src", "data", "configs");
     my @shipped_subdirs = ( "src", "examples", "regress" );
     my @subdirs = ();
     foreach $sub (@shipped_subdirs) {
@@ -680,26 +680,29 @@ sub build_runtime {
   my $tl = "$tmpdir/lib";
   mkd $tl;
   foreach $mod (@modules) {
+    print "Adding $mod runtime\n" if $verbose;
     if (-e "$build_dir/lib/$mod.jar") {
       mysystem("cp $build_dir/lib/$mod.jar $tl");
     }
-    my $extraspec = opt("$mod.runtime");
     my $moddir = "$srcdir/$mod";
     chdir $moddir;
-    if ($extraspec) {
-      my @extras = split(/\s*,\s*/, $extraspec);
-      foreach $extra (@extras) {
-	mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
-      }
+
+    my @extras = opt("$mod.runtime");
+    foreach $extra (@extras) {
+      mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
     }
+
     my @runtime_subdirs = ("bin", "data", "configs", "doc");
     foreach $rs (@runtime_subdirs) {
-      # copy data dir
-      if (-e "$moddir/$rs") {
-	chdir "$moddir";
-	mkd "$tmpdir/$mod";
-	mkd "$tmpdir/$mod/$rs";
-	mysystem("tar cf - $rs | (cd $tmpdir/$mod ; tar xf -)");
+      if (member($rs, @extras)) { # skip top-level bits
+	print "Skipping duplicate install of $mod/$rs\n" if $verbose;
+      } else {
+	if (-e "$moddir/$rs") {
+	  chdir "$moddir";
+	  mkd "$tmpdir/$mod";
+	  mkd "$tmpdir/$mod/$rs";
+	  mysystem("tar cf - $rs | (cd $tmpdir/$mod ; tar xf -)");
+	}
       }
     }
   }
@@ -1022,8 +1025,7 @@ sub parse_config {
     print STDERR "Could not parse argument '-D$_'" if (! parseopt($_));
   }
 
-  @modules = listify(opt("modules"));
-  #print STDERR "modules = @modules\n";
+  @modules = opt("modules");
 }
 
 sub parseopt {
@@ -1052,7 +1054,17 @@ sub opt {
   if ($value eq "") {
     $value = $default;
   }
-  return $value;
+  if (wantarray) {
+    return listify($value);
+  } else {
+    return $value;
+  }
+}
+
+sub member {
+  my ($key, @list) = @_;
+  my $r = grep /^$key$/, @list;
+  return $r;
 }
 
 sub isPublic {
@@ -1060,7 +1072,7 @@ sub isPublic {
   # backward compatability
   return 0 if (opt("$mod.internal")); # it is non-public if defined as internal.
 
-  return grep /$mod/, listify(opt("modules.public"));
+  return member($mod,opt("modules.public"));
 }
 
 sub isUnified {
@@ -1068,7 +1080,7 @@ sub isUnified {
   # backward compatability
   return 1 if (opt("$mod.unified"));
 
-  return grep /$mod/, listify(opt("modules.unified"));
+  return member($mod,opt("modules.unified"));
 }
 
 sub sysPipe {
