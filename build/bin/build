@@ -1178,7 +1178,7 @@ sub build_runtime {
     if (opt("$mod.compiletime")) {
       print "Adding $mod compiletime\n" if $verbose;
       if (-e "$build_dir/clib/$mod.jar") {
-	cp("$build_dir/clib/$mod.jar", "$tl");
+	cp("$build_dir/clib/$mod.jar", "$tcl");
       }
     } else {
       print "Adding $mod runtime\n" if $verbose;
@@ -1955,7 +1955,15 @@ sub tag {
     my $rarg="";
     # special case for HEAD - bogon.
     $rarg = "-r $tag" if (! ($tag eq "HEAD"));
-    my $Farg = $forceP?"-F":"";
+    my $Farg = "";
+    if ($forceP) {
+      if ($branchP) {
+	$Farg = "-F -B";
+      } else {
+	$Farg = "-F";
+      }
+    }
+
     if ($hairyP) {
       # sigh.  Have to do a checkout and then local tag
       chdir("$tmpdir");
