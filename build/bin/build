@@ -140,6 +140,10 @@ Also, you can set things up so that cvs is not required for the build by:
 The built jars will be placed in /tmp/cougaar/DATE/lib and the product
 zip files in /tmp/cougaar/DATE/dist as usual.
 
+Note:  This script will work on Windows and Unix/Linux machines.  On windows,
+you will need to set cp.sep=; in the parameters file (or on the command line with a -o
+argument).
+
 EOF
 
   exit(1);
@@ -186,6 +190,9 @@ $compiler_touse = "javac";
 addopt("javac.command", "javac");
 addopt("jikes.command", "jikes");
 addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
+
+#Classpath separator set from property, defaults to Unix version
+$cpsep = opt("cp.sep", ":");
 
 sub addopt {
   my ($key, $val) = @_;
@@ -327,7 +334,6 @@ if ($skip) {
 # absolute path of directory we are building into
 $build_dir = "$build_root/$bdate";
 
-
 # record start time for later measurement
 $start_time = time;
 
@@ -387,7 +393,7 @@ $syslib;
     checkout_module($1, $srcdir) if (!$skip);
   }
   @sysjars = findbypattern($syslib, "\.(jar|zip)\$");
-  $sysclasspath = join(":", @sysjars);
+  $sysclasspath = join("$cpsep", @sysjars);
 }
 
 
@@ -400,8 +406,8 @@ if ($java_home) {
     @rtjars = ($rtjar);
     my @exts = findbypattern("$java_home/jre/lib/ext", "\.jar\$");
     push @rtjars, @exts;
-    my $rtx = join(":",$rtjars);
-    $augmented_classpath = "$augmented_classpath:$rtx";
+    my $rtx = join("$cpsep",$rtjars);
+    $augmented_classpath = "$augmented_classpath$cpsep$rtx";
   }
 }
 
@@ -570,9 +576,9 @@ sub build_module {
     my $extrajars = "$libdir/$mod.jar";
     my $syslib = $syslib;
     if (-e "$syslib/junit.jar") {
-      $extrajars = "$extrajars:$syslib/junit.jar";
+      $extrajars = "$extrajars$cpsep$syslib/junit.jar";
     } else {
-      print "Warning: could not find $syslib/junit.jar -- regression tests will probably fail.";
+      print "Warning: could not find $syslib/junit.jar -- regression tests will probably fail.\n";
     }
     # compile regress tests, but don't jar the results up
     compile_dir($mod, $myreg, $tmplib, $extrajars);
@@ -702,8 +708,8 @@ sub get_classpath {
   }
 
   my @libs = (@cp, @rtjars);
-  my $cp = join(":",@libs);
-  return ".:$cp";
+  my $cp = join("$cpsep",@libs);
+  return ".$cpsep$cp";
 }
 
 sub get_unified_classpath {
@@ -711,7 +717,7 @@ sub get_unified_classpath {
   my @cp;
   foreach $m (@modules) {
     if (isUnified($m)) {
-      foreach $c (split(/:/,get_classpath($m))) {
+      foreach $c (split(/$cpsep/,get_classpath($m))) {
 	if (! ($member{$c})) {
 	  $member{$c} = 1;
 	  push @cp, $c;
@@ -719,7 +725,7 @@ sub get_unified_classpath {
       }
     }
   }
-  return join(":", @cp);
+  return join("$cpsep", @cp);
 }
 
 sub findjar {
@@ -782,7 +788,7 @@ sub rundef {
     if ($skip || $checkoutP) {
       $dargs .= " -Drepository.modified=true";
     }
-    $rc = java("$libdir/build.jar:$cp", "$dargs $class $args $path");
+    $rc = java("$libdir/build.jar$cpsep$cp", "$dargs $class $args $path");
   }
   close(DEF);
   return $rc;
@@ -877,7 +883,7 @@ sub build_3rdparty {
     foreach $dep (@deps) {
       my $jar = findjar($dep, @alljars);
       if (!$jar) {
-	my $foo = join(":",@alljars);
+	my $foo = join("$cpsep",@alljars);
 	print STDERR "Warning: could not find $dep in $foo\n";
       }
       if ($jar && ! ($member{$dep})) {
@@ -965,7 +971,7 @@ sub javadoc {
   }
   close(LIST);
   my $pkgs = join(" ", keys %pmap);
-  my $cp = get_classpath($mod);
+  my $cp = cpWrap(get_classpath($mod));
   if (opt("useDoclet", 1)) {
     mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
   } else {
@@ -1123,6 +1129,8 @@ sub findbypattern {
   local($dir, $pat) = @_;
   local(@stuff);
   @stuff = ();
+  # on win machines this directory sometimes has a newline...
+  $dir = trimNewLine($dir);
   return @stuff if (! -e $dir);
 #   local($code)= sub { 
 #     if (/^CVS$/) {
@@ -1192,7 +1200,8 @@ sub parse_config {
     $count++;
 
     s/\s*\#.*//; # drop comments immediately with leading whitespace
-
+    s/[\n\r]//g; # drop extra newline / returns
+    
     # incorporate previous wrapped line text
     if (! ($leftover eq "")) {
       $_ = "$leftover$_";
@@ -1202,7 +1211,7 @@ sub parse_config {
     next if (/^\s*$/);		# empty line - handles empty comment line, too
 
     # detect line wrap directives
-    if (/(.*)\\$/) {
+    if (/(.*)\\[\n\r]*$/) {
       $leftover = $1;
       next;
     }
@@ -1247,7 +1256,8 @@ sub opt {
   if (wantarray) {
     return listify($value);
   } else {
-    return $value;
+#      print STDERR "about to return val for $key: $value\n" if $verbose;
+    return trimNewLine($value);
   }
 }
 
@@ -1410,7 +1420,7 @@ sub getCVSROOT {
     if (! $repb) {
       $repb = $ENV{'CVSROOT'};
       if ($repb) {
-	$repb =~ s/\/cougaar$/\//;
+	$repb =~ s/\/[^\/]+$/\//;
       } else {
 	die("Couldn't figure out repository.base!\n");
       }
@@ -1475,17 +1485,17 @@ sub junit {
   my ($mod, $classdir, $extrajars) = @_;
   my $cp = get_classpath($mod,1); # get runtime jars, too
   if ($extrajars) {
-    $cp = "$extrajars:$cp";
+    $cp = "$extrajars$cpsep$cp";
   }
   my $syslib = $syslib;
   if (-e "$syslib/junit.jar") {
-    $cp = "$cp:$syslib/junit.jar";
+    $cp = "$cp$cpsep$syslib/junit.jar";
   } else {
     print "Error: cannot find junit.jar in sys.lib: regress($mod) will probably fail.\n";
   }
 
   if (-e "$classdir/Regress.class") {
-    java("$classdir:$cp","junit.textui.TestRunner Regress");
+    java("$classdir$cpsep$cp","junit.textui.TestRunner Regress");
   } else {
     print "Error: Module $mod has a regress directory, but no compilable Regress.class\n";
   }
@@ -1495,7 +1505,7 @@ sub compile_dir {
   my ($mod, $from, $to, $extrajars) = @_;
   my $cp = get_classpath($mod);
   if ($extrajars) {
-    $cp = "$extrajars:$cp";
+    $cp = "$extrajars$cpsep$cp";
   }
 
   if (-d $from) {		# src exists
@@ -1503,7 +1513,7 @@ sub compile_dir {
 
     my $cp = get_classpath($mod);
     if ($extrajars) {
-      $cp = "$extrajars:$cp";
+      $cp = "$extrajars$cpsep$cp";
     }
 
     # run code generators
@@ -1514,7 +1524,8 @@ sub compile_dir {
     mysystem("find . -name '*.java' -print>$tmpfile");
     my $jc = compiler_command($mod);
     if (-s $tmpfile) {
-      mysystem("$jc -d $to -classpath $cp \@$tmpfile");
+	$mycp = &cpWrap($cp);
+      mysystem("$jc -d $to -classpath $mycp \@$tmpfile");
     } else {
       print "Error: Module $mod $from does not seem to actually have any sources to compile\n";
     }
@@ -1528,7 +1539,8 @@ sub compile_dir {
 	$rf =~ /\.\/(.*)\.java/;
 	$rf=$1;
 	$rf =~ s/\//\./g;
-	mysystem("$rmic_command $rmi_arguments -d $to -classpath $to:$cp $rf");
+	$mycp = &cpWrap("$to$cpsep$cp");
+	mysystem("$rmic_command $rmi_arguments -d $to -classpath $mycp $rf");
       }
     }
 
@@ -1542,6 +1554,7 @@ sub compile_dir {
 
 sub java {
   my ($cp, $args) = @_;
+  $cp = &cpWrap($cp);
   my ($j) = jdkCommand($java_command);
   mysystem("$j -classpath $cp $args");
 }
@@ -1568,6 +1581,23 @@ sub compiler_command {
   return $command;
 }
 
+
+# Win machines sometimes add newline/returns
+sub trimNewLine {
+    my ($str) = @_;
+    $str =~ s/[\n\r]*//g;
+    return $str;
+}
+
+# Quote classpath on win platforms
+sub cpWrap {
+    my ($cp) = @_;
+    if ($cpsep eq ";") {
+	$cp = "\"$cp\"";
+    }
+    return $cp;
+}
+
 sub jdkCommand {
   my ($cmd) = @_;
 
@@ -1583,7 +1613,6 @@ sub absPath {
   my ($arg) = @_;
   return ($arg =~ /^\//);
 }
-
 sub cp {
   my($f, $t) = @_;
   return mysystem("cp $f $t");
