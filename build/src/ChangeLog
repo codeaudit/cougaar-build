@@ -1,3 +1,15 @@
+2003-03-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/MakeContext.java:
+	Add -source 1.4 to javadoc command so that asserts and such can be
+	properly parsed.
+
+	* org/cougaar/tools/build/VersionWriter.java:
+	Compute the package name for Version.java from the source
+	directory rather than the target directory. The latter could be
+	anywhere relative to the "src"; The former should always be
+	correct relative to the "src" directory.
+
 2002-06-14  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/tools/make/MakeContext.java:
