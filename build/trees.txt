@@ -1,0 +1,118 @@
+
+Topics:
+  - CVS tree locations/purpose (and names when determined).
+  - Finished build & log locations.
+  - Distribution tree (.zip file) description.
+  - Cvs tree description (plugins)
+  - Unpacking. 
+  - Disk overlays.
+  - Jar file locations.
+  - Jar file slurping.
+  - Keystore.
+  - Other build related stuff.
+
+
+Three cvs trees:
+~~~~~~~~~~~~~~~~
+  1) eiger.alpine.bbn.com:/cvs/alp/master      core, alpine, tools, utility & tutorial.
+  2) eiger.alpine.bbn.com:/cvs/alp/internal    BBN developed plugins.
+  3) eiger.alpine.bbn.com/cvs/alp/external     Externally developed plugins.
+
+
+
+Tree diagram of expanded distribution, with plugins.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alp-<date>/
+   + bin/                      Startup script directory.
+   + configs/                  Configuration directories. 
+   |  + common/                Configs common to all.
+   |  + minitestconfig/        Configs for minitestconfig.
+   |  + <other dirs>/
+   + doc/                      Documentation
+   |  + ReleaseNotes/          Alp release notes.
+   |  + javadoc/               Released Javadocs.
+   |  |  + core-javadoc.zip    Javdoc for alp core
+   |  |  + alpine-javadoc.zip  Ditto for alpine 
+   |  + ui/                    UI design guides.
+   + lib/                      core.jar, alpine.jar, tools.jar and supporting .jar files.
+   + plugins/
+   |  + <plugin1.jar>          NOTE: currently in lib
+   |  + <plugin2.jar>
+   |  + <pluginN.jar>
+   + src/                      Released sources.
+   |  + core.zip               Source for core.
+   |  + alpine.zip             Ditto for alpine sources.
+   |
+   + <plugin1>/                Substitute with name of plugin.
+   |   + lib/                  Jar files required by specific plugin.
+   |   |                       Copied from had disk overlay.
+   |   + data/                 Data files required by specific plugin.
+   |   |                       Copied from hard disk overlay first,
+   |   |                       then from CVS, if data dirs exist.
+   |   + bin/                  Pre-compiled binaries.
+   |   + .../                  Other dirs in <cvs-path>/<plugin-name>
+   |
+   + <plugin2>/
+   + <pluginN>/
+
+
+Partial tree diagram if eiger:/cvs/alp/master
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   + alpine/
+   |   + bin/
+   |   + configs/
+   |   + data/
+   |   + src/
+   + build/
+   + core/
+   + fgi/
+   + tools/
+   + tutorial/
+
+
+Tree diagram of eiger:/cvs/alp/internal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   + plugin1
+   |   + ChangeLog
+   |   + bin/
+   |   + configs/
+   |   + data/
+   |   + doc/
+   |   + lib/
+   |   + src/
+   |   |  + com/
+   |   |  |  + bbn/
+   |   |  |     + .../
+   |   |  + mil/
+   |   |     + .../
+   |   + other?/  
+   |
+   + plugin2/
+   + pluginN/
+
+
+
+Disk overlays
+~~~~~~~~~~~~~
+location: eiger:/build/dist/alp-overlays-MB6/
+
+.../alp-overlays-MB6/
+      + core           # name
+      |  + lib/
+      |
+      + plugin1/       # name 
+      |  +plugin1/
+      |     + lib/
+      |     + data/
+      |     + bin/
+      |     + .../
+      |
+      + plugin2/
+      |  + plugin2/
+      + pluginN/
+         + pluginN/
+
+What get's overlaid?        Everything below <name>. 
+When does it get overlaid?  After the CVS overlays.
+
+

@@ -1,0 +1,94 @@
+<project name="release" default="dist" basedir=".">
+<!-- release builder: builds entire COUGAAR releases
+parameters:
+	basedir		head of checked-out source/build tree
+
+Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
+
+-->
+<property name="module.xml" value="${basedir}/build/module.xml"/>
+
+<property name="project.classlib" value="${basedir}/dist/lib"/>
+
+<property name="tmpdir" value="${basedir}/tmpdir"/>
+<property name="distdir" value="${basedir}/dist"/>
+
+<target name="init">
+</target>
+
+
+<target name="dist" depends="init">
+  <mkdir dir="${distdir}"/>
+  <mkdir dir="${distdir}/lib"/>
+
+
+  <!-- now dist the modules -->
+  <antcall target="dist.module">
+    <param name="module" value="build"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="javaiopatch"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="core"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="utility"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="alpine"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="tools"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="tutorial"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="server"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="configgen"/>
+  </antcall>
+
+  <!-- touch-ups -->
+
+  <mkdir dir="${distdir}/bin"/>
+  <copy todir="${distdir}/bin">
+    <fileset dir="${distdir}/alpine/bin" />
+  </copy>
+
+  <mkdir dir="${distdir}/configs"/>
+  <copy todir="${distdir}/configs">
+    <fileset dir="${distdir}/alpine/configs" />
+  </copy>
+
+</target>
+
+<target name="dist.module">
+  <!-- requires that ${module} be set -->
+  <ant antfile="${module.xml}" target="dist" dir="${basedir}/${module}">
+    <property name="module.name" value="${module}"/>
+    <property name="codegen.jar" value="${distdir}/lib/build.jar"/>
+  </ant>
+  
+  <copy todir="${distdir}">
+    <fileset dir="${basedir}/${module}/dist"/>
+  </copy>
+</target>
+
+<target name="clean">
+  <!-- Delete the ${tmpdir} and ${dist} directory trees -->
+  <delete dir="${distdir}" />
+</target>
+
+
+</project>

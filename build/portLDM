@@ -1,0 +1,17 @@
+#!/usr/bin/perl -pi.bak
+# -*- Perl -*-
+# Port LDM packages from ALP4.0 to ALP5.0 by replacing old
+# package names with new package name.  portLDM replaces each file
+# on its argument list with the modified version, leaving the old
+# version of each file in a file with ".bak" appended.
+#
+# To run the script (on unix) do the following:
+#   cd your/plugin/source/tree
+#   portLDM `find . -name "*.java" -print`
+# 
+
+s/alp\.measure/alp\.ldm\.measure/g;
+s/alp\.data\.ldm\.properties/alp\.ldm\.asset/g;
+s/alp\.data\.ldm\.assets/alp\.ldm\.asset/g;
+s/alp\.data\.ldm/alp\.ldm/g;
+s/alp\.clusterobject/alp\.ldm\.plan/g;

@@ -1,0 +1,95 @@
+2000-09-22  Michael Thome  <mthome@bbn.com>
+
+	* MeasureWriter
+	Support richer APIs for Measure and Derivative.
+
+2000-09-15  Michael Thome  <mthome@bbn.com>
+
+	* MeasureWriter
+	Support generation of "Derivate denominator" interfaces.  For
+	instance, all derivative measures which are with respect to
+	Duration now implement the Rate interface.
+	Also, changed the "rate=" directive to "derivative=" and did
+	some additional minor cleanup.
+
+2000-09-01  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Add beaninfo support for DataQuality-augmented PGImpls.
+
+2000-08-31  Michael Thome  <mthome@bbn.com>
+
+	* MeasureWriter
+	Fix some Rate measure bugs.
+
+2000-08-17  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Make constructurs of PGImpl public rather than default, including DQ.
+
+2000-08-11  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Fix: support for "void" return value BG methods.
+
+2000-08-03  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Added support for per-PG tracking of DataQuality.  See
+	core/doc/details/DataQuality.txt for details.
+
+2000-08-01  Michael Thome  <mthome@bbn.com>
+
+	* MeasureWriter
+	Add generation of rate constructors that are in terms of
+	base-class values, e.g. Speed(Distance,Duration).
+
+2000-07-31  Michael Thome  <mthome@bbn.com>
+
+	* MeasureWriter
+	Generate more "final" declarations for increased inlining.
+
+	Add derivative/Rate class generation.
+
+2000-07-18  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Allow deprecated properties to propagate correctly.  deprecated
+	directives become just warnings instead of non-functional
+	warnings. 
+
+2000-06-29  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Rework delegation syntax to add support for explicit creation of
+	delegate instances by LDM plugins.  The old behavior may be
+	selected with "foo.auto=true"  
+	See ReleaseNotes/ALP6.4/BehaviorGroups.txt for more info.
+
+2000-05-11  Michael Thome  <mthome@bbn.com>
+
+	* PGWriter
+	Support for delegation syntax and delegated code.  See 
+	ReleaseNotes/ALP6.2/BehaviorGroups.txt
+
+2000-04-20  Michael Thome  <mthome@bbn.com>
+
+	* AssetWriter, PGWriter
+	Support for Null_PGs and Future_PGs.  Lay the groundwork for Late
+	binding support, which needs some more thought anyway.
+
+2000-04-13  Michael Thome  <mthome@bbn.com>
+
+	* AssetWriter
+	Fix problems with search* methods missing local-slot PGs.
+
+2000-03-03  Michael Thome  <mthome@bbn.com>
+
+	* AssetWriter
+	Support top-level package=foo directive to be equivalent to the -P 
+	argument.
+
+	* *Writers
+	Moved to build module and org.cougaar.tools.build package from core to eliminate 
+	non-runtime classes from core and to make it simpler to build
+	non-core packages.

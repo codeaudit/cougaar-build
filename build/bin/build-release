@@ -1,0 +1,32 @@
+#!/bin/csh -f
+
+# head is the branch to (re) branch - normally the HEAD
+set head=HEAD
+# btag is the name of the branch (to create) off of $head
+set btag=ALP_6_6
+# bptag is the first point tag (in the branch)
+set bptag=ALP_6_6_0
+# hptag is the first point tag (in the head)
+set hptag=ALP_6_7_0
+
+# Create point & branch tags...
+# Create point tag along the main line. (6.7.0)
+cvs rtag -r $head $hptag .
+
+# Create a branch at the same place. (6.6)
+cvs rtag -r $hptag -b $btag .
+
+# Create a point tag along the new branch. (6.6.0)
+cvs rtag -r $btag $bptag .
+
+
+# Build em.  You can put these into a script, or cut-n-paste.
+# (They are overly explicit to allow cut-n-paste of a single plugin.)
+
+/usr/local/bin/build-org.cougaar.pl -V -p core      -t $bptag -v $bptag
+/usr/local/bin/build-org.cougaar.pl -V -p utility   -t $bptag -v $bptag -w $bptag-`date +\%Y\%m\%d`
+/usr/local/bin/build-org.cougaar.pl -V -p alpine    -t $bptag -v $bptag -w $bptag-`date +\%Y\%m\%d`
+/usr/local/bin/build-org.cougaar.pl -V -p tools     -t $bptag -v $bptag -w $bptag-`date +\%Y\%m\%d`
+/usr/local/bin/build-org.cougaar.pl -V -p tutorial  -t $bptag -v $bptag -w $bptag-`date +\%Y\%m\%d`
+/usr/local/bin/build-org.cougaar.pl -V -p server    -t $bptag -v $bptag -w $bptag-`date +\%Y\%m\%d`
+

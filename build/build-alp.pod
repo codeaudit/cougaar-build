@@ -1,0 +1,180 @@
+
+=pod
+
+=head1 NAME
+
+build-alp - builds alp core and plugins
+
+
+
+=head1 AUTHOR
+
+Mark Damish
+
+
+
+=head1 VERSION
+
+Initial - March 2000
+
+
+=head1 SYNOPSIS
+
+build-org.cougaar.pl [args]
+
+
+=head1 DESCRIPTION
+
+Build alp core, alpine, or a plugin.
+
+
+=head1 OPTIONS
+
+=over 10
+
+=item -p 
+
+Build name prefix. Sets prefix part of the build name.  ie: PREFIX-version-yyyymmdd.
+Default is 'core'.  The prefix var (BUILD_PREFIX) is used extensavely
+throughout the build script for identify what to check out from cvs, build names,
+jar names, etc...
+
+
+=item -v 
+
+Build name version. Sets version part of build name. ie: prefix-VERSION-yyyymmdd.
+Default is 'HEAD'. (Actually, the default is the CVS tag, which is the head).
+
+
+=item -b
+
+Build name location. The location where BUILD_NAME is created, and where the
+build takes place. Default is '/build/dist/builds'.
+
+
+=item -d
+
+Distribution destination directory. The location where the zip'd distribution
+will be deposited.  Default is '/build/dist/zips'.
+
+
+=item -t 
+
+CVS tag used for sources.  The default is 'HEAD'.
+
+=item -T
+
+CVS tag used for build scripts. The default is the same as the -t tag.
+
+=item -r
+
+CVS root.  The default is '/alp/cvs/master'.
+
+
+=item -w
+
+Build with (this build). Not intuitive. Specify a fragment
+of a build name, and this build will try and use jar files
+from the build specified by -w.  ie: -w HEAD-20000302 will
+try and use jar files from core-HEAD-20000302 and
+alpine-HEAD-20000302.  This is used for building 3rd party
+plugins against existing builds. Currently, on jar files
+in the 'lib' directory are searched for.
+ In the future, it might be possible to specifiy only
+the BUILD_VERSION portion, with todays date as the default.
+
+
+=item -W
+
+Build with path.  A ':' delimited path to directories
+containing jar files. ie:  /tmp/jardir:/build/dist/morejars.
+This is a mechanism for adding a hardcoded path to directories
+containing jar files. ALL of the jar files within the directory
+will be picked up.
+
+
+=item -i
+
+Interactive. Don't create log, check for errors, or send mail.
+Used mainly for debugging, and silent builds.
+
+
+=item -s
+
+Skip CVS checkout, and directory tree creation. Used for restarting
+a build. Mainly for debugging purposes.
+
+
+=item -S
+
+Skip the recursive build process. Don't build anything.  Used for
+debugging, along with the -s flag, portions of the build script
+that occur after the lengthy build process.
+
+
+=item -V
+
+Add some verbocity to the messages. Not implemented yet.
+
+
+=item -h
+
+Print some help.
+
+
+=back
+
+
+
+
+=head1 EXAMPLES
+
+=over 10
+
+=item 'build-org.cougaar.pl'
+
+Builds 'core-HEAD-todaysdate' with all of the defaults.
+
+
+=item 'build-org.cougaar.pl -v alpine -w HEAD-20000302'
+
+Builds 'alpine-HEAD-todaysdate'. Uses jar files from core-HEAD-20000302.
+
+
+=item 'build-org.cougaar.pl -v plugin -w HEAD-20000301'
+
+Builds 'plugin-HEAD-todaysdate'. Uses jar files from core-HEAD-20000302
+and alpine-HEAD-20000302.
+
+
+=item 'build-org.cougaar.pl -W /tmp/jars:/top/morejars'
+
+Builds with defaults. Adds two directories to be searched for jar files.
+
+
+=item 'build-org.cougaar.pl -v MB60_Candidate1 -t MB60_Candidate1' 
+
+Build core-MB60_Candidate1-yyyymmdd. User CVS tag MB60_Candidate1.
+Specifying the tag should also change the version. I find this
+more readable.
+
+
+=back
+
+
+
+
+=head1 BUGS
+
+=over 10
+
+=item javadoc
+
+The package 'alp' breaks javadoc, even though it is a legit package
+with the versioning tools.  It is removed from the automatically
+generated list of packages fed to javadoc.
+
+=back
+
+
+=cut

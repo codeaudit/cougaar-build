@@ -1,0 +1,37 @@
+
+
+Usage: 
+prompt> cd dir/with/AlpMake ; ./AlpMake-wrapper.sh /path/to/src /path/to/dest
+
+AlpMake is a facility for compiling a tree of java files, without
+specific knowledge of the tree.  Basically, it traverses the tree
+of files, and writes a UNIX shell script, as well as a .bat file,
+which will then compile the files.  AlpMake is called from the
+appropriate wrapper file, which sets up the environment, compiles
+AlpMake, and then executes its output.
+
+The files:  ( cvs co alp-build ; cd build/AlpMake )
+
+AlpMake-wrapper.bat  -- The Win/NT wrapper file.
+AlpMake-wrapper.sh   -- The UNIX wrapper file.
+AlpMake.java         -- Main
+MainFrame.java       -- Gui
+MakeHelper.java      -- Work
+README               -- This file.
+
+
+AlpMake-wrapper.* should contain the correct environment for compiling
+the tree, and takes two arguments:
+1) Path to the source tree.
+2) Path to the destination. (Class destination dir)
+
+AlpMake is being tested in the nightly builds.
+
+
+
+
+
+
+
+
+

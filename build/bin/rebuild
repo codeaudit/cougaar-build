@@ -1,0 +1,7 @@
+#!/bin/sh
+
+alpc build/src
+alpc core/src
+alpc utility/src
+alpc alpine/src
+alpc tools/src
