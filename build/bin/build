@@ -158,6 +158,17 @@ EOF
 %moduleDone;			# has a given module been built?
 @depstack;			# stack of module dependencies being considered.
 
+# signal handling
+sub sighandler {
+  local($sig) = @_;
+  print "Caught a SIG$sig--shutting down\n";
+  exit(0);
+}
+$SIG{INT} = \&handler;
+$SIG{QUIT} = \&handler;
+
+# lets get on with it
+
 %opts;
 parse_args();
 if (-e $opt_file) {
