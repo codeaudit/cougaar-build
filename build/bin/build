@@ -1003,7 +1003,7 @@ sub javadoc {
     }
   }
   close(LIST);
-  my $pkgs = join(" ", keys %pmap);
+  my $pkgs = join(" ", sort keys %pmap);
   my $cp = cpWrap(get_classpath($mod));
   $ENV{CLASSPATH} = $cp;
   my($jdoptions) = opt("javadoc.options");
