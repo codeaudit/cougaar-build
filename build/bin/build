@@ -755,15 +755,23 @@ sub build_module {
   {
     my @ccp = split(/$cpsep/,get_classpath($mod));
     my @pccp;
+    my @apccp;
     foreach $_ (@ccp) {
       next if ($_ eq ".");	# skip cwd
-      s/$java_home/\$\{java.home\}/;
+      # java.home is absolute, so it can't go in same path!
+      if (/$java_home/) {
+	  s/$java_home/\$\{java.home\}/;
+	  push @apccp, $_;
+	  next;
+      }
       s/$libdir/\$\{target.lib\}/;
       s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
       s/$syslib/\$\{target.sys\}/;
       push @pccp, $_;
     }
     sopt($mod, "compile.jarlist", join(",",@pccp));
+    # Is cpsep really the right separator? Will this work cross-platform?
+    sopt($mod, "compile.abs.jarlist", join("$cpsep",@apccp));
   }
 
   # Generate run.jarlist variable for substitution in moduleTemplate.xml
@@ -771,16 +779,27 @@ sub build_module {
   {
     my @ccp = split(/$cpsep/,get_classpath($mod,1)); # Include .extras too
     my @pccp;
+    my @apccp;
     foreach $_ (@ccp) {
       next if ($_ eq ".");	# skip cwd
-      s/$java_home/\$\{java.home\}/;
+      # java.home is absolute, so can't go in same path!
+      if (/$java_home/) {
+	  s/$java_home/\$\{java.home\}/;
+	  push @apccp, $_;
+	  next;
+      }
       s/$libdir/\$\{target.lib\}/;
       s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
       s/$syslib/\$\{target.sys\}/;
       push @pccp, $_;
     }
     sopt($mod, "run.jarlist", join(",",@pccp));
+    # Is cpsep really the right separator? Will this work cross-platform?
+    sopt($mod, "run.abs.jarlist", join("$cpsep",@apccp));
   }
+
+  # Get the Javadoc packages set up now...
+  get_javadoc_packages($mod, "$mysrc");
 
   generateAntRecipe($mod);
 
@@ -1221,9 +1240,9 @@ sub add_dist {
   print "Done adding to dist package\n" if $verbose;
 }
 
-
-sub javadoc {
-  local($mod, $src,$dst) = @_;
+# Get the packages to be javadoc'ed
+sub get_javadoc_packages {
+  local($mod, $src) = @_;
   my %pmap;
   chdir "$src";
   # find all the directories with packages and convert 
@@ -1238,6 +1257,20 @@ sub javadoc {
     }
   }
   close(LIST);
+
+  # remember packages for ant
+  if (gopt($mod, "javadoc.packages") eq "") {
+    sopt($mod,"javadoc.packages", join(",", sort keys %pmap));
+  }
+
+  return %pmap;
+}
+
+sub javadoc {
+  local($mod, $src,$dst) = @_;
+  my %pmap = get_javadoc_packages($mod, $src);
+
+  chdir $src;
 
   #my $cp = cpWrap(get_classpath($mod)); # cpWrap not necc when using env vars
   my $cp = get_classpath($mod);
@@ -1279,11 +1312,6 @@ sub javadoc {
   }
 
   close(ARG);
-
-  # remember packages for ant
-  if (gopt($mod, "javadoc.packages") eq "") {
-    sopt($mod,"javadoc.packages", join(",", sort keys %pmap));
-  }
 
   my $javadoc_arguments = gopt($mod, "javadoc.arguments");
   $lineargs .= " $javadoc_arguments" if $javadoc_arguments;
