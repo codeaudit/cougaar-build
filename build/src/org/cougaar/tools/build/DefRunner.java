@@ -41,12 +41,7 @@ public class DefRunner {
     List nargs = new ArrayList();
     for (int i = 1; i<l; i++) {
       String a = (String) argx.get(i);
-      // hack for old-style compatability
-      if (defile.endsWith(a)) {
-        System.err.println(defile+": skipping redundant arg "+a);
-      } else {
-        nargs.add(a);
-      }
+      nargs.add(a);
     }
     nargs.add(defile);          // last argument is always the def file
 
