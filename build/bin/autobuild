@@ -105,7 +105,10 @@ $SIG{QUIT} = 'sighandler';
 $tmpdir = "$tmp/$auto-build.$$";
 mysystem("rm -rf $tmpdir");
 mkd($tmpdir);
-mysystem("cd $tmpdir ; cvs -Q export -D now build/bin build/data");
+{
+  my($rarg) = "-r $tag" if (! ($tag eq "HEAD"));
+  mysystem("cd $tmpdir ; cvs -Q export $rarg -D now build/bin build/data");
+}
 $basedir = "$tmpdir/build";
 
 # this is where build will build into
@@ -128,7 +131,7 @@ mysystem("rm -rf $builddir");
 
 # start a fresh build
 $rarg = "";
-$rarg = "-r $tag" if (! ($tar eq "HEAD"));
+$rarg = "-r $tag" if (! ($tag eq "HEAD"));
 mysystem("$buildscript -v $rarg -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$auto.out");
 
 # what did we build?
