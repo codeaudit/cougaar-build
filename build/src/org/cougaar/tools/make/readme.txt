@@ -16,10 +16,10 @@ Targets
 
 All targets are of the form: <module>.<target> The special module
 "all" denotes a target for all modules. For example if the modules are
-named core, glm, and toolkit, the the all.compile target is equivalent
-to core.compile glm.compile toolkit.compile. The list of modules is
-constructed automatically by finding all subdirectories of the project
-directory that have a src subdirectory.
+named core, glm, and toolkit, then the all.compile target is
+equivalent to core.compile glm.compile toolkit.compile. The list of
+modules is constructed automatically by finding all subdirectories of
+the project directory that have a src subdirectory.
 
 The current targets are:
 
@@ -30,11 +30,20 @@ compileDir     -- compiles all the sources in the current directory
 compileAll     -- compiles all the sources in and under the current
                   directory
 compile        -- compiles all the sources in the module
+recompile      -- composite of cleanGenCode, cleanClassFiles, and
+                  compile
 compileGenCode -- compiles all generated code in the module
-clean          -- deletes all generated and compiled files
+clean          -- removes all files in tmpdir
+cleanDir       -- removes all the classFiles for the current directory
+cleanAll       -- removes all the classFiles in and under the cwd
+cleanGenCode   -- deletes all the generated files
+cleanClassFiles-- deletes all the class files
 generateCode   -- generates code from all the .def files of the module
 jar            -- jars all the class files into a jar file in the
                   project lib directory
+tags           -- makes a TAGS file using etags of all the source and
+                  generated code for the module.
+projectTags    -- makes all.tags and the project tags file
 
 Targets marked with * are used internally and there is no reason for
 them to be used by a user.
@@ -79,7 +88,7 @@ org.cougaar.tools.make.default.target
        line. The default default target is compileDir -- compile all
        the files in the current directory.
 
-Prequisites
+Prerequisites
 
 Compilation and code generation in any module may require some other
 module to be compiled first. Default prerequisites are created by
