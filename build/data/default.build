@@ -178,7 +178,7 @@ core.jars = log4j, servlet, concurrent
 core.repository = :ext:cougaar.org:/cvsroot/core
 
 # mtsstd
-mtsstd.deps = core, util
+mtsstd.deps = core, util, webserver
 mtsstd.jars = log4j, servlet
 mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
 
