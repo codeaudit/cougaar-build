@@ -162,7 +162,7 @@ sub process {
 	$std = 1;
 	$parsing = 0;
 	local($rv,$cv)=parse_oldcr($crp);
-	print STDERR "$file: $rv $cv\n";
+	#print STDERR "$file: $rv $cv\n";
 	print OUT "$lead$tag0$trail\n";
 	foreach $rl (@stdlines) {
 	  my $l = $rl;
