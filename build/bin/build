@@ -408,6 +408,9 @@ mkd $srcdir;
 # libdir is where we store built jars
 $libdir = "$build_dir/lib";
 mkd $libdir;
+# libdir is where we store compile-time built jars
+$clibdir = "$build_dir/clib";
+mkd $clibdir;
 # distdir is where we put end products
 $distdir = "$build_dir/dist";
 mkd $distdir;
@@ -645,7 +648,9 @@ sub build_module_src {
     if (compile_dir($mod, $mysrc, $tmplib, $extrajars) && (! $nojar)) {
       print "Preparing jar for $jname\n" if $verbose;
       chdir ($tmplib);
-      jar("$product/$jname runtime", $tmplib, $libdir, $jname, "$mysrc/manifest.mf");
+      my ($foodir) = $libdir;
+      $foodir = $clibdir if (opt("$mod.compiletime"));
+      jar("$product/$jname runtime", $tmplib, $foodir, $jname, "$mysrc/manifest.mf");
       $builtjar = 1;
     }
     if ($junit_p) {
@@ -678,7 +683,9 @@ sub build_module_main {
   if (-d $mysrc) {
     my $builtjar = &build_module_src($mod,$mysrc,$jname);
     if ($builtjar) {
-      my $extrajars = "$libdir/$jname.jar";
+      my ($foodir) = $libdir;
+      $foodir = $clibdir if (opt("$mod.compiletime"));
+      my $extrajars = "$foodir/$jname.jar";
 
       {
 	my $myex = &compute_path($mypath, "examples", $pext);
@@ -712,7 +719,7 @@ sub build_module_main {
       }
 
       # sign only after doing examples and regress
-      sign_jar("$libdir/$jname.jar", $mod) if ($builtjar);
+      sign_jar("$foodir/$jname.jar", $mod) if ($builtjar);
     } else {
       print "Error: Failed to compile $jname\n";
     }
@@ -825,7 +832,6 @@ sub build_module {
   return 1;
 }
 
-
 # try to find exactly the set of jars needed based on dependencies, etc
 # if second arg!=0, will include .extras
 sub get_classpath {
@@ -843,9 +849,6 @@ sub get_classpath {
   # add tools
   # (we've checked tools.jar into jars, eliminating this particular problem)
   my @tooljars;
-  #if (-e "$java_home/lib/tools.jar") {
-  #  @tooljars = ("$java_home/lib/tools.jar");
-  #}
   #put them together - module jars never take precedence
   my @alljars = (@buildjars, @sysjars, @libjars, @tooljars);
 
@@ -1002,7 +1005,7 @@ sub rundef {
     if ($skip || $checkoutP) {
       $dargs .= " -Drepository.modified=true";
     }
-    $rc = java("$libdir/build.jar$cpsep$cp", "$dargs $class $args $path");
+    $rc = java("$clibdir/build.jar$cpsep$cp", "$dargs $class $args $path");
   }
   close(DEF);
   return $rc;
@@ -1157,6 +1160,8 @@ sub build_runtime {
   mkd $tmpdir;
   my $tl = "$tmpdir/lib";
   mkd $tl;
+  my $tcl = "$tmpdir/clib";
+  mkd $tcl;
   foreach $mod (@modules) {
     # skip standalone modules
     my $standalone_p = opt("${mod}.standalone");
@@ -1165,9 +1170,16 @@ sub build_runtime {
       next;
     }
 
-    print "Adding $mod runtime\n" if $verbose;
-    if (-e "$build_dir/lib/$mod.jar") {
-      cp("$build_dir/lib/$mod.jar", "$tl");
+    if (opt("$mod.compiletime")) {
+      print "Adding $mod compiletime\n" if $verbose;
+      if (-e "$build_dir/clib/$mod.jar") {
+	cp("$build_dir/clib/$mod.jar", "$tl");
+      }
+    } else {
+      print "Adding $mod runtime\n" if $verbose;
+      if (-e "$build_dir/lib/$mod.jar") {
+	cp("$build_dir/lib/$mod.jar", "$tl");
+      }
     }
     my $moddir = "$srcdir/$mod";
     chdir $moddir;
@@ -1336,13 +1348,13 @@ sub javadoc {
     my(@jddoclets) = gopt($mod, "javadoc.doclets");
     my(@jdtaglets) = gopt($mod, "javadoc.taglets");
     if ($#jddoclets>=0) {
-      print ARG "-docletpath $libdir/build.jar\n";
+      print ARG "-docletpath $clibdir/build.jar\n";
       foreach $doclet (@jddoclets) {
 	print ARG "-doclet $doclet\n";
       }
     }
     if ($#jdtaglets>=0) {
-      print ARG "-tagletpath $libdir/build.jar\n";
+      print ARG "-tagletpath $clibdir/build.jar\n";
       foreach $taglet (@jdtaglets) {
 	print ARG "-taglet $taglet\n";
       }
@@ -2241,7 +2253,7 @@ sub generateModuleAntRecipe {
       print STDERR "\nDeclining to overwrite javadoc.packages for $mod\n";
     }
   }
-
+  sopt($mod, "install.dir", opt("$mod.compiletime")?"clib":"lib");
 
   my $template = "$srcdir/build/data/moduleTemplate.xml";
   my $recipe = "$srcdir/$mod/build.xml";

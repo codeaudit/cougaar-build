@@ -145,8 +145,10 @@ javaiopatch.javadoc = 0
 # build tools requires the jdk tools jars
 build.jars = tools
 # include junit.jar in dist, even though it is only needed for
-# build/release
+# build/release.
 build.extras = junit
+# compiletime means that it is installed as clib rather than lib
+build.compiletime = 1
 
 # bootstrap
 bootstrap.keystore.alias = bootstrapper
