@@ -12,14 +12,24 @@ product.name=cougaar
 sys.lib=/home/mthome/.lib/build.jars
 build.root=/tmp/V82
 
-modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine,base
+modules=\
+	build,javaiopatch,core,contract,toolkit,planserver, \
+	glm,scalability,server,aggagent,\
+	vishnu,tops,delta,blackjack,uiframework,Marine,\	# plugins
+	base
+
+# modules which are public - that is, fully released
+modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
+	glm,scalability,server,aggagent,uiframework,base
+
+# modules which contribute to unified api (javadoc)
+modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent
 
 ##
 ## module-specific flags
 ##
 
 #uiframework.javac=javac
-
 
 # module deps
 #bogon
@@ -53,7 +63,8 @@ blackjack.jars = xerces,jcchart451K,jsdk
 uiframework.jars = xerces,cuimap,j2ee,vgj,xerces
 Marine.jars = xerces
 
-#extra libs - e.g. for runtime
+#extra libs to include in distribution
+# for example jdbc drivers for use at runtime
 glm.extras = oracle12
 tops.extras = mm-mysql-2
 
@@ -63,31 +74,9 @@ delta.repository = internal
 blackjack.repository = internal
 vishnu.repository = internal
 Marine.repository = internal
-# don't supply sources/docs/etc for some modules
-tops.internal = true
-delta.internal = true
-blackjack.internal = true
-vishnu.internal = true
-Marine.internal = true
-ULLS.internal = true
-
-
-#
-#
-
-# unified build
-core.unified = 1
-toolkit.unified = 1
-contract.unified = 1
-planserver.unified = 1
-glm.unified = 1
-scalability.unified = 1
-server.unified = 1
-aggagent.unified = 1
 
 # runtime specs. Runtime always gets built libs, too.
 core.runtime = doc
-#glm.runtime = bin,configs
 base.runtime = bin,configs
 
 
