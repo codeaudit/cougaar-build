@@ -251,7 +251,7 @@ bol.jars = servlet,hsql,jess50
 
 # mic
 mic.repository = external
-mic.deps = core,glm,planserver
+mic.deps = core,util,glm,planserver
 mic.jars = log4j,xerces
 
 # dbms module
