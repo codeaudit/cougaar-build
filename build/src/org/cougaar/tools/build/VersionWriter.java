@@ -88,7 +88,7 @@ public class VersionWriter extends WriterBase {
       println(out);
 
       // Make package match getTargetDir()
-      println(out,"package " + getPackageFromDir(getTargetDir()) + ";");
+      println(out,"package " + getPackageFromDir(getSourceDir()) + ";");
       if (version == null) version = "unknown";
       String rtag = System.getProperty("repository.tag");
       String rdate = System.getProperty("repository.time");
