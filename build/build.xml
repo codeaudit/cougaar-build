@@ -1,8 +1,11 @@
-<project name="core" default="compile" basedir=".">
-
+<project name="build" default="compile">
 <property name="build.xml" value="${basedir}/build/build_common.xml"/>
 <property name="module" value="build"/>
 <property name="codegen.disable" value="true"/>
+
+<target name="build.files">
+  <ant antfile="${build.xml}" target="build.files"/>
+</target>
 
 <target name="compile">
   <ant antfile="${build.xml}" target="compile"/>
@@ -14,6 +17,14 @@
 
 <target name="clean">
   <ant antfile="${build.xml}" target="clean"/>
+</target>
+
+<target name="extraclean">
+  <ant antfile="${build.xml}" target="extraclean"/>
+</target>
+
+<target name="tags">
+  <ant antfile="${build.xml}" target="tags"/>
 </target>
 
 <target name="compile.all">
@@ -28,4 +39,11 @@
   <ant antfile="${build.xml}" target="clean.all"/>
 </target>
 
+<target name="extraclean.all">
+  <ant antfile="${build.xml}" target="extraclean.all"/>
+</target>
+
+<target name="tags.all">
+  <ant antfile="${build.xml}" target="tags.all"/>
+</target>
 </project>
