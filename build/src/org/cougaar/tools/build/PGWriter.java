@@ -326,23 +326,23 @@ public class PGWriter extends WriterBase {
 
       println(out,"  // introspection and construction");
       println(out,"  /** the method of factoryClass that creates this type **/");
-      println(out,"  public static final String factoryMethod = \"new"+className+"\";");
+      println(out,"  String factoryMethod = \"new"+className+"\";");
       println(out,"  /** the (mutable) class type returned by factoryMethod **/");
-      println(out,"  public static final String mutableClass = \""+
+      println(out,"  String mutableClass = \""+
                   findPackage(context)+".New"+className+"\";");
       println(out,"  /** the factory class **/");
-      println(out,"  public static final Class factoryClass = "+findPackage("global")+".PropertyGroupFactory.class;");
+      println(out,"  Class factoryClass = "+findPackage("global")+".PropertyGroupFactory.class;");
 
       println(out,"  /** the (immutable) class type returned by domain factory **/");
-      println(out,"  public static final Class primaryClass = "+
+      println(out,"   Class primaryClass = "+
                   findPackage(context)+"."+className+".class;");
 
-      println(out,"  public static final String assetSetter = \"set"+
+      println(out,"  String assetSetter = \"set"+
                   className+"\";");
-      println(out,"  public static final String assetGetter = \"get"+
+      println(out,"  String assetGetter = \"get"+
                   className+"\";");
       println(out,"  /** The Null instance for indicating that the PG definitely has no value **/");
-      println(out,"  public static final "+className+" nullPG = new Null_"+className+"();");
+      println(out,"  "+className+" nullPG = new Null_"+className+"();");
       writeNullClass(out, context, className);
       writeFutureClass(out, context, className);
       println(out,"}");
@@ -352,7 +352,7 @@ public class PGWriter extends WriterBase {
       println(out);
       // null class implementation
       println(out,"/** Null_PG implementation for "+className+" **/");
-      println(out,"static final class Null_"+className+"\n"+
+      println(out,"final class Null_"+className+"\n"+
                   "  implements "+className+", Null_PG\n"+
                   "{");
 
@@ -461,7 +461,7 @@ public class PGWriter extends WriterBase {
       println(out);
       // null class implementation
       println(out,"/** Future PG implementation for "+className+" **/");
-      println(out,"public final static class Future\n"+
+      println(out,"final class Future\n"+
                   "  implements "+className+", Future_PG\n"+
                   "{");
       // declare the slots
@@ -682,8 +682,8 @@ public class PGWriter extends WriterBase {
             String autop = (String)p.get(context, dv.name+".auto");
             // if it isn't automatic, define the setter and getter
             if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
-              println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"();");
-              println(out,"  public void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+");");
+              println(out,"  "+dv.type+" get"+toClassName(dv.name)+"();");
+              println(out,"  void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+");");
             }
             
           }
@@ -815,7 +815,7 @@ public class PGWriter extends WriterBase {
           }
         }
       }
-      println(out,"  };");
+      println(out,"  }");
       println(out);
       
       boolean timephased = isTimePhased(context);
@@ -1454,7 +1454,7 @@ public class PGWriter extends WriterBase {
           }
         }
         println(out,"    } catch (Exception e) { System.err.println(\"Caught: \"+e); e.printStackTrace(); }");
-        println(out,"  };");
+        println(out,"  }");
       }
       println(out);
       println(out,"  public PropertyDescriptor[] getPropertyDescriptors() {");
