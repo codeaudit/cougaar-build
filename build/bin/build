@@ -274,6 +274,9 @@ print "Output is in $errout\n" if $verbose;
 # build unified javadoc
 &build_javadoc("unified", "$product-api") if (!$nodoc);
 
+# add any dist extras
+&add_dist;
+
 # find and report on errors/warnings
 &find_errors();
 
@@ -698,6 +701,30 @@ sub build_javadoc {
   mysystem("rm -rf $tmpdir");
   print "Done building javadoc for $mod\n" if $verbose;
 }
+
+sub add_dist {
+  my $mod;
+  print "\nCompleting dist package\n" if $verbose;
+  foreach $mod (@modules) {
+    my $dusts = opt("$mod.dist");
+    if ($dusts) {
+      my $moddir = "$srcdir/$mod";
+      chdir $moddir;
+      my @dust = split(/\s*,\s*/, $dusts);
+      foreach $dust (@dust) {
+	my $d = $moddir;
+	my $f = $dust;
+	if ($dust =~ /(.*)\/([^\/]*)/) {
+	  $d = "$moddir/$1";
+	  $f = $2;
+	}
+	mysystem("(cd $d; tar cf - $f) | (cd $distdir; tar xf -)");
+      }
+    }
+  }
+  print "Done adding to dist package\n" if $verbose;
+}
+
 
 sub javadoc {
   local($mod, $src,$dst) = @_;
