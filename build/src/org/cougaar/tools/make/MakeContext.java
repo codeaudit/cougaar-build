@@ -72,8 +72,8 @@ public class MakeContext {
     private File[] theModuleRoots;
     private Targets theTargets = new Targets(this);
     private final String[] JAVA  = {"java"};
-    private final String[] JAVAC = {"javac"};
-    private final String[] JIKES = {"jikes", "+D"};
+    private final String[] JAVAC = {"javac", "-g"};
+    private final String[] JIKES = {"jikes", "+D", "-g"};
     private final String[] RMIC  = {"rmic"};
     private final String[] ETAGS = {"etags",
                                     "-r",
