@@ -145,17 +145,25 @@
     <!-- These properties are filled out by the autobuilder -->
     
     <!-- jarfiles required by this module, relative to various other paths -->
+    <!-- WARNING: Only relative paths work here. -->
     <property name="compile.jarlist" value="%{compile.jarlist}"/>
+    <!-- Put absolute paths on this list, in the form of a path. -->
+    <property name="compile.abs.jarlist" value="%{compile.abs.jarlist}"/>
+
     <!-- javadoc package spec for building javadocs -->
     <property name="javadoc.packages" value="%{javadoc.packages}"/>
     <!-- Extra jars needed at run / unit-test time. -->
+    <!-- WARNING: Only relative paths work here. -->
     <property name="run.jarlist" value="%{run.jarlist}"/>
+    <!-- Put absolute paths on this list, in the form of a path. -->
+    <property name="run.abs.jarlist" value="%{run.abs.jarlist}"/>
     
     <!-- ================ Classpaths ================ -->
 
     <!-- What are the dependencies of this module at compile time -->
     <path id="compile.classpath">
       <filelist dir="${target.lib}" files="${compile.jarlist}"/>
+      <pathelement path="${compile.abs.jarlist}"/>
     </path>
     
     <!-- Build up classpath for junit.jar and classes when running tests -->
@@ -163,9 +171,18 @@
       <path location="${build}" />
       <path location="${testbuild}" />
       <filelist dir="${target.lib}" files="${run.jarlist}"/>
+      <pathelement path="${run.abs.jarlist}"/>
       <!-- junit.jar always comes from sys directory -->
       <path location="${target.sys}/junit.jar"/>
     </path> 
+
+    <!-- Define path for doing javadoc: Basically, the runtime path -->
+    <path id="javadoc.path">
+      <path location="${build}" />
+      <path location="${testbuild}" />
+      <filelist dir="${target.lib}" files="${run.jarlist}"/>
+      <pathelement path="${run.abs.jarlist}"/>
+    </path>
 
     <!-- Define paths for doing codegen stuff -->
     <path id="codegen.path">
@@ -466,7 +483,7 @@
 	       windowtitle="${moduleUp} API"
 	       doctitle="${moduleUp} API"
 	       bottom="Copyright &#169; 2002 by BBNT Solutions LLC, all rights reserved.">
-	<classpath refid="compile.classpath" />
+	<classpath refid="javadoc.path" />
       </javadoc>
     </target>
 
