@@ -191,42 +191,56 @@ class ParameterListWriter extends HtmlStandardWriter {
     public Tag tag;
     public String param = null;
     public String text = null;
+    public final static String white = " \t\n\r"; // whitespace chars
     public Tuple(Doc doc, Tag tag) {
       this.doc = doc; 
       this.tag = tag;
 
-      // this is a huge crock.  We'd be better off with a real parser.
-      StringReader sr = new StringReader(tag.text());
-      StreamTokenizer st = new StreamTokenizer(sr);
-      int t;
+      String tt = tag.text();
+      int i;
+      int l = tt.length();
+      int state =0;             // what are we looking for?
+      int p0=-1,p1=-1,t0=-1;
 
-      try {
-        if ((t = st.nextToken()) == StreamTokenizer.TT_WORD) {
-          param = st.sval;
-
-          StringBuffer sb = null;
-          while ((t = st.nextToken()) != StreamTokenizer.TT_EOF) {
-            if (sb == null) {
-              sb = new StringBuffer();
-            } else {
-              sb.append(" ");
-            }
-
-            if (t == StreamTokenizer.TT_WORD) {
-              sb.append(st.sval);
-            } 
-            // other tokens are ignored and we aren't parsing numbers.
+      // scan the tag text
+      for (i=0;i<l;i++) {
+        char c = tt.charAt(i);
+        boolean isWhite = (white.indexOf(c)>=0);
+        switch (state) {
+        case 0:                 // looking for param start
+          if (!isWhite) {
+            p0=i;
+            state=1;
           }
-          if (sb != null) text = sb.toString();
-        } else {
+          break;
+        case 1:                 // looking for param end
+          if (isWhite) {
+            p1 = i;
+            state=2;
+          }
+          break;
+        case 2:                 // looking for text start
+          if (!isWhite) {
+            t0 = i;
+            state=3;
+          }
+          break;
+        default:                // shouldn't get here
+          Standard.configuration().standardmessage.
+            error("doclet.parameter_syntax_error", 
+                  "StateError: "+doc.toString());
+          break;
+        }
+        if (state==3) break;
+      }
+
+      if (t0>=0) {
+        param = tt.substring(p0,p1);
+        text = tt.substring(t0);
+      } else {
           Standard.configuration().standardmessage.
             error("doclet.parameter_syntax_error", 
                   doc.toString());
-        }
-      } catch (IOException ioe) {
-        Standard.configuration().standardmessage.
-          error("doclet.exception_encountered",
-                ioe.toString(), PARAMETERFILE);
       }
     }
 
