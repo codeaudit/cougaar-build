@@ -92,7 +92,9 @@ public class MakeContext {
         ".props",
         ".gif",
         ".jpg",
-        ".png"
+        ".png",
+        ".html",
+        ".htm"
     };
     private Set madeTargets = new HashSet();
 
