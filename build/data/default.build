@@ -247,7 +247,7 @@ csmart.repository = :ext:cougaar.org:/cvsroot/csmart
 csmart.PrettyName = CSMART
 
 # quo/qos
-qos.deps = core,util
+qos.deps = core,util,mtsstd
 qos.jars = quoSumo
 # Moved to Cougaarforge
 qos.repository = :ext:cougaar.org:/cvsroot/qos
