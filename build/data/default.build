@@ -111,7 +111,7 @@ modules.unified = build,bootstrap,util,core,\
 	contract,toolkit,planserver,\
 	glm,scalability,aggagent,\
 	uiframework, server, manager, community,\
-	webserver,server
+	webserver,server,datagrabber
 
 ##
 ## module-specific flags
@@ -290,6 +290,11 @@ datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 datagrabber.deps = core,glm,toolkit,planserver,util,albbn
 datagrabber.jars = xerces,chart,openmap,servlet
 
+# AL stoplight
+#stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
+stoplight.deps = core,glm,toolkit,planserver,util,albbn,aggagent,uiframework
+stoplight.jars = xerces,servlet
 
 #
 # distribution settings
