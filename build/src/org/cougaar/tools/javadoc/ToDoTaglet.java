@@ -28,7 +28,6 @@ import com.sun.tools.doclets.Taglet;
  * </td></tr></table></DD>
 * </DL>
 *
- * @author Jamie Ho
  * @since 1.4
  */
 
