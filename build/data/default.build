@@ -169,8 +169,6 @@ yp.jars = uddi4j, juddi, hsqldb
 planning.deps = util, core
 planning.jars = xerces, servlet
 
-# app server, no dependencies
-
 # contract
 contract.deps = util
 contract.jars = xerces
