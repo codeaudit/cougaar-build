@@ -127,7 +127,7 @@ blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
-csmart.jars = xerces,jcchart451K,grappa1_2_bbn
+csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit
 qos.jars = QuoKernel
 deltaeport.jars = jsdk,jbcl,xmlparserv2,oracle12
 
