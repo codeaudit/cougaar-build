@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 1997-2002 BBNT Solutions, LLC
+ *  Copyright 1997-2003 BBNT Solutions, LLC
  *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
  * 
  *  This program is free software; you can redistribute it and/or modify
@@ -117,7 +117,7 @@ public class WriterBase {
   protected final static void writeCR(PrintWriter out, String source) {
     println(out,"/*\n"+
                 " * <copyright>\n"+
-                " *  Copyright 1997-2002 BBNT Solutions, LLC\n"+
+                " *  Copyright 1997-2003 BBNT Solutions, LLC\n"+
                 " *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).\n"+
                 " * \n"+
                 " *  This program is free software; you can redistribute it and/or modify\n"+

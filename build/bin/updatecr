@@ -5,7 +5,7 @@
 # any copyright notices it finds which conform to a standard format:
 
 # <copyright>
-#  Copyright 1969-2001 BBNT Solutions, LLC
+#  Copyright 1969-2003 BBNT Solutions, LLC
 #  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
 # 
 #  This program is free software; you can redistribute it and/or modify
@@ -61,6 +61,11 @@ $tag0 = "<copyright>";
 $tag1 = "</copyright>";
 $crx = "copyright";
 
+# uncomment this line to simulate an update
+#$pretend = 1;
+# uncomment this line to output a diff to cr.patch
+$dopatch = 1;
+
 $bbn_company = "BBNT Solutions, LLC";
 $default_company = $bbn_company;
 
@@ -76,10 +81,14 @@ $added = 0;
 ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 $yyyy = $year+1900;
 
+select STDERR; $| - 1;
+
 open(STANDARD, ">/tmp/cr-standard");
 open(NONSTANDARD, ">/tmp/cr-nonstandard");
 open(MISSING, ">/tmp/cr-missing");
 open(FIXED, ">/tmp/cr-added");
+
+unlink "/tmp/cr.patch" if ($dopatch);
 
 while (<>) {
   chop;
@@ -90,14 +99,17 @@ while (<>) {
       /\.gif/i ||
       /\.jpg/i ||
       /\.cgm/i ||
+      /\.xml/i ||		# some of these actually are ok to do
       /\.png/i ||
       /\.tar/i ||
       /\.gen/i ||
+      /\.doc/i ||
       /\.index/i ||
       /\.rmic/i ||
       /ChangeLog/ ||
       /CHANGES/ ||
-      /\.exe/i
+      /\.exe/i ||
+      /\.dll/i
      ) {
     next;
   }
@@ -143,6 +155,8 @@ sub process {
   local($trail) = "";		# trailing text after a CR tag
   local($lq)="";
   local($tq)="";
+  local($lqn)="";
+  local($tqn)="";
   local($std)=0;
   local($nonstd)=0;
   local($t0) = $yyyy;
@@ -152,14 +166,26 @@ sub process {
   unlink($tmp);
   open(OUT, ">$tmp");
   local ($crp) = "";
+  local ($leadline);
   while (<IN>) {
     if (!$parsing) {		# not currently parsing a std notice?
-      if (/(.*)$tag0(.*)/i && !/tag0/) { # skip updatecr tag setting itself!
+      if (/(.*)$tag0\s*(.*)/i && !/tag0/) { # skip updatecr tag setting itself!
 	$parsing = 1;
 	$lead = $1;
 	$trail = $2;
+	#$lead =~ s/\s*$//;
+	if ($lead =~ /\/\*/) {
+	  $leadline = $lead;
+	  $lead = " *";
+	}
 	$lq = quotemeta $lead;
 	$tq = quotemeta $trail;
+	my($leadn)=$lead;
+	my($trailn)=$trail;
+	$leadn =~ s/\s*$//;
+	$trailn =~ s/^\s*//;
+	$lqn = quotemeta $leadn;
+	$tqn = quotemeta $trailn;
       } else {
 	if (/$crx/i) {
 	  $nonstd++;
@@ -167,20 +193,34 @@ sub process {
 	print OUT $_;
       }
     } else {			# currently parsing std notice
-      if (/$tag1/i) {
+      if (/$tag1\s*(.*)/i) {
+	$junk = $1;		# sometimes people stick the */ at the end of the cr notice
+	$junk =~ s/$tq$//;
+	$junk =~ s/\s*$//;
+
 	$std = 1;
 	$parsing = 0;
 	local($rv,$cv)=parse_oldcr($crp);
-	dumpCR(\*OUT, $lead, $trail, $rv, $cv);
+	dumpCR(\*OUT, $lead, $trail, $rv, $cv, $leadline, $junk);
 	$found++;
       } else {
 	chomp;
 	$crp .= " " if ($crp);
-	if (/$lq(.*)($tq)?/) {
-	  $crp .= $1;
+	if (/$lq\s*(.*)\s*/) {
+	  my ($match) = $1;
+	  $match =~ s/$tq$//;
+	  $crp .= $match;
+	} elsif (! /\S/) {
+	  # just be quiet if there is an empty line
 	} else {
-	  print STDERR "Warning! Bad oldcr in $file\n";
-	  $crp .= $_;
+	  if (/$lqn\s*(.*)\s*/) {
+	    my ($match) = $1;
+	    $match =~ s/$tqn$//;
+	    $crp .= $match;
+	  } else {
+	    print STDERR "Warning! Bad oldcr in $file (leader=\"$lq\", trailer=\"$tq\")\n";
+	    $crp .= $_;
+	  }
 	}
       }
     }
@@ -199,14 +239,19 @@ sub process {
 
   # copy it back
   if ($found) {
-    unlink($file);
-    open(IN, "<$tmp");
-    open(OUT, ">$file");
-    while(<IN>)  {
-      print OUT "$_";
+    if ($dopatch) {
+      dopatch($file, $tmp);
     }
-    close(OUT);
-    close(IN);
+    if (!$pretend) {
+      unlink($file);
+      open(IN, "<$tmp");
+      open(OUT, ">$file");
+      while(<IN>)  {
+	print OUT "$_";
+      }
+      close(OUT);
+      close(IN);
+    }
   }
 
   #unlink($tmp);
@@ -217,6 +262,21 @@ sub process {
   return "missing";
 }
 
+
+sub dopatch {
+  my ($old, $new) = @_;
+
+  open(OUT,">>/tmp/cr.patch");
+  open(DIFF,"diff -u $old $new|");
+  my ($name);
+  while (<DIFF>) {
+    $name = $1 if (/^--- (.*)/);
+    $_ = "+++ $name\n" if (/^\+\+\+ /);
+    print OUT "$_";
+  }
+  close(DIFF);
+  close(OUT);
+}
 
 sub addCR {
   my ($file,$tmp) = @_;
@@ -305,7 +365,8 @@ sub fileType {
 
 
 sub dumpCR {
-  my ($fh, $lead, $trail, $range, $company) = @_;
+  my ($fh, $lead, $trail, $range, $company, $leadline, $junk) = @_;
+  print $fh "$leadline\n" if $leadline;
   print $fh "$lead$tag0$trail\n";
   foreach $rl (@stdlines) {
     my $l = $rl;
@@ -313,7 +374,7 @@ sub dumpCR {
     $l =~ s/\{COMPANY\}/$company/;
     print $fh "$lead$l$trail\n";
   }
-  print $fh "$lead$tag1$trail\n";
+  print $fh "$lead$tag1$trail$junk\n";
 }
 
 # parse an old conforming copyright notice (without the tags, in one line)
