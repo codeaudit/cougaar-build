@@ -58,12 +58,13 @@ $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
-&Getopts('vm:a:t:d:hkT:H:po:n:j:');
+&Getopts('vm:a:t:d:hkT:H:po:n:j:C');
 if ($opt_h) {
   print STDOUT "Usage: autobuild [args]\n";
   print STDOUT "\t-v\tVerbose mode\n";
   print STDOUT "\t-a name\tDirectory name instead of 'auto'\n";
   print STDOUT "\t-t tag\tTag to use instead of 'HEAD'\n";
+  print STDOUT "\t-C\tOnly clean\n";
   print STDOUT "\t-d file\tData file to use instead of 'default.build'\n";
   print STDOUT "\t-k\tDont clean up afterwards (leave leftovers)\n";
   print STDOUT "\t-T dir\tPut temporary files in dir/tag instead of /tmp/tag\n";
@@ -79,6 +80,7 @@ if ($opt_h) {
 
 $host = $opt_H if $opt_H;
 $cleanup=0 if $opt_k;
+$onlyclean = $opt_C;
 $tag = $opt_t if ($opt_t);
 $extraargs = $opt_o if ($opt_o);
 $javahome = $opt_j if ($opt_j);
@@ -87,6 +89,11 @@ $verbose++ if $opt_v;
 $auto = $opt_a if ($opt_a);
 $data = $opt_d if ($opt_d);
 $mailaddr = $opt_m if ($opt_m);
+
+if ($onlyclean) {
+  cleanRemote();
+  exit 0;
+}
 
 #if ($opt_t && !$opt_a) {
 #  $auto = $opt_t;
@@ -203,6 +210,14 @@ $status = "UNKNOWN";
   my @lines;
   @lines = <R>;
   close(R);
+
+  if ($verbose>1) {
+    my($line);
+    print STDOUT "\nBuild log:\n";
+    foreach $line (@lines) {
+      print STDOUT $line;
+    }
+  }
 
   my $line = $lines[0];
   if ( ($line =~ /SUCCEEDED/)) {
@@ -331,6 +346,7 @@ sub datestr {
 
 sub logMessage {
   local($s)=@_;
+  print STDOUT "$s\n" if ($verbose>1);
   open(LOG, ">>$tmp/$tag.log");
   my ($d) = datestr();
   print LOG "$d\t$s\n";
@@ -356,6 +372,7 @@ sub cleanRemote {
     $status{$dir} = $status;
     $lsucc = $dir if ($status eq "SUCCEEDED");
     $lfail = $dir if ($status eq "FAILED");
+    print STDOUT "Status of $dir = $status\n" if ($verbose>1);
   }
 
   # if we saw a success or failure, then we're watching complient builds
@@ -411,6 +428,7 @@ sub rrm {
 sub checkRemoteStatus {
   my ($rd) = @_;
 
+  print STDOUT "$ssh $host tail -1 $auto/$tag/$rd/build.out\n" if ($verbose>1);
   open(R, "$ssh $host tail -1 $auto/$tag/$rd/build.out|");
   my @lines;
   @lines = <R>;
