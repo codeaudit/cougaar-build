@@ -88,7 +88,7 @@ sys.lib.dontship = wasp,uddiclient
 
 modules=\
 	build,javaiopatch,bootstrap,util,core,\
-        planning,contract,toolkit,planserver,\
+        planning,contract,toolkit,\
 	yp,\
 	glm,scalability,aggagent,\
 	vishnu,datagrabber,\
@@ -115,7 +115,7 @@ default.public=1
 
 # modules which contribute to unified api (javadoc & moby src)
 modules.unified = build,bootstrap,util,core,planning,\
-	contract,toolkit,planserver,\
+	contract,toolkit,\
 	glm,scalability,aggagent,\
 	uiframework, server, manager, community,\
 	webserver,server,datagrabber
@@ -171,12 +171,8 @@ contract.jars = xerces
 toolkit.deps = core, planning, util
 toolkit.jars = xerces
 
-# (old) psp server
-planserver.deps = core, planning, util
-planserver.jars = xerces
-
 # glm3
-glm.deps = core,planning,planserver,toolkit,bootstrap,util
+glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart,servlet
 glm.extras = oracle12, mm-mysql-2, pgjdbc2
 
@@ -185,7 +181,7 @@ scalability.deps = core,planning,glm,util
 scalability.jars = xerces
 
 # aggregation agent
-aggagent.deps = core,planning,planserver,glm,util
+aggagent.deps = core,planning,glm,util
 aggagent.jars = xerces,jpython,silk,servlet
 
 # vishnu scheduler
@@ -194,25 +190,25 @@ vishnu.jars = xerces,vishnuServer
 vishnu.repository = internal
 
 # tops
-#tops.deps = core,planning,glm,toolkit,planserver,vishnu,util
+#tops.deps = core,planning,glm,toolkit,vishnu,util
 #tops.jars = xerces,topsga,openmap,chart
 #tops.extras = mm-mysql-2
 #tops.repository = internal
 
 # delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
-delta.deps = core,planning,glm,toolkit,planserver,javaiopatch,util
+delta.deps = core,planning,glm,toolkit,javaiopatch,util
 delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 delta.repository = internal
 delta.private=1
 
-deltaeport.deps = core,planning,glm,toolkit,planserver,javaiopatch,util
+deltaeport.deps = core,planning,glm,toolkit,javaiopatch,util
 deltaeport.jars = NetComponents,activation,jbcl,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 deltaeport.repository = internal
 deltaeport.private=1
 
 
 # blackjack
-blackjack.deps = core,planning,glm,planserver,toolkit,aggagent,vishnu,uiframework,util
+blackjack.deps = core,planning,glm,toolkit,aggagent,vishnu,uiframework,util
 blackjack.jars = xerces,jcchart,servlet,silk,jpython,ejb,jdbc2_0-stdext
 blackjack.repository = internal
 blackjack.private=1
@@ -223,7 +219,7 @@ Marine.jars = xerces
 Marine.repository = internal
 
 # uiframework
-uiframework.deps = core,planning,glm,planserver,aggagent,datagrabber,util
+uiframework.deps = core,planning,glm,aggagent,datagrabber,util
 uiframework.jars = xerces,openmap,vgj,xerces
 uiframework.extras = mm-mysql-2
 
@@ -255,16 +251,16 @@ webtomcat.jars = servlet, tomcat_40
 
 # bol module
 bol.repository = external
-bol.deps = util,core,planning,glm,planserver
+bol.deps = util,core,planning,glm
 bol.jars = servlet,hsql,jess50,graph,xerces
 # Split bol packages into sub packages of src
 bol.split = lesson1,lesson2,lesson3,lesson4
 # bol is an add-on, don't make it part of the runtime
 bol.standalone = 1
 # might want to do the following at some point.
-#bol.lesson1.deps = core,planning,glm,planserver
+#bol.lesson1.deps = core,planning,glm
 #bol.lesson1.jars = servlet
-#bol.lesson2.deps = core,planning,glm,planserver
+#bol.lesson2.deps = core,planning,glm
 #bol.lesson2.jars = servlet,hsql,jess50
 #bol.lesson3.jars = servlet,hsql,jess50,graph
 #bol.lesson4.jars = servlet,hsql,jess50,graph,xerces
@@ -275,7 +271,7 @@ bol.compiler.deprecation = 1
 bol.noant=1
 
 # community
-community.deps = util,core,planning,glm,planserver,manager,webserver
+community.deps = util,core,planning,glm,manager,webserver
 community.jars = log4j,xerces,servlet
 
 # dbms module
@@ -289,7 +285,7 @@ dbms.repository = dbms
 #albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 #albbn.module = bbn
 albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
-albbn.deps = core,planning,planserver,util,toolkit,glm,vishnu
+albbn.deps = core,planning,util,toolkit,glm,vishnu
 albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.runtime = bin,configs
 
@@ -298,20 +294,20 @@ albbn.runtime = bin,configs
 #alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
 #alsra.module = sra
 alsra.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
-alsra.deps = core,planning,planserver,util,toolkit,glm,vishnu,albbn
+alsra.deps = core,planning,util,toolkit,glm,vishnu,albbn
 alsra.jars = xerces,openmap,fesi-111,jcchart,servlet
 alsra.runtime = configs
 
 # AL datagrabber
 #datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
-datagrabber.deps = core,planning,glm,toolkit,planserver,util,albbn
+datagrabber.deps = core,planning,glm,toolkit,util,albbn
 datagrabber.jars = xerces,chart,openmap,servlet
 
 # AL stoplight
 #stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
-stoplight.deps = core,planning,glm,toolkit,planserver,util,albbn,aggagent,uiframework
+stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent,uiframework
 stoplight.jars = xerces,servlet
 
 #
