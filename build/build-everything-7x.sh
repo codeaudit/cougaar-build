@@ -7,28 +7,28 @@
 
 #---
 cd /usr/local/bin
-./build-alp-7x.pl -p build        -v ALP_70 
-./build-alp-7x.pl -p core         -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p javaiopatch  -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p toolkit      -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p planserver   -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p glm          -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p contract     -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p scalability  -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p server       -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p tutorial     -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p configgen    -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p aggagent     -v ALP_70  -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -p uiframework -v ALP_70   -w ALP_70-`date +\%Y\%m\%d` -W /build/dist/builds/aggagent-ALP_70-`date +\%Y\%m\%d`/aggagent/lib
+./build-alp-7x.pl -p build        -v COUGAAR_70 
+./build-alp-7x.pl -p core         -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p javaiopatch  -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p toolkit      -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p planserver   -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p glm          -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p contract     -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p scalability  -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p server       -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p tutorial     -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p configgen    -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p aggagent     -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -p uiframework -v COUGAAR_70   -w COUGAAR_70-`date +\%Y\%m\%d` -W /build/dist/builds/aggagent-COUGAAR_70-`date +\%Y\%m\%d`/aggagent/lib
 
-./build-alp-7x.pl -r /cvs/alp/internal -p vishnu -t HEAD -v ALP_70 -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -r /cvs/alp/internal -p tops   -t HEAD -v ALP_70 -w ALP_70-`date +\%Y\%m\%d` -W /build/dist/builds/vishnu-ALP_70-`date +\%Y\%m\%d`/vishnu/lib
+./build-alp-7x.pl -r /cvs/alp/internal -p vishnu -t HEAD -v COUGAAR_70 -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -r /cvs/alp/internal -p tops   -t HEAD -v COUGAAR_70 -w COUGAAR_70-`date +\%Y\%m\%d` -W /build/dist/builds/vishnu-COUGAAR_70-`date +\%Y\%m\%d`/vishnu/lib
 
-./build-alp-7x.pl -r /cvs/alp/internal -p delta      -t BJ_Mar2001 -T HEAD -v BJ_Mar2001 -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -r /cvs/alp/internal -p delta      -t HEAD -v ALP_70 -w ALP_70-`date +\%Y\%m\%d`
-./build-alp-7x.pl -r /cvs/alp/internal -p blackjack  -t HEAD -v ALP_70  -w ALP_70-`date +\%Y\%m\%d` -W /build/dist/builds/vishnu-ALP_70-`date +\%Y\%m\%d`/vishnu/lib
+./build-alp-7x.pl -r /cvs/alp/internal -p delta      -t BJ_Mar2001 -T HEAD -v BJ_Mar2001 -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -r /cvs/alp/internal -p delta      -t HEAD -v COUGAAR_70 -w COUGAAR_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -r /cvs/alp/internal -p blackjack  -t HEAD -v COUGAAR_70  -w COUGAAR_70-`date +\%Y\%m\%d` -W /build/dist/builds/vishnu-COUGAAR_70-`date +\%Y\%m\%d`/vishnu/lib
 
-./build-alp-7x.pl -r /cvs/alp/internal  -S -p ants     -t ALP_70 -T HEAD -v ALP_70 -w ALP_70-`date +\%Y\%m\%d`
+./build-alp-7x.pl -r /cvs/alp/internal  -S -p ants     -t COUGAAR_70 -T HEAD -v COUGAAR_70 -w COUGAAR_70-`date +\%Y\%m\%d`
 #---
 
 

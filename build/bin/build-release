@@ -3,11 +3,11 @@
 # head is the branch to (re) branch - normally the HEAD
 set head=HEAD
 # btag is the name of the branch (to create) off of $head
-set btag=ALP_6_6
+set btag=COUGAAR_6_6
 # bptag is the first point tag (in the branch)
-set bptag=ALP_6_6_0
+set bptag=COUGAAR_6_6_0
 # hptag is the first point tag (in the head)
-set hptag=ALP_6_7_0
+set hptag=COUGAAR_6_7_0
 
 # Create point & branch tags...
 # Create point tag along the main line. (6.7.0)

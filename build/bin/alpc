@@ -13,8 +13,8 @@ $pretend = 0;
 $verbose = 1;
 #$alphome = "/home/mthome/alp/src";
 #$destdir = "/home/mthome/lib/classes";
-$alphome = $ENV{ALPHOME} if $ENV{ALPHOME};
-$destdir = $ENV{ALPCLASSES} if $ENV{ALPCLASSES};
+$alphome = $ENV{COUGAARHOME} if $ENV{COUGAARHOME};
+$destdir = $ENV{COUGAARCLASSES} if $ENV{COUGAARCLASSES};
 $compile_in_place = 0;
 $use_classpath = 1;
 $compile_experimentals = 0;
@@ -41,9 +41,9 @@ Environment variables:
 \tJAVAC_COMMAND specifies program and args for javac
 \t\t(e.g. \"jikes -g\" to use IBM's jikes compiler).  -f flag
 \t\toverrides this evar.
-\tALPHOME specifies default source directory.
-\tALPLIBS specifies ALP lib directory (defaults to home/alp/lib).
-\tALPCLASSES specifies default destination directory.
+\tCOUGAARHOME specifies default source directory.
+\tALPLIBS specifies COUGAAR lib directory (defaults to home/alp/lib).
+\tCOUGAARCLASSES specifies default destination directory.
 If no destination directory is specified, -p flag is implied.
 ";
   exit 1;

@@ -18,7 +18,7 @@
 
 # The following variables need to be set...
 
-# Location of ALP source tree.
+# Location of COUGAAR source tree.
 SRC=$1
 
 # Location to put .class files. 

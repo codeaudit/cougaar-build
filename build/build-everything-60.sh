@@ -14,36 +14,36 @@
 #---
 
 # 6.4.x BRANCH builds...
-/usr/local/bin/build-org.cougaar.pl -V -p core      -t ALP_6_4 -v ALP_6_4                               > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p utility   -t ALP_6_4 -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p alpine    -t ALP_6_4 -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p tools     -t ALP_6_4 -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p tutorial  -t ALP_6_4 -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p core      -t COUGAAR_6_4 -v COUGAAR_6_4                               > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p utility   -t COUGAAR_6_4 -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p alpine    -t COUGAAR_6_4 -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p tools     -t COUGAAR_6_4 -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p tutorial  -t COUGAAR_6_4 -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d`  > /dev/null 2>&1
 
 # 6.4.x plugin BRANCH builds.
 #
 # - Plugin branch against alp branch
-/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p ants  -t ALP_6_4  -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d` > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p ants  -t COUGAAR_6_4  -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d` > /dev/null 2>&1
 #
 # - Plugin head, against alp branch
-/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p delta -t HEAD     -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d` > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p TOPS  -t STABLE -T ALP_6_4 -v ALP_6_4 -w ALP_6_4-`date +\%Y\%m\%d` > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p delta -t HEAD     -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d` > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p TOPS  -t STABLE -T COUGAAR_6_4 -v COUGAAR_6_4 -w COUGAAR_6_4-`date +\%Y\%m\%d` > /dev/null 2>&1
 
 
 #--
 
 # 6.6.x BRANCH builds...
-/usr/local/bin/build-org.cougaar.pl -V -p core      -t ALP_6_6 -v ALP_6_6                               > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p utility   -t ALP_6_6 -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p alpine    -t ALP_6_6 -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p tools     -t ALP_6_6 -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p tutorial  -t ALP_6_6 -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -V -p server    -t ALP_6_6 -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p core      -t COUGAAR_6_6 -v COUGAAR_6_6                               > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p utility   -t COUGAAR_6_6 -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p alpine    -t COUGAAR_6_6 -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p tools     -t COUGAAR_6_6 -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p tutorial  -t COUGAAR_6_6 -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -V -p server    -t COUGAAR_6_6 -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d`  > /dev/null 2>&1
 
 # 6.6.x plugin BRANCH builds.
-/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p blackjack -t HEAD     -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d` > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p delta     -t blackjack_oct2000  -T ALP_6_6   -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d` > /dev/null 2>&1
-/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p ants      -t ALP_6_6  -v ALP_6_6 -w ALP_6_6-`date +\%Y\%m\%d` > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p blackjack -t HEAD     -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d` > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p delta     -t blackjack_oct2000  -T COUGAAR_6_6   -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d` > /dev/null 2>&1
+/usr/local/bin/build-org.cougaar.pl -r /cvs/alp/internal -V -p ants      -t COUGAAR_6_6  -v COUGAAR_6_6 -w COUGAAR_6_6-`date +\%Y\%m\%d` > /dev/null 2>&1
 
 
 #--

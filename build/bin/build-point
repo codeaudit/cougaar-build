@@ -4,9 +4,9 @@
 #
 
 # btag is the name of the branch to build the point release in
-set btag=ALP_6_6
+set btag=COUGAAR_6_6
 # bptag is the new point tag (in the branch)
-set bptag=ALP_6_6_1
+set bptag=COUGAAR_6_6_1
 
 # Create a point tag along the new branch. (6.6.1)
 cvs rtag -r $btag $bptag .
