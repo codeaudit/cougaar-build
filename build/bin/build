@@ -1269,6 +1269,11 @@ sub get_javadoc_packages {
 sub javadoc {
   local($mod, $src,$dst) = @_;
   my %pmap = get_javadoc_packages($mod, $src);
+  my @pmapkeys = sort keys %pmap;
+
+  if ($#pmapkeys < 0) {
+    print STDERR "Skipping javadoc $mod\n" if ($verbose);
+  }
 
   chdir $src;
 
@@ -1307,7 +1312,7 @@ sub javadoc {
   print ARG "-d $dst\n";
   print ARG "-sourcepath .\n";
 
-  foreach $p (sort keys %pmap) {
+  foreach $p (@pmapkeys) {
     print ARG "$p\n";
   }
 
