@@ -56,7 +56,7 @@
 <!-- Note use of JAVA_HOME, java.class.path, jikes.class.path -->
 
 <!-- ================================================================   -->
-<project name="%{Name}" default="compile">
+<project name="%{PrettyName}" default="compile">
     <property name="module" value="%{Name}"/>
     <property name="moduleUp" value="%{PrettyName}"/>
 
@@ -499,6 +499,7 @@
     <!-- ====================================================================== -->	
     <target name="zip-docs" depends="javadocs, set-zip-dirs, zip-copy-docs" description="Zip up built javadocs" if="has.src">
     <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
+    <!-- FIXME: This fails if zipbase doesnt exist, ie if no javadocs -->
       <zip zipfile="../${module}-api.zip" basedir="${zipbase}" />
       <delete dir="${zipdir.javadocs}"/>
     </target>
@@ -518,6 +519,7 @@
     zip-prep, zip-copy-root-files, zip-copy-src, zip-copy-ex, zip-copy-dev, zip-copy-test"
 	    description="Create -dev zip file">
     <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
+    <!-- FIXME: This fails if no zipbase: If these dirs dont exist. -->
       <zip zipfile="../${module}-dev.zip" basedir="${zipbase}" />
       <delete dir="${zipdir.src}"/>
       <delete dir="${zipdir.examples}"/>
@@ -590,6 +592,7 @@
 	<fileset dir="${target.lib}" includes="${module}*.jar"/>
       </copy>
     <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->
+    <!-- FIXME: This fails if no zipbase: If these dirs dont exist. -->
       <zip zipfile="../${module}.zip" basedir="${zipbase}"/>
       <delete dir="${zipdir.lib}"/>
       <delete dir="${zipdir.bin}"/>
