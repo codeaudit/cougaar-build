@@ -90,7 +90,7 @@ modules=\
 	build,javaiopatch,bootstrap,util,core,\
         planning,contract,toolkit,\
 	yp,\
-	glm,scalability,aggagent,\
+	glm,aggagent,\
 	vishnu,\
 	uiframework,\
 	base,\
@@ -110,7 +110,7 @@ default.public=1
 # modules which contribute to unified api (javadoc & moby src)
 modules.unified = build,bootstrap,util,core,planning,\
 	contract,toolkit,\
-	glm,scalability,aggagent,\
+	glm,aggagent,\
 	uiframework, server, community,\
 	webserver,server,datagrabber
 
@@ -181,10 +181,6 @@ glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
 
-# scalability testing kit
-scalability.deps = core,planning,glm,util
-scalability.jars = xerces
-
 # aggregation agent
 aggagent.deps = core,planning,glm,util
 aggagent.jars = xerces,jpython,silk,servlet
@@ -204,7 +200,7 @@ tutorial.deps = core,planning,glm,util
 tutorial.jars = xerces
 
 # csmart
-csmart.deps = core,planning,server,glm,scalability,bootstrap,util
+csmart.deps = core,planning,server,glm,bootstrap,util
 csmart.jars = xerces,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = mm-mysql-2, log4j
