@@ -237,11 +237,12 @@ $status = "UNKNOWN";
   }
 }
 
+if (0) {			# We never use this information, so let's skip it.
 # parse the old status reports
 @statusReports;
 {
   if (!open(STAT, "<$statusfile")) {
-    logMessage("Couldn't open status file $statusfile for reading - something seriously wrong");
+#    logMessage("Couldn't open status file $statusfile for reading - something seriously wrong");
   } else {
     while (<STAT>) {
       chop;
@@ -249,6 +250,7 @@ $status = "UNKNOWN";
     }
     close(STAT);
   }
+}
 }
 
 # record the status
