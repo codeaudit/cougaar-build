@@ -16,13 +16,47 @@ use File::Copy;
 use File::Path;
 use File::Find;
 
-require "getopts.pl";
+$opt_file = "default.build";
+@opt_overrides;
 
-&Getopts('r:D:hvqnQSc');
+$verbose = 1;
 
-$nodoc=$opt_Q;
+sub parse_args {
+  while ($#ARGV>=0) {
+    $_ = shift @ARGV;
+    if ( /-o(.+)/) {
+      push @opt_overrides, $1;
+    } elsif (/-r/) {
+      $opt_r = shift @ARGV;
+    } elsif (/-D/) {
+      $opt_D = shift @ARGV;
+    } elsif ( /-(.+)/) {
+      foreach $c (split //, $1) {
+	if ($c eq "h") {
+	  usage();
+	} elsif ($c eq "v") {
+	  $verbose++;
+	} elsif ($c eq "q") {
+	  $verbose--;
+	} elsif ($c eq "n") {
+	  $opt_n = 1;
+	} elsif ($c eq "Q") {
+	  $nodoc = 1;
+	} elsif ($c eq "S") {
+	  $skip = 1;
+	} elsif ($c eq "c") {
+	  $checkoutP = 1;
+	} else {
+	  usage();
+	}
+      }
+    } else {
+      $opt_file = $_;
+      usage() if ($#ARGV!=-1);
+    }
+  }
+}
 
-usage() if $opt_h;
 
 sub usage {
   print STDERR "Usage: build [options] ReleaseDescriptionFile\n";
@@ -31,17 +65,15 @@ sub usage {
   print STDERR "\t-v\tbe verbose\n";
   print STDERR "\t-q\tbe quiet\n";
   print STDERR "\t-c\tcheckout cvs sources from head of tag rather than export from timestamp point\n";
+  print STDERR "\t-okey=value\tset parameters on the command line\n";
   exit(1);
 }
-
-$skip = $opt_S;
-$checkoutP = $opt_c;
 
 @modules;
 
 %opts;
-
-parse_config();
+parse_args();
+parse_config($opt_file);
 
 $javac_command = "jikes -g";
 #$javac_command = "javac -J-Xmx128m -J-Xms128m -g";
@@ -77,15 +109,15 @@ $javadoc_command = opt("javadoc", $javadoc_command);
   $bdate="$yr$mon$mday$hour$min$sec";
 }
 
-$verbose = 1;
-$verbose-- if $opt_q;
-$verbose++ if $opt_v;
 
 # repository tag for build
 if ($opt_r) {
   $rtag = $opt_r;
 } else {
   $rtag = opt("tag.default");
+  if (! $rtag) {
+    $rtag = "HEAD";
+  }
 }
 
 # build time
@@ -93,7 +125,11 @@ $rdate = $opt_D if ($opt_D);
 
 # root of the build directory tree
 $build_root = opt("build.root");
-#$build_root = "/tmp";
+if (! $build_root) {
+  my $foo = opt("product.name");
+  die("Could not figure out build.root!\n") if (!$foo);
+  $build_root = "/tmp/$foo";
+}
 
 if ($skip) {
   opendir D, $build_root;
@@ -233,6 +269,17 @@ sub checkout {
 
   foreach $mod (@modules) {
     my $repb = opt("repository.base");
+    # if repository.base isn't set, get it from CVSROOT which should be set to
+    # something like "/cvs/alp/cougaar"
+    if (! $repb) {
+      $repb = $ENV{'CVSROOT'};
+      if ($repb) {
+	$repb =~ s/\/cougaar$/\//;
+      } else {
+	die("Couldn't figure out repository.base!\n");
+      }
+    }
+
     my $rep = opt("$mod.repository");
     if (!$rep) {
       $rep = opt("repository.default");
@@ -785,9 +832,9 @@ sub finddirs {
 
 #parse the input file
 sub parse_config {
-  usage() if ($#ARGV!=0);
-  my $file = $ARGV[0];
-  open(STUFF,"<$file");
+  my ($file) = @_;
+
+  open(STUFF,"<$file") || die("Could not open build script file '$file' for reading!\n");
   my $count = 0;
   my $leftover = "";
   while(<STUFF>) {
@@ -810,18 +857,28 @@ sub parse_config {
       next;
     }
 
-    if (/\s*(\S+)\s*=\s*(.+)\s*$/) {
-      my $key = $1;
-      my $val = $2;
-      $opts{$key}=$val;
-    } else {
-      print STDERR "$file (line $count): unknown format\n";
-    }
+    print STDERR "$file (line $count): unknown format\n" if (! parseopt($_));
   }
   close(STUFF);
 
+  foreach $_ (@opt_overrides) {
+    print STDERR "Could not parse argument '-D$_'" if (! parseopt($_));
+  }
+
   @modules = listify(opt("modules"));
   #print STDERR "modules = @modules\n";
+}
+
+sub parseopt {
+  local ($_) = @_;
+  if (/\s*(\S+)\s*=\s*(.+)\s*$/) {
+    my $key = $1;
+    my $val = $2;
+    $opts{$key}=$val;
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 sub listify {
