@@ -41,6 +41,9 @@ $tag = "HEAD";
 $data = "default.build";
 $host = "eiger";
 
+$ssh = "ssh -n";
+$scp = "scp -B";
+
 &Getopts('va:t:d:h');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
@@ -107,12 +110,12 @@ closedir D;
 $built = $allfiles[0];
 
 # copy whatever is there to $host
-mysystem("ssh $host mkdir -p $auto/$built");
-mysystem("scp $builddir/$built/dist/* $host:$auto/$built");
-mysystem("ssh $host cd $auto \\; rm -f latest \\; ln -s $built latest");
+ssh("$host mkdir -p $auto/$built");
+scp("$builddir/$built/dist/* $host:$auto/$built");
+ssh("$host cd $auto \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
-open(B, "ssh $host ls $auto|");
+open(B, "$ssh $host ls $auto|");
 @alldirs = <B>;
 close(B);
 
@@ -127,7 +130,7 @@ while ($i < $keep && ($_= pop @alldirs)) {
 
 while ( ($_ = pop @alldirs)) {
   chomp;
-  mysystem("ssh $host rm -rf $auto/$_");
+  ssh("$host rm -rf $auto/$_");
 }
 
 mysystem("rm -rf $tmpdir");
@@ -178,4 +181,14 @@ sub mysystem {
 sub mkd {
   my($p) = @_;
   mkdir $p, 0777;
+}
+
+sub ssh {
+  my($c) = @_;
+  mysystem("$ssh $c");
+}
+
+sub scp {
+  my($c) = @_;
+  mysystem("$scp $c");
 }
