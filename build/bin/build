@@ -780,6 +780,8 @@ sub build_module {
 
     }
 
+    fixbats($tmpdir);
+
     zip("$product $module", $tmpdir, $distdir, $pkg_name) if $make_zip;
 
     chdir($mymod);
@@ -1027,6 +1029,8 @@ sub build_runtime {
       }
     }
   }
+
+  fixbats($tmpdir);
 
   chdir $tmpdir;
   zip("$product runtime", $tmpdir, $distdir, $product);
@@ -1920,4 +1924,33 @@ sub reporttimes {
   foreach $key (sort keys %timers) {
     print "\t$key\t$timers{$key}\n";
   }
+}
+
+# fix up any .bat files found in the specified directory by
+# making certain lines are ended with CRLFs
+sub fixbats {
+  my ($dir) = @_;
+  my @bats = findbypattern($dir, "(?i)\.bat\$");
+  foreach $ding (@bats) {
+    fixbat($ding);
+  }
+}
+
+# fix up a single .bat file
+sub fixbat {
+  my ($bat) = @_;
+  my ($tmp) = "/tmp/dingbat.$$";
+  print "Fixing CRLFs in $bat\n" if $verbose;
+
+  copy($bat, $tmp);
+
+  open(I, "<$tmp");
+  open(O, ">$bat");
+  while(<I>) {
+    s/[\r\n]*$//;
+    print O "$_\r\n";
+  }
+  close(O);
+  close(I);
+  unlink($tmp);
 }
