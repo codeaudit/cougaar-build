@@ -227,7 +227,7 @@ vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 #uiframework.extras = mm-mysql-2
 
 # tutorials
-tutorial.deps = core,planning,glm,util
+tutorial.deps = core,planning,util
 #tutorial.jars = xercesImpl
 tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
 
