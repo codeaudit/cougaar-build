@@ -136,9 +136,9 @@ class ParameterListWriter extends HtmlStandardWriter {
       String param = t.param;   // parse out param from text
       String info = t.text;       // remainder of text
       li();
-      em();
+      bold();
       println(param);
-      emEnd();
+      boldEnd();
       println(info);
       print(" (See ");
       if (d instanceof ClassDoc) {
@@ -169,7 +169,7 @@ class ParameterListWriter extends HtmlStandardWriter {
       collect(cd.methods());
       collect(cd.constructors());
     }
-    //sortParameterInfo();
+    Collections.sort(parameters);
   }
 
   private void collect(Doc doc) {
@@ -184,7 +184,9 @@ class ParameterListWriter extends HtmlStandardWriter {
     }
   }
 
-  public class Tuple {
+  public class Tuple 
+    implements Comparable
+  {
     public Doc doc;
     public Tag tag;
     public String param = null;
@@ -227,5 +229,14 @@ class ParameterListWriter extends HtmlStandardWriter {
                 ioe.toString(), PARAMETERFILE);
       }
     }
+
+    public int compareTo(Object o) {
+      if (!(o instanceof Tuple)) return -1;
+      Tuple t = (Tuple) o;
+      int v = param.compareTo(t.param);
+      if (v != 0) return v;
+
+      return doc.compareTo(t.doc);
+    }        
   }
 }
