@@ -1266,7 +1266,7 @@ sub tag {
     # special case for HEAD - bogon.
     $rarg = "-r $tag" if (! ($tag eq "HEAD"));
     my $Farg = $forceP?"-F":"";
-    mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' -F $barg $Farg $newtag $mod");
+    mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $mod");
   }
 }
 
