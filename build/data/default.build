@@ -154,7 +154,7 @@ scalability.jars = xerces
 
 # aggregation agent
 aggagent.deps = core,planserver,glm
-aggagent.jars = xerces,xalan,jpython,silk,servlet
+aggagent.jars = xerces,jpython,silk,servlet
 
 # vishnu scheduler
 vishnu.deps = core,toolkit,glm
@@ -184,7 +184,7 @@ delta.repository = internal
 delta.private=1
 
 deltaeport.deps = core,glm,toolkit,planserver,delta
-deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
+deltaeport.jars = servlet,jbcl,oracle12
 deltaeport.repository = internal
 deltaeport.private=1
 
