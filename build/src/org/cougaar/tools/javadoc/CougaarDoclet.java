@@ -29,6 +29,9 @@ import com.sun.javadoc.*;
 import java.util.*;
 import java.io.*;
 
+// support for hacking the RootDoc to quiet warnings
+import java.lang.reflect.*;
+
 // Standard doclet 
 import com.sun.tools.doclets.standard.*;
 
@@ -54,6 +57,7 @@ public class CougaarDoclet
    **/
   public static boolean start(RootDoc root) throws IOException {
     try { 
+      root = hackRootDoc(root);
       configuration().setOptions(root);
       (new CougaarDoclet()).startGeneration(root);
     } catch (DocletAbortException exc) {
@@ -67,6 +71,27 @@ public class CougaarDoclet
 
     ParameterListWriter.generate(root);
   }
+
+  private static RootDoc hackRootDoc(final RootDoc root) {
+    InvocationHandler handler = new InvocationHandler() {
+        public Object invoke(Object proxy, Method method, Object[] args)
+          throws Throwable
+        {
+          // drop overly verbose notices.  Should probably add a -verbose flag.
+          if ("printNotice".equals(method.getName())) {
+            return null;
+          } else {
+            return method.invoke(root,args);
+          }
+        }
+      };
+    RootDoc nrd = (RootDoc) Proxy.newProxyInstance(RootDoc.class.getClassLoader(),
+                                                   new Class[] { RootDoc.class },
+                                                   handler);
+    
+    return nrd;
+  }
+
 }
 
 class ParameterListWriter extends HtmlStandardWriter {
