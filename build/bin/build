@@ -1002,7 +1002,7 @@ sub javadoc {
   my $cp = cpWrap(get_classpath($mod));
   $ENV{CLASSPATH} = $cp;
   if (opt("useDoclet", 1)) {
-    mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -splitIndex -d $dst -sourcepath . $pkgs");
+    mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -tagletpath $libdir/build.jar -splitIndex -d $dst -sourcepath . $pkgs");
   } else {
     mysystem("$javadoc_command -splitIndex -d $dst -sourcepath . $pkgs");
   }
@@ -1221,7 +1221,7 @@ sub finddirs {
 #parse the input file
 sub parse_config {
   my ($file) = @_;
-  print "Parsing build parameter file \"$p\"\n" if ($verbose);
+  print "Parsing build parameter file \"$file\"\n" if ($verbose);
 
   open(STUFF,"<$file") || die("Could not open build script file '$file' for reading!\n");
   my $count = 0;
