@@ -3,8 +3,18 @@
 product.name=cougaar
 
 java = /usr/local/java/jdk1.3/bin/java
-javac = jikes -g
+
+# note that -g disabled until emitswitch jikes bug is fixed.
+javac = jikes
+# other jikes options:
+# +P	pedantic compilation - issue lots of style/usage warnings
+# -g	include as much debugging info as possible (local vars)
+# -deprecation report uses of deprecated features.
+
 #javac = javac -J-Xmx128m -J-Xms128m -g -deprecation
+# -g	include as much debugging info as possible (local vars)
+# -deprecation report uses of deprecated features.
+
 javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
 
 # java = /usr/local/java/jdk1.3/bin/java
