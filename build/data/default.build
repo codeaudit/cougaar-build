@@ -17,7 +17,7 @@ jikes.command = jikes
 # pedantic compilation - issue lots of style/usage warnings (jikes only)
 #compiler.pedantic = 1
 # include as much debugging info as possible (local vars)
-#compiler.debug = 1
+compiler.debug = 1
 # report uses of deprecated features.
 #compiler.deprecation = 1
 # optimize bytecode
