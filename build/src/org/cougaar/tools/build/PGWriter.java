@@ -1348,8 +1348,10 @@ public class PGWriter extends WriterBase {
         println(out, leadingSpaces+"  "+implclassName+" _tmp = new "+implclassName+"(this);");
         for (int i = 0; i < delegateSpecs.size(); i++) {
           Argument delegate = (Argument) delegateSpecs.elementAt(i);
-          println(out,leadingSpaces+"  _tmp."+delegate.name+" = ("+delegate.type+") "+
+          println(out, leadingSpaces+"  if ("+delegate.name+" != null) {");
+          println(out, leadingSpaces+"    _tmp."+delegate.name+" = ("+delegate.type+") "+
                   delegate.name+".copy(_tmp);");
+          println(out, leadingSpaces+"  }");
         }
         println(out, leadingSpaces+"  return _tmp;");
       }
