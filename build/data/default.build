@@ -264,7 +264,7 @@ webtomcat.jars = servlet, tomcat_40
 
 # community
 community.deps = util,core,planning,glm,manager,webserver
-community.jars = log4j,xerces,servlet
+community.jars = log4j,xerces,servlet,concurrent
 
 # dbms module
 dbms.repository = dbms
