@@ -11,26 +11,51 @@ module base directory (e.g. with src, doc, etc).
 	BEGIN	all lines upto and including this one are skipped.
  -->
 
-<!-- %{BEGIN} Everything after this line will be included in the generated foo.xml files -->
+<!-- %{BEGIN} Everything after this line will be included in the generated module build.xml files -->
 <!-- autobuild-generated ANT script -->
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
 <!-- autobuild might execute this with something like:
   ant -DTARGETBASE=/tmp/target -DMODSOURCE=/tmp/cougaar/latest/src/util -DTMP=/tmp/tmpdir
-or even without installing it in the module directory:
-  ant -b /tmp/cougaar/latest/src/build/data/module.xml -Dbasedir=/tmp/couagaar/latest/src/util ...
-
-If someone wanted to recompile a piece from sources (e.g. from the cougaar-dev package), 
-then the default values for these guys are functional:
-  TARGETBASE=..
-  MODSOURCE=.
-  TMPDIR=./tmp
-
-A core developer working with a different arrangement would probably make the 
-above settings point directly as specific directories. e.g.:
-  TARGETBASE=$COUGAAR_INSTALL_PATH
-  MODSOURCE=$COUGAAR_INSTALL_PATH/module-name
  -->
+
+<!-- Instructions for individual users:
+
+     Installation layout is configurable. Standard settings:
+       TARGETBASE=.. (ie COUGAAR_INSTALL_PATH)
+       MODSOURCE=. (ie the directory containing the module)
+       TMPDIR=./tmp
+     (Where this file is MODSOURCE/build.xml, and generated class
+       files will go in TMPDIR/classes, which should therefore be the
+       value of COUGAAR_DEV_PATH, if used.)
+     A core developer working with a different arrangement would probably make the 
+     above settings point directly as specific directories. e.g.:
+       TARGETBASE=$COUGAAR_INSTALL_PATH
+       MODSOURCE=$COUGAAR_INSTALL_PATH/${Name}              
+
+     Other settings may be over-ridden using the optional properties
+     files MODSOURCE/module.properties and TARGETBASE/global.properties
+
+     Individuals may choose to edit or override in particular the 'Tool options' below
+     (compiler, toggle deprecation warnings, etc). 
+
+     For target options, from the %{Name} directory or a
+     sub-directory, do:
+          ant -projecthelp
+     Or more generally, do:
+          ant -b $COUGAAR_INSTALL_PATH/%{Name}/build.xml -projecthelp
+
+     Target default is 'compile', to compile the module, leaving class files in
+     %{Name}/tmp/classes, which should then be your setting for
+     COUGAAR_DEV_PATH.
+
+     Other typical targets:
+     'clean' -- remove old module jar files (from TARGETBASE/lib ie
+     usually COUGAAR_INSTALL_PATH/lib), plus class files
+
+     'dist-module' -- generate a new jar file TARGETBASE/lib/%{Name}-date.jar
+         (ie typically COUGAAR_INSTALL_PATH/lib/%{Name}-date.jar)
+     -->
 
 <project name="%{Name}" default="compile">
     <property name="module" value="%{Name}"/>
