@@ -69,7 +69,7 @@ $javadoc_command = opt("javadoc", $javadoc_command);
   $rdate="$mon/$mday/$yr $hour:$min:$sec";
   # build time for build directory name
   $mon="0$mon" if ($mon<10);
-  $day="0$mday" if ($mday<10);
+  $mday="0$mday" if ($mday<10);
   $hour="0$hour" if($hour<10);
   $yr=$yr-2000;
   $yr="0$yr" if ($yr<10);
