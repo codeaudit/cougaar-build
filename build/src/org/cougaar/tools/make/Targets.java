@@ -79,13 +79,13 @@ public class Targets {
 				  ".class");
 	File[] needed = theContext.getOutdatedTargets(targets, sources);
         if (needed.length == 0) return;
-        System.out.println("javac: Compiling " + needed.length + " files");
+        System.out.println(theContext.getModuleName() + ".javac: Compiling " + needed.length + " files");
 	theContext.javac(needed);
     }
     private void cleanRoot(File root, String suffix, boolean recurse) throws MakeException {
         if (root.isDirectory()) {
             File[] targets = theContext.findFiles(root, suffix, recurse);
-            System.out.println("delete " + root + ": " + targets.length + " files");
+            System.out.println(theContext.getModuleName() + ".delete " + root + ": " + targets.length + " files");
             theContext.delete(targets);
         }
     }
@@ -103,18 +103,10 @@ public class Targets {
                 File defFile = sources[i];
                 File genFile = theContext.reroot(defFile, theContext.getSourceRoot(), theContext.getGenCodeRoot(), ".gen");
                 if (!(genFile.exists() && genFile.lastModified() >= defFile.lastModified())) {
-                    System.out.println("generateCode: " + defFile);
+                    System.out.println(theContext.getModuleName() + ".generateCode: " + defFile);
                     theContext.generateCode(defFile, genFile);
                 }
             }
-        }
-    }
-    private void addFilesToJar(List args, File root, File[] files) throws MakeException {
-        String[] tails = theContext.getTails(root, files);
-        for (int i = 0; i < files.length; i++) {
-            args.add("-C");
-            args.add(root.getPath());
-            args.add(tails[i]);
         }
     }
 
@@ -131,28 +123,50 @@ public class Targets {
         theContext.makeTarget("projectLib");
         theContext.makeTarget("compile");
         File jarFile = new File(theContext.getProjectLib(), theContext.getModuleName() + ".jar");
+        String[] extensionsToJar = theContext.getExtensionsToJar();
+        MakeContext.JarSet[] jarSets = new MakeContext.JarSet[1 + extensionsToJar.length];
+        jarSets[0] = theContext.createJarSet(theContext.getClassesRoot());
         long maxTime =
             getMaxModificationTime(theContext.findFiles(theContext.getClassesRoot(), null, true));
-        String[] extensionsToJar = theContext.getExtensionsToJar();
-        File[][] files = new File[extensionsToJar.length][];
         for (int i = 0; i < extensionsToJar.length; i++) {
-            files[i] = theContext.findFiles(theContext.getSourceRoot(), extensionsToJar[i], true);
-            maxTime = Math.max(maxTime, getMaxModificationTime(files[i]));
+            jarSets[1 + i] =
+                theContext.createJarSet(theContext.getSourceRoot(), extensionsToJar[i], true);
+            maxTime = Math.max(maxTime, getMaxModificationTime(jarSets[1 + i].files));
         }
         if (maxTime <= jarFile.lastModified()) {
             System.out.println(theContext.getModuleName() + ".jar is up to date");
             return;
         }
-        List args = new ArrayList();
-        args.add("-cf");
-        args.add(jarFile.getPath());
-        args.add("-C");
-        args.add(theContext.getClassesRoot().getPath());
-        args.add(".");
-        for (int i = 0; i < files.length; i++) {
-            addFilesToJar(args, theContext.getSourceRoot(), files[i]);
+        System.out.println(theContext.getModuleName() + ".jar: " + jarFile.getName());
+        theContext.jar(jarFile, null, jarSets);
+    }
+
+    public void projectTags() throws MakeException {
+        File tagsFile = new File(theContext.getProjectRoot(), "TAGS");
+        File[] modules = theContext.getAllModuleRoots();
+        for (int i = 0; i < modules.length; i++) {
+            File t = new File(theContext.getModuleTemp(modules[i]), "TAGS");
+            if (!t.exists()) {
+                theContext.makeTarget(modules[i].getName() + ".tags");
+            }
+            modules[i] = t;
         }
-        System.out.println("jar: " + jarFile.getName());
-        theContext.jar((String[]) args.toArray(new String[args.size()]));
+        theContext.etags(tagsFile, modules, false);
+    }
+
+    public void tags() throws MakeException {
+        theContext.makeTarget("generateCode");
+        File[] srcSources = theContext.findFiles(theContext.getSourceRoot(), ".java", true);
+        File[] genSources = theContext.findFiles(theContext.getGenCodeRoot(), ".java", true);
+        File tagsFile = new File(theContext.getModuleTemp(), "TAGS");
+        long maxTime = Math.max(getMaxModificationTime(srcSources),
+                                getMaxModificationTime(genSources));
+        if (maxTime > tagsFile.lastModified()) {
+            System.out.println(theContext.getModuleName() + ".tags: " + (srcSources.length + genSources.length) + " files");
+            theContext.etags(tagsFile, srcSources, false);
+            theContext.etags(tagsFile, genSources, true);
+        } else {
+            System.out.println(theContext.getModuleName() + ".tags is up to date");
+        }
     }
 }

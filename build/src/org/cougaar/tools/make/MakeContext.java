@@ -57,6 +57,7 @@ public class MakeContext {
     private final String JAVA = "java";
     private final String JAVAC = "javac";
     private final String JIKES = "jikes";
+    private final String ETAGS = "etags";
     private Class[] targetMethodParameterTypes = new Class[0];
     private Object[] targetMethodParameters = new Class[0];
     private Properties theProperties;
@@ -278,6 +279,20 @@ public class MakeContext {
     }
 
     /**
+     * Get the temp directory of a module (in canonical form)
+     **/
+    public File getModuleTemp() {
+        return theModuleTemp;
+    }
+
+    /**
+     * Get the temp directory of a module (in canonical form)
+     **/
+    public File getModuleTemp(File moduleRoot) {
+        return new File(moduleRoot, TMPDIR);
+    }
+
+    /**
      * Get the root of generated code tree (in canonical form)
      **/
     public File getGenCodeRoot() {
@@ -369,6 +384,7 @@ public class MakeContext {
      **/
     public void javac(File[] sources) throws MakeException {
         int offset = 0;
+        MakeException e = null;
         while (offset < sources.length) {
             int nfiles = Math.min(sources.length - offset, 200);
             String[] command = new String[] {
@@ -378,9 +394,14 @@ public class MakeContext {
                 "-d",
                 getClassesRoot().getPath()
             };
-            runExecutable(command, sources, offset, nfiles);
+            try {
+                runExecutable(command, sources, offset, nfiles);
+            } catch (MakeException me) {
+                e = me;
+            }
             offset += nfiles;
         }
+        if (e != null) throw e;
     }
 
     /**
@@ -442,12 +463,30 @@ public class MakeContext {
     /**
      * Run jar on a bunch of arguments.
      **/
-    public void jar(String[] args) throws MakeException {
+    public void jar(File jarFile, File manifestFile, JarSet[] jarSets) throws MakeException {
+        List args = new ArrayList();
+        args.add("-cf");
+        args.add(jarFile.getPath());
+        for (int j = 0; j < jarSets.length; j++) {
+            JarSet jarSet = jarSets[j];
+            if (jarSet.files == null) {
+                args.add("-C"); // Do all files
+                args.add(jarSet.root.getPath());
+                args.add(".");
+            } else {
+                String[] tails = getTails(jarSet.root, jarSet.files);
+                for (int i = 0; i < tails.length; i++) {
+                    args.add("-C");
+                    args.add(jarSet.root.getPath());
+                    args.add(tails[i]);
+                }
+            }
+        }
+        String[] argStrings = (String[]) args.toArray(new String[args.size()]);
         if (haveJDKTools()) {
-            runJavaMain(JAR_CLASS, args);
+            runJavaMain(JAR_CLASS, argStrings);
         } else {
-            int nfiles = args.length;
-            runExecutable(new String[] {"jar"}, args, 0, args.length);
+            runExecutable(new String[] {"jar"}, argStrings, 0, argStrings.length);
         }
     }
 
@@ -534,6 +573,43 @@ public class MakeContext {
 	}
     }
 
+    public void etags(File tagsFile, File[] sources, boolean append) throws MakeException {
+        int offset = 0;
+        MakeException e = null;
+        while (offset < sources.length) {
+            int nfiles = Math.min(sources.length - offset, 20);
+            String[] command;
+            if (append || offset > 0) {
+                command = new String[] {
+                    ETAGS,
+                    "-o",
+                    tagsFile.getPath(),
+                    "-a"
+                };
+            } else {
+                command = new String[] {
+                    ETAGS,
+                    "-o",
+                    tagsFile.getPath()
+                };
+            }
+            List args = new ArrayList();
+            for (int i = 0; i < nfiles; i++) {
+                if (sources[i + offset].isDirectory()) {
+                    args.add("-i");
+                }
+                args.add(sources[i + offset]);
+            }
+            try {
+                runExecutable(command, args.toArray(), 0, args.size());
+            } catch (MakeException me) {
+                e = me;
+            }
+            offset += nfiles;
+        }
+        if (e != null) throw e;
+    }
+
     /**
      * Find file under a given directory having a particular suffix
      * (extension).
@@ -545,7 +621,7 @@ public class MakeContext {
      **/
     public File[] findFiles(File base, String suffix, boolean recurse) throws MakeException {
 	if (!base.isDirectory()) {
-	    throw new MakeException("base not directory: " + base);
+            return new File[0];
 	}
         List files = new ArrayList();
         findFiles(files, base, suffix, recurse);
@@ -725,6 +801,23 @@ public class MakeContext {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    public JarSet createJarSet(File root) {
+        return new JarSet(root, null);
+    }
+
+    public JarSet createJarSet(File root, String suffix, boolean recurse) throws MakeException {
+        return new JarSet(root, findFiles(root, suffix, recurse));
+    }
+
+    public static class JarSet {
+        public File root;
+        public File[] files;
+        public JarSet(File root, File[] files) {
+            this.root = root;
+            this.files = files;
         }
     }
 }
