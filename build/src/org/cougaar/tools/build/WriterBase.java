@@ -1,10 +1,21 @@
 /*
  * <copyright>
- * Copyright 1997-2001 Defense Advanced Research Projects
- * Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
- * Raytheon Systems Company (RSC) Consortium).
- * This software to be used only in accordance with the
- * COUGAAR licence agreement.
+ *  Copyright 1997-2001 BBNT Solutions, LLC     
+ *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+ * 
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the Cougaar Open Source License as published by
+ *  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+ * 
+ *  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+ *  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+ *  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+ *  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+ *  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+ *  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *  PERFORMANCE OF THE COUGAAR SOFTWARE.
  * </copyright>
  */
 
@@ -80,11 +91,22 @@ public class WriterBase {
   protected final static void writeCR(PrintWriter out, String source) {
     println(out,"/*\n"+
                 " * <copyright>\n"+
-                " * Copyright 1997-2001 Defense Advanced Research Projects\n"+
-                " * Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and\n"+
-                " * Raytheon Systems Company (RSC) Consortium).\n"+
-                " * This software to be used only in accordance with the\n"+
-                " * COUGAAR licence agreement.\n"+
+                " *  Copyright 1997-2001 BBNT Solutions, LLC     \n"+
+                " *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).\n"+
+                " * \n"+
+                " *  This program is free software; you can redistribute it and/or modify\n"+
+                " *  it under the terms of the Cougaar Open Source License as published by\n"+
+                " *  DARPA on the Cougaar Open Source Website (www.cougaar.org).\n"+
+                " * \n"+
+                " *  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS\n"+
+                " *  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR\n"+
+                " *  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF\n"+
+                " *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT\n"+
+                " *  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT\n"+
+                " *  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL\n"+
+                " *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,\n"+
+                " *  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\n"+
+                " *  PERFORMANCE OF THE COUGAAR SOFTWARE.\n"+
                 " * </copyright>\n"+
                 " */");
     println(out);
