@@ -31,7 +31,7 @@ sys.lib=/home/cougaar/build.jars
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,delta,blackjack,uiframework,\
+	vishnu,tops,glmtrans,delta,blackjack,uiframework,\
 	base,\
 	tutorial
 
@@ -40,7 +40,7 @@ modules=\
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
 	glm,scalability,server,aggagent,uiframework,base,tutorial,\
-	tops,vishnu
+	tops,glmtrans,vishnu
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -63,10 +63,11 @@ scalability.deps = core,glm
 aggagent.deps = core,planserver,glm
 vishnu.deps = core,toolkit,glm
 tops.deps = core,glm,toolkit,planserver,vishnu
+glmtrans.deps = core,glm,toolkit,planserver,vishnu
 delta.deps = core,glm,toolkit,planserver
 blackjack.deps = core,glm,planserver,toolkit,vishnu
 Marine.deps = core,glm
-uiframework.deps = core,glm,planserver,aggagent
+uiframework.deps = core,glm,planserver,aggagent, tops
 tutorial.deps = core,glm
 
 # module libs (in addition to module deps)
@@ -79,9 +80,10 @@ aggagent.jars = xerces,xalan
 scalability.jars = xerces
 vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
+glmtrans.jars = xerces,openmap
 delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50
 blackjack.jars = xerces,jcchart451K,jsdk
-uiframework.jars = xerces,openmap,j2ee,vgj,xerces,tops
+uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
 
@@ -89,10 +91,12 @@ tutorial.jars = xerces
 # for example jdbc drivers for use at runtime
 glm.extras = oracle12
 tops.extras = mm-mysql-2
+glmtrans.extras = mm-mysql-2
 uiframework.extras = mm-mysql-2
 
 # flag other repositories
 tops.repository = internal
+glmtrans.repository = internal
 delta.repository = internal
 blackjack.repository = internal
 vishnu.repository = internal
