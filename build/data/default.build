@@ -33,7 +33,8 @@ modules=\
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
-	glm,scalability,server,aggagent,uiframework,base,tutorial
+	glm,scalability,server,aggagent,uiframework,base,tutorial,\
+	tops,vishnu
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -42,6 +43,7 @@ modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggage
 ## module-specific flags
 ##
 
+# per-module javac:
 #uiframework.javac=javac
 
 # module deps
