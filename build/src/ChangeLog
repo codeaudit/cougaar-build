@@ -1,3 +1,23 @@
+2002-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/Targets.java:
+	Add javadoc and javadocDir targets to produce javadoc for the
+	current module or directory respectively.
+	
+	* org/cougaar/tools/make/MakeContext.java: Add support for
+	javadoc: new options to specify doclet and tag and taglet options.
+
+2002-01-02  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/Targets.java:
+	Include test classes in jars.
+
+	* org/cougaar/tools/make/MakeContext.java:
+	Add .htm to theExtensionsToJar
+	Fix problem with jarring complete directories into an existing
+	jar. Jar complains that the directory entry is repeated unless a
+	separate "update" operation is performed.
+
 2002-03-04  Noelle Givler  <ngivler@bbn.com>
 
 	* org/cougaar/tools/build/PGWriter.java (Repository):
