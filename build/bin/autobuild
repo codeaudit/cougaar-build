@@ -155,7 +155,7 @@ sub mysystem {
     if ($rc != 0) {
       $sawerror++;
       if ($rc == 0xff00) {
-	print STDERR "Command failed: $!\n";
+	print STDERR "Command failed: $command $!\n";
       } elsif ($rc > 0x80) {
 	$rc >>= 8;
 	print STDERR "Completed with exit status of $rc\n";
