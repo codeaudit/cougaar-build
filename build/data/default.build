@@ -258,7 +258,7 @@ bol.compiler=javac
 
 # mic
 mic.repository = external
-mic.deps = core,glm,planserver
+mic.deps = util,core,glm,planserver
 mic.jars = log4j,xerces
 
 # dbms module
