@@ -78,12 +78,14 @@ $specTag;			# default tag as given by the specfile
 $impliedTag;			# tag used to check out the specfile (if known)
 
 $verbose = 0;
-$auto = "auto";
 $tag;				# tag to use to pass to the build script (-t arg)
 $default_group = "AUTO";
 $group;
 $data = "default.build";
-$host = "eiger.alpine.bbn.com";
+#$host = "eiger.alpine.bbn.com";
+#$auto = "auto";		# where do the builds go on $host?
+$host = "build.cougaar.org";
+$auto = "/var/www/gforge-projects/build/auto"; # where do the builds go on $host?
 $cleanup = 1;
 $keep = 3;
 
