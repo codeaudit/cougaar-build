@@ -1,0 +1,47 @@
+
+repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
+repository.default=cougaar
+tag.default=HEAD
+product.name=alp
+sys.lib=/home/mthome/.lib/jars
+build.root=/tmp/V8_0
+
+modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent
+
+##
+## module-specific flags
+##
+
+# module deps
+contract.deps = core
+toolkit.deps = core
+planserver.deps = core
+glm.deps = core,planserver,toolkit
+scalability.deps = core,glm
+aggagent.deps = core,planserver,glm
+
+# module libs (in addition to module deps)
+core.jars = xerces
+contract.jars = xerces
+toolkit.jars = xerces
+planserver.jars = xerces
+glm.jars = xerces,fesi-111,omcore,jcchart451K
+aggagent.jars = xerces,xalan
+scalability.jars = xerces
+uiframework.jars = omcore,xerces,cuimap,j2ee,vgj
+
+# unified build
+core.unified = 1
+toolkit.unified = 1
+contract.unified = 1
+planserver.unified = 1
+glm.unified = 1
+scalability.unified = 1
+server.unified = 1
+aggagent.unified = 1
+
+# runtime specs. Runtime always gets built libs, too.
+core.runtime = doc
+glm.runtime = bin,configs
+
+

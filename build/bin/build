@@ -1,0 +1,701 @@
+#!/usr/bin/perl
+# -*- Perl -*-
+
+# <copyright>
+#  Copyright 2001 Defense Advanced Research Projects
+#  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
+#  Raytheon Systems Company (RSC) Consortium).
+#  This software to be used only in accordance with the
+#  COUGAAR licence agreement.
+# </copyright>
+
+# run a full release build
+
+use Cwd;
+use File::Copy;
+use File::Path;
+use File::Find;
+
+require "getopts.pl";
+
+&Getopts('r:D:hvqnQ');
+
+$nodoc=$opt_Q;
+
+usage() if $opt_h;
+
+sub usage {
+  print STDERR "Usage: build [options] ReleaseDescriptionFile\n";
+  print STDERR "\t-Q\tQuick build (no documentation)\n";
+  exit(1);
+}
+
+@modules;
+
+%opts;
+
+parse_config();
+
+$javac_command = "jikes -g";
+#$javac_command = "javac -J-Xmx128m -J-Xms128m -g";
+$java_command = "java";
+$javadoc_command = "/usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m";
+#$javadoc_command = "javadoc -J-Xmx256m -J-Xms256m";
+
+$javac_command = opt("javac",$javac_command);
+$java_command = opt("java", $java_command);
+$javadoc_command = opt("javadoc", $javadoc_command);
+
+
+{
+  local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
+  $yr = $yr+1900;
+  $mon++;
+  $min="0$min" if ($min<10);
+  $sec="0$sec" if ($sec<10);
+  # default repository date
+  $rdate="$mon/$mday/$yr $hour:$min:$sec";
+  # build time for build directory name
+  $mon="0$mon" if ($mon<10);
+  $day="0$mday" if ($mday<10);
+  $hour="0$hour" if($hour<10);
+  $yr=$yr-2000;
+  $yr="0$yr" if ($yr<10);
+  $bdate="$yr$mon$mday$hour$min$sec";
+}
+
+
+$verbose = 1;
+$verbose-- if $opt_q;
+$verbose++ if $opt_v;
+
+# repository tag for build
+if ($opt_r) {
+  $rtag = $opt_r;
+} else {
+  $rtag = opt("tag.default");
+}
+
+# build time
+$rdate = $opt_D if ($opt_D);
+
+# root of the build directory tree
+$build_root = opt("build.root");
+#$build_root = "/tmp";
+
+# absolute path of directory we are building into
+$build_dir = "$build_root/$bdate";
+
+# just a copy of the enviroment variable (or maybe a command line option)
+#$classpath = $ENV{CLASSPATH};
+$classpath;
+@sysjars;
+# skip the classpath evar and use the sys.lib param
+{
+  @sysjars = findbypattern(opt("sys.lib"), "\.(jar|zip)\$");
+  $classpath = join(":", @sysjars);
+}
+
+
+# classpath, possibly with rt.jar added for use by jikes
+$augmented_classpath = $classpath;
+@rtjars;
+# hack for jikes until it is Java2 complient
+if ( $javac_command =~ /jikes/ ) {
+  my $javahome;
+  if ( $java_command =~ /(.*)\/bin\/java/ ) {
+    $javahome = $1;
+  } else {
+    open(JAVA, "which java|");
+    my $line = <JAVA>;
+    close(JAVA);
+    if ($line =~ /(.*)\/bin\/java/) {
+      $javahome = $1;
+    } else {
+      die("Cannot find java");
+    }
+    $rtjar = "$javahome/jre/lib/rt.jar";
+    @rtjars = ($rtjar);
+    $augmented_classpath = "$augmented_classpath:$rtjar";
+  }
+}
+
+# record start time for later measurement
+$start_time = time;
+
+
+# subdir containing all the sources
+$srcdir = "$build_dir/src";
+
+$product = opt("product.name");
+
+# create the build dirs
+mkdir "$build_root";
+mkdir $build_dir;
+mkdir $srcdir;
+# libdir is where we store built jars
+$libdir = "$build_dir/lib";
+mkdir $libdir;
+# distdir is where we put end products
+$distdir = "$build_dir/dist";
+mkdir $distdir;
+
+# redirect streams to file
+$errout = "$distdir/build.out";
+open(SAVEOUT, ">&STDOUT");
+open(SAVEERR, ">&STDERR");
+#open(STDOUT, ">$errout");  # direct to file
+open(STDOUT, "|tee $errout");  # tee to file
+open(STDERR, ">&STDOUT");
+select STDERR; $| = 1;		# unbuffered
+select STDOUT; $| = 1;
+
+print "Building $rtag at $rdate into $build_dir\n"  if $verbose;
+print "Output is in $errout\n" if $verbose;
+
+# Check out everything from CVS
+&checkout;
+
+# build the modules
+&build;
+
+# build unified source tree
+&unify;
+
+# build product.zip
+&build_runtime;
+
+# build product-support.zip
+&build_3rdparty;
+
+# build unified javadoc
+&build_javadoc("unified", "$product-api") if (!$nodoc);
+
+add_md5("$build_dir/dist");
+
+# get end time and report on elapsed time
+{
+  $end_time = time;
+  $delta = $end_time - $start_time;
+  $min = int ($delta/60);
+  $sec = $delta%60;
+  print "Elapsed time = $min minutes $sec seconds\n" if $verbose;
+}
+
+exit(0);
+
+#
+# the pass routines
+#
+
+# moby checkout
+sub checkout {
+  print "Starting checkout\n" if $verbose;
+  mkdir $srcdir;
+  chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
+
+  foreach $mod (@modules) {
+    my $repb = opt("repository.base");
+    my $rep = opt("$mod.repository");
+    if (!$rep) {
+      $rep = opt("repository.default");
+    }
+    my $tag = opt("$mod.tag");
+    $tag = $rtag if (!$tag);
+
+    my $arg = "";
+    $arg = "-Q" if ($verbose<=1);
+    mysystem ("cvs $arg -d '$repb$rep' export -r $tag -D '$rdate' -d $mod $mod");
+  }
+
+  print "Checkout complete\n" if $verbose;
+}
+
+#
+# moby build of modules
+#
+
+sub build {
+  print "Starting building modules\n" if $verbose;
+
+  build_module("build") || die("Compile of build module failed");
+
+  foreach $mod (@modules) {
+    build_module($mod) if (! ($mod eq "build"));
+  }
+  print "Finished building modules\n" if $verbose;
+}
+
+
+sub build_module {
+  my ($mod) = @_;
+  my $mysrc = "$srcdir/$mod/src";
+
+  my $tmplib = "/tmp/build-lib$$";
+  mysystem("rm -rf $tmplib");
+  mkdir $tmplib;
+
+  my $cp = get_classpath($mod);
+
+  print "Generating code for $mod\n" if $verbose;
+  # run code generators
+  generate_code($mysrc, $cp);
+
+
+  # compile sources
+  print "Compiling $mod\n" if $verbose;
+  chdir $mysrc;
+  my $tmpfile = "/tmp/build.$$";
+  mysystem("find . -name '*.java' -print>$tmpfile");
+  mysystem("$javac_command -d $tmplib -classpath $cp \@$tmpfile");
+
+  print "Preparing jar for $mod\n" if $verbose;
+  # copy non-java "sources" to tmplib
+  add_module_files($mysrc, $tmplib);
+
+  # create jar
+  chdir ($tmplib);
+  jar("$product/$mod runtime", $tmplib, "$libdir/$mod.jar", "$mysrc/manifest.mf");
+
+
+  # clean up
+  chdir ($mysrc);
+  mysystem("rm -rf $tmplib $tmpfile");
+
+  # now create the product-module.zip file
+  if (!opt("$mod.internal")) {
+    my $tmpdir = "/tmp/build-$mod.$$";
+    mkdir $tmpdir;
+    my $tmpdist = "$tmpdir/$mod";
+    mkdir "$tmpdist";
+
+    chdir "$srcdir/$mod";
+    mysystem("tar cf - bin doc examples src data configs | (cd $tmpdist; tar xf -)");
+
+    # only do javadoc if it is not part of the unified build
+    if (! opt("$mod.unified")) {
+      mkdir "$tmpdist/api";
+      javadoc($mod, $mysrc, "$tmpdist/api") if (!$nodoc);
+    }
+
+    zip("$product $module", $tmpdir, "$distdir/$mod-dev.zip");
+
+    chdir($mysrc);
+    mysystem("rm -rf $tmpdir");
+  }
+
+  print "Done building $mod\n" if $verbose;
+  return 1;
+}
+
+# figure out the right classpath for a given module
+#  This hacked version just grabs all the jars it can find.
+sub old_get_classpath {
+  local($mod) = @_;
+  # compute classpath (Hack version - all previous jars)
+  my @jars = findbypattern($libdir, "\.jar\$");
+
+  # find module jars
+  my @modlib = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
+
+  #put them together - module jars take precedence
+  my @libs = (@modlib, @jars);
+  my $cp = join(":",@libs);
+  $cp = ".:$cp:$augmented_classpath";
+  return $cp;
+}
+
+# try to find exactly the set of jars needed based on dependencies, etc
+#
+sub get_classpath {
+  local($mod) = @_;
+
+  # previously built jars
+  my @buildjars = findbypattern($libdir, "\.jar\$");
+
+  # current module's lib jars
+  my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
+
+  #put them together - module jars take precedence
+  my @alljars = (@libjars, @buildjars, @sysjars);
+
+  # fill this up with required jars
+  my @cp;
+
+  foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
+    my $jar = findjar($dep, @alljars);
+    if ($jar eq "") {
+      print "Warning: could not find $dep module for $mod\n";
+    } else {
+      push @cp, $jar;
+    }
+  }
+  foreach $dep (split /\s*,\s*/, opt("$mod.jars")) {
+    my $jar = findjar($dep, @alljars);
+    if ($jar eq "") {
+      print "Warning: could not find $dep jar for $mod\n";
+    } else {
+      push @cp, $jar;
+    }
+  }
+
+  my @libs = (@cp, @rtjars);
+  my $cp = join(":",@libs);
+  return ".:$cp";
+}
+
+sub findjar {
+  local($name, @jars) = @_;
+  my $pat = "\/$name\.(jar|zip)\$";
+  foreach $_ (@jars) {
+    return $_ if (/$pat/);
+  }
+  "";
+}
+
+sub add_module_files {
+  local ($mysrc, $tmplib) = @_;
+  chdir $mysrc;
+  my $files = join(" ", findbypattern(".", "\.(def|gif|jpg|png)\$"));
+  if (! $files eq "") {
+    mysystem("tar cf - $files | (cd $tmplib ; tar xf -)");
+  }
+}
+
+
+# find all .def files and run the code generators on them
+sub generate_code {
+  my ($src, $cp) = @_;
+  my @defs = findbypattern($src, "\.def\$");
+  my $n = $#defs+1;
+  for (@defs) {
+    rundef($_, $cp);
+  }
+}
+
+# code generate a single .def file
+sub rundef {
+  my ($path, $cp)=@_;
+  open(DEF, "<$path");
+  local($line);
+  $line = <DEF>;
+  local($rc)= -1;
+  # if the first line is ";!generate: ..." then we'll use
+  # it to build the def.
+  if ( ($line =~ /\!generate:\s*(.*)$/) ) {
+    $command = $1;	 
+    # first word is the generator class
+    @words = split /\s/, $command;
+
+    # dirpath is the directory where the def file is
+    @dirpath = split /\//, $path;
+    pop @dirpath;
+    $dirpath = join "/",@dirpath;
+
+    # figure out the package name
+    $class = $words[0];
+    @pkgp = split /\./, $class;
+    $pkgp = join "/",@pkgp;
+
+    #print "Running $class\n" if $verbose;
+    $args = join " ", @words[1..$#words];
+    chdir($dirpath);
+    $rc = mysystem("$java_command -classpath $libdir/build.jar:$cp $class $args $path");
+  }
+  close(DEF);
+  return $rc;
+}
+
+#
+# build the unified tree
+#
+sub unify {
+  my $mod = "unified";
+  my $mysrc = "$srcdir/$mod/src";
+
+  print "Building unified sources\n" if $verbose;
+  mkdir "$srcdir/$mod";
+  mkdir "$mysrc";
+
+  foreach $m (@modules) {
+    if (opt("$m.unified")) {
+      my $nbase = "$srcdir/$m";
+      my $nsrc = "$nbase/src";
+      chdir $nsrc;
+      mysystem("tar cf - . | (cd $mysrc ; tar xf - )");
+    }
+  }
+  print "Done building unified sources\n" if $verbose;
+}
+
+#
+# build the runtime package
+#
+sub build_runtime {
+  my $mod;
+  my $tmpdir = "/tmp/runtime.$$";
+  print "Building runtime dist\n" if $verbose;
+  mkdir $tmpdir;
+  my $tl = "$tmpdir/lib";
+  mkdir $tl;
+  foreach $mod (@modules) {
+    mysystem("cp $build_dir/lib/$mod.jar $tl");
+    my $extraspec = opt("$mod.runtime");
+    my $moddir = "$srcdir/$mod";
+    chdir $moddir;
+    if ($extraspec) {
+      my @extras = split(/\s*,\s*/, $extraspec);
+      foreach $extra (@extras) {
+	mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
+      }
+    }
+    # copy data dir
+    if (-e "$moddir/data") {
+      chdir "$moddir";
+      mkdir "$tmpdir/$mod";
+      mkdir "$tmpdir/$mod/data";
+      mysystem("tar cf - data | (cd $tmpdir/$mod ; tar xf -)");
+    }
+  }
+
+  chdir $tmpdir;
+  zip("$product runtime", $tmpdir, "$distdir/$product.zip");
+  chdir $build_dir;
+  mysystem("rm -rf $tmpdir");
+  print "Done building runtime dist\n" if $verbose;
+}
+
+# build the 3rdparty zip - mostly 3rd party jars.
+sub build_3rdparty {
+  my $mod;
+  my $tmpdir = "/tmp/runtime.$$";
+  print "Building 3rdparty dist\n" if $verbose;
+  mkdir $tmpdir;
+  my $tl = "$tmpdir/sys";
+  mkdir $tl;
+  # grab the static sys lib
+  my $sysjars = join(" ",findbypattern(opt("sys.lib"), "\.(jar|zip)\$"));
+  mysystem("cp $sysjars $tl");
+
+  # grab the modules (checked-in) jars
+  foreach $mod (@modules) {
+    if (-e "$srcdir/$mod/lib") {
+      chdir "$srcdir/$mod/lib";
+      mysystem("cp *.jar $tl");
+    }
+  }
+
+  chdir $tmpdir;
+  zip("$product thirdparty jars", $tmpdir, "$distdir/$product-support.zip");
+  chdir $build_dir;
+  mysystem("rm -rf $tmpdir");
+  print "Done building 3rdparty dist\n" if $verbose;
+}
+
+sub build_javadoc {
+  local($mod,$dest)=@_;
+
+  $dest = "$mod-api" if ($dest eq "");
+
+  print "Building javadoc of $mod\n" if $verbose;
+
+  # generate javadoc from unified source
+  my $tmpdir = "/tmp/javadoc.$$";
+  mkdir $tmpdir;
+  mkdir "$tmpdir/api";
+  javadoc($mod, "$srcdir/$mod/src", "$tmpdir/api");
+
+  chdir $tmpdir;
+  zip("$product javadoc apis", $tmpdir, "$distdir/$dest.zip");
+  chdir $build_dir;
+  mysystem("rm -rf $tmpdir");
+  print "Done building javadoc for $mod\n" if $verbose;
+}
+
+sub javadoc {
+  local($mod, $src,$dst) = @_;
+  my %pmap;
+  chdir "$src";
+  # find all the directories with packages and convert 
+  open(LIST, "find . -name '*.java' -print|");
+  while (<LIST>) {
+    my $line = $_;
+    my $p = rindex($line, '/') - 2;
+    if ($p > 0) {
+      $line = substr($line, 2, $p);
+      $line =~ s/\//\./g;
+      $pmap{$line}=1;
+    }
+  }
+  close(LIST);
+  my $pkgs = join(" ", keys %pmap);
+  my $cp = get_classpath($mod);
+  mysystem("$javadoc_command -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+}
+
+# zip up a directory, adding appropriate comments, sums, etc.
+sub zip {
+  local($comment, $dir, $dest) = @_;
+  chdir $dir;
+  add_info($comment, $dir);
+  mysystem("zip -qr $dest *");
+}
+
+sub jar {
+  local($comment, $dir, $dest, $mf) = @_;
+  chdir $dir;
+  add_info($comment, $dir);
+  if (-r $mf) {
+    mysystem("jar cmf $mf $dest *");
+  } else {
+    mysystem("jar cf $dest *");
+  }
+}
+
+sub add_info {
+  local($comment, $dir) = @_;
+  open(OUT, ">$dir/version.txt");
+  print OUT "COMMENT = $comment\n";
+  print OUT "REPOSITORY_TAG = $rtag\n";
+  print OUT "REPOSITORY_TIME = $rdate\n";
+  local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
+  $yr = $yr+1900;
+  $mon++;
+  $min="0$min" if ($min<10);
+  $sec="0$sec" if ($sec<10);
+  # default repository date
+  my $d ="$mon/$mday/$yr $hour:$min:$sec";
+  print OUT "ARCHIVE_TIME = $d\n";
+  close OUT;
+}
+
+sub add_md5 {
+  local($dir) = @_;
+  my @archives = findbypattern($dir, "\.(jar|zip|tar|tgz)\$");
+  my $list = join(" ", @archives);
+  chdir($dir);
+  mysystem("md5sum $list > md5sums.txt");
+}
+
+#
+# here be utilities
+#
+
+sub mysystem {
+  local($command)= @_;
+
+  print STDERR "$command\n" if ($verbose>1);
+  if ($pretend) {
+    return 0;
+  }
+
+  if ($pid = fork ) {
+    # parent
+    waitpid $pid, 0;
+    local($rc)= $?;
+    # signal decoding from Perl5 manual
+    $rc &= 0xffff;
+    if ($rc != 0) {
+      $sawerror++;
+      if ($rc == 0xff00) {
+	print STDERR "Command failed: $!\n";
+      } elsif ($rc > 0x80) {
+	$rc >>= 8;
+	print STDERR "Completed with exit status of $rc\n";
+      } else {
+	print STDERR "Ran with ";
+	if ($rc &  0x80) {
+	  $rc &= 0x80;
+	  print STDERR "coredump from ";
+	}
+	print STDERR "signal $rc\n";
+      }
+    }
+  } elsif (defined $pid) {
+    # child
+    exec $command;
+    print STDERR "$command: $!\n";
+    exit(-1);
+  } else {
+    die "Couldn't run @_\n";
+  }
+}
+
+sub findbypattern {
+  local($dir, $pat) = @_;
+  local(@stuff);
+  return @stuff if (! -e $dir);
+  local($code)= sub { 
+    if (/^CVS$/) {
+      $File::Find::prune = 1;
+      return;
+    }
+    (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_));
+    if (-d $_) {
+#      if (skipP($_)) {
+#	$File::Find::prune = 1;
+#	return;
+#      }
+    } else {
+      if (-f $_ && /$pat/) {
+	push @stuff, $File::Find::name;
+      }
+    }
+  };
+  local(%ref);
+  $ref{"wanted"}=$code;
+  &find(\%ref, $dir);
+  @stuff;
+}
+
+sub finddirs {
+  local($dir) = @_;
+  local(@stuff);
+  local($code)= sub { 
+    if (/^CVS$/) {
+      $File::Find::prune = 1;
+    } else {
+      if ((($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && -d $_ ) {
+	push @stuff, $File::Find::name 	if (!&skipP($File::Find::name));
+      }
+    }
+  };
+  local(%ref);
+  $ref{"wanted"}=$code;
+  &find(\%ref, $dir);
+  @stuff;
+}
+
+#parse the input file
+sub parse_config {
+  usage() if ($#ARGV!=0);
+  my $file = $ARGV[0];
+  open(STUFF,"<$file");
+  my $count = 0;
+  while(<STUFF>) {
+    $count++;
+    next if (/^\s*$/);		# empty line
+    next if (/^\s*\#/);		# comments
+
+    if (/\s*(\S+)\s*=\s*(.+)\s*$/) {
+      my $key = $1;
+      my $val = $2;
+      $opts{$key}=$val;
+    } else {
+      print STDERR "$file (line $count): unknown format\n";
+    }
+  }
+  close(STUFF);
+
+  @modules = split(/\s*,\s*/, opt("modules"));
+  #print STDERR "modules = @modules\n";
+}
+
+sub opt {
+  my ($key, $default) = @_;
+  my ($value) = $opts{$key};
+  if ($value eq "") {
+    $value = $default;
+  }
+  return $value;
+}
