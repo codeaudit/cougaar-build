@@ -1,0 +1,162 @@
+#!/usr/bin/perl
+# -*- Perl -*-
+
+# clines reads files specified on the command line (and/or on
+# standard input) and computes some simple code metrics, sending
+# the results to standard output.
+
+# example:
+# cd $builddir/src
+# find unified -name "*.java" -print | clines
+
+# <copyright>
+#  Copyright 2001 BBNT Solutions, LLC
+#  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+# 
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the Cougaar Open Source License as published by
+#  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+# 
+#  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+#  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+#  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+#  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+#  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+#  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+#  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+#  PERFORMANCE OF THE COUGAAR SOFTWARE.
+# </copyright>
+
+%acc;
+
+if ($#ARGV>-1) {
+  foreach $f (@ARGV) {
+    process($f);
+  }
+} else {
+  while (<STDIN>) {
+    chomp;
+    process($_);
+  }
+}
+report();
+exit;
+
+
+sub process {
+  my ($path) = @_;
+  my @figures;
+  my $comment_lines = 0;
+  my $code_lines = 0;
+  my $lines = 0;
+  my $genp = 0;
+  my $bl = 0;			# bracelines
+  my $sl = 0;			# semilines
+
+  my $in_comment = 0;
+  open IN, "<$path";
+  while (<IN>) {
+    $lines++;
+    chomp;
+    $genp = 1 if (/\@generated/); # find generated files
+
+    my $sc = 0;			# comment on this line?
+    if (/^(.*)\/\//) {		# deal with one-line comments
+      $sc=1;
+      $_=$1;
+    }
+    if (/^(.*)\/\*.*\*\/(.*)$/) { # /* foo */
+      $sc = 1;
+      $_ = "$1 $2";
+      $in_comment=0 if $in_comment;
+    } else {
+      if (/^(.*)\/\*/) {	# multi-line comment start?
+	$sc=1;
+	$_=$1;
+	$in_comment=1;
+      }
+      if (/\*\/(.*)/) {		# multi-line comment end?
+	$sc=1;
+	$_=$1;
+	$in_comment=0;
+      }
+    }
+    s/^\s*(.*)\s*$/$1/g;	# zap excess white space
+
+    if ($_ eq "") {
+      if ($sc) {
+	$comment_lines++;
+      }
+    } else {
+      if ($in_comment) {
+	$comment_lines++;
+      } else {
+	$code_lines++;
+	$sl++ if (/\;/);
+	$bl++ if (/\{/);
+      }
+    }
+  }
+  close IN;
+  accumulate($path, $genp, $lines, $code_lines, $comment_lines, $sl, $bl);
+}
+
+sub accumulate {
+  my ($path, $genp, $lines, $code_lines, $comment_lines, $semil, $bracel) = @_;
+  acc("Files", 1);
+  acc("Lines",$lines);
+  acc("LOC",$code_lines);
+  acc("CLOC",$comment_lines);
+  acc("SLOC",$semil);
+  acc("BLOC",$bracel);
+
+  my ($g)=$genp?"Generated":"Hand Coded";
+  acc("$g Files",1);
+  acc("$g Lines",$lines);
+  acc("$g LOC",$code_lines);
+  acc("$g CLOC",$comment_lines);
+  acc("$g SLOC",$semil);
+  acc("$g BLOC",$bracel);
+}
+
+sub acc {
+  my($key,$inc) = @_;
+  $acc{$key} = $acc{$key}+$inc;
+}
+
+sub get {
+  my($key) = @_;
+  my($v) = $acc{$key};
+  return $v?$v:0;
+}
+
+sub report {
+  report1("Files");		# Total number of Files scanned
+  report1("Lines");		# Total number of lines scanned (including blank lines)
+  report1("LOC");		# Total number of lines with actual, active code
+  report1("CLOC");		# Total number of lines which have only comments (no code)
+  report1("SLOC");		# subset of LOC with ';'
+  report1("BLOC");		# subset of LOC with '{'
+  # the above except just for hand-coded files
+  report1("Hand Coded Files");
+  report1("Hand Coded Lines");
+  report1("Hand Coded LOC");
+  report1("Hand Coded CLOC");
+  report1("Hand Coded SLOC");
+  report1("Hand Coded BLOC");
+  # the above except just for machine-generated files
+  report1("Generated Files");
+  report1("Generated Lines");
+  report1("Generated LOC");
+  report1("Generated CLOC");
+  report1("Generated SLOC");
+  report1("Generated BLOC");
+
+}
+
+sub report1 {
+  my($k) = @_;
+  my($v) = get($k);
+  printf "%-20s %8d\n",$k, $v;
+}
