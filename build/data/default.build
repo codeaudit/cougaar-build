@@ -207,6 +207,7 @@ glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xercesImpl,xml-apis,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
 glm.repository = :ext:cougaar.org:/cvsroot/glm
+glm.runtime = bin
 
 # aggregation agent
 aggagent.deps = core,planning,glm,util
@@ -225,6 +226,7 @@ vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 #uiframework.deps = core,planning,glm,util
 #uiframework.jars = xercesImpl,xml-apis,openmap,vgj
 #uiframework.extras = mm-mysql-2
+#uiframework.runtime = bin
 
 # tutorials
 tutorial.deps = core,planning,util
