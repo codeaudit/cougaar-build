@@ -426,6 +426,8 @@ if ($java_home) {
 
 add_md5("$build_dir/dist");
 
+sign_report();
+
 # get end time and report on elapsed time
 {
   $end_time = time;
@@ -873,10 +875,13 @@ sub build_3rdparty {
 	my $foo = join(":",@alljars);
 	print STDERR "Warning: could not find $dep in $foo\n";
       }
-      if ($jar && ! ($member{$jar})) {
-	$member{$jar} = 1;
+      if ($jar && ! ($member{$dep})) {
+	$member{$dep} = 1;
 	cp($jar, $tl);
-	sign_jar($jar, "sys");
+	if ($jar =~ /\/([^\/]+\.(zip|jar))$/) {
+	  my ($tail) = $1;
+	  sign_jar("$tl$tail", "sys");
+	}
       }
     }
   }
@@ -1012,6 +1017,17 @@ sub add_md5 {
   mysystem("md5sum $list > md5sums.txt");
 }
 
+sub sign_report {
+  if ($#signed_jars>=0) {
+    print "Signed the following jars: \n";
+    foreach $j (@signed_jars) {
+      print "\t$j\n";
+    }
+  } else {
+    print "Signed no jars\n";
+  }
+}
+
 sub sign_jar {
   my($jar, $mod) = @_;
   if ($isSigning) {
@@ -1023,8 +1039,9 @@ sub sign_jar {
       # use system so that we don't publish the passwords in the logs
       print STDERR "Signing $jar ($mod)\n" if ($verbose);
       system("$jarsigner_command $jarsigner_arguments -keystore $ks -storepass $kssp -keypass $kskp $jar $alias");
+      push @signed_jars, $jar;
     } else {
-      print STDERR "Warning: Not enough information to sign $jar of $mod\n";
+      #print STDERR "Warning: Not enough information to sign $jar of $mod\n";
     }
   }
 }
@@ -1561,4 +1578,12 @@ sub absPath {
 sub cp {
   my($f, $t) = @_;
   return mysystem("cp $f $t");
+}
+
+sub warnonce {
+  my($k, $w) = @_;
+  if (! $once{$k}) {
+    $once{$k}=1;
+    print STDERR "Warning: $w\n";
+  }
 }
