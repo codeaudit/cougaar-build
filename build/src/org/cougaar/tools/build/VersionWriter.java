@@ -24,6 +24,7 @@ package org.cougaar.tools.build;
 
 import java.io.*;
 import java.util.*;
+import java.text.SimpleDateFormat;
 
 public class VersionWriter extends WriterBase {
   private String[] args;
@@ -84,20 +85,42 @@ public class VersionWriter extends WriterBase {
       println(out,"package org.cougaar;");
       if (version == null) version = "unknown";
       String rtag = System.getProperty("repository.tag");
-      String rtim = System.getProperty("repository.time");
+      String rdate = System.getProperty("repository.time");
       boolean rmod = "true".equals(System.getProperty("repository.modified"));
-      println(out,"public final class Version {\n"+
-                  "  public final static String version = \""+version+"\";\n"+
-                  "  public final static long buildTime = "+System.currentTimeMillis()+"L;\n"+
-		  "  public final static void main(String args[]) {\n"+
-		  "    System.out.println(\"version=\"+version);\n"+
-		  "    System.out.println(\"build time=\"+new java.util.Date(buildTime));");
+      long rtime = -1;
+      if (rdate != null) {
+        try {
+          // example rdate: "4/5/2002 16:00:07"  (GMT?)
+          SimpleDateFormat df = new SimpleDateFormat("M/d/yyyy H:mm:ss");
+          Date d = df.parse(rdate);
+          rtime = d.getTime();
+        } catch (Exception eDateFormat) {
+        }
+      }
+      println(out,
+          "public final class Version {\n"+
+          "  public final static String version = \""+
+          version+"\";\n"+
+          "  public final static long buildTime = "+
+          System.currentTimeMillis()+"L;\n"+
+          "  public final static String repositoryTag = "+
+          ((rtag != null) ? ("\""+rtag+"\"") : "null")+";\n"+
+          "  public final static boolean repositoryModified = "+
+          ((rtag != null) ? rmod : false)+";\n"+
+          "  public final static long repositoryTime = "+
+          rtime+"L;\n"+
+          "  public final static void main(String args[]) {\n"+
+          "    System.out.println(\"version=\"+version);\n"+
+          "    System.out.println(\"build time=\"+new java.util.Date(buildTime));");
       if (rtag != null) {
         println(out, "    System.out.println(\"repository tag="+rtag+
-                (rmod?" (modified)":"")+"\");");
+            (rmod?" (modified)":"")+"\");");
       }
-      if (rtim != null) {
-        println(out, "    System.out.println(\"repository time="+rtim+"\");");
+      if (rdate != null) {
+        println(out, "    System.out.println(\"repository time="+
+            ((rtime > 0) ?
+             ("\"+new java.util.Date(repositoryTime));") :
+             ("\""+rdate+"\");")));
       }
       println(out,"  }\n"+
                   "}");
