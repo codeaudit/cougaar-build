@@ -1339,6 +1339,7 @@ sub javadoc {
     return;
   }
 
+  print "\nJavadoc module $mod\n";
   chdir $src;
 
   #my $cp = cpWrap(get_classpath($mod)); # cpWrap not necc when using env vars
@@ -1390,6 +1391,7 @@ sub javadoc {
   addtime("javadoc",$time1-$time0);
   unlink($argf);
   undef $ENV{CLASSPATH};
+  print "Done javadoc module $mod\n";
 }
 
 # zip up a directory, adding appropriate comments, sums, etc.
@@ -1751,7 +1753,9 @@ sub find_errors {
 
   open(LOG, "<$errout");
   open(ERR, ">$distdir/errors.out");
-  my ($report)=sprintf "%15s %10s %10s %10s\n", "module", "errors", "warnings", "regress";
+  #my ($report)=sprintf "%15s %10s %10s %10s\n", "module", "errors", "warnings", "regress";
+  my (%report);
+  my (@mods);
   my ($te)=0;			# total errors
   my ($tw)=0;			# total warnings
   my ($tr)=0;			# total regression failures
@@ -1765,19 +1769,35 @@ sub find_errors {
   my ($mode) = "?";		# mode = "?","compile", "unit"
   while (<LOG>) {
     chomp;
+    if (/Javadoc module (\w*)/) {
+      $mn = $1;
+      $ec = 0; $wc = 0; $rc=0;
+      $mode = "javadoc";
+    }
+    if (/Done javadoc module (\w*)/) {
+      $report{$mn,"doc"} += $ec+$wc;
+      $mn = "";
+      $mode= "?";
+    }
+
     if (/Building module (\w*)/) {
       $mn = $1;
+      push @mods, $mn;
       $ec = 0; $wc = 0; $rc=0;
       $mode = "compile";
     }
     if (/Done building (\w+)/) {
       if ($mn eq $1) {
 	if ($moduleFailed{$mn}) {
-	  $mn = "($mn)";
+	  #$mn = "($mn)";
+	  $report{$mn,"failed"}++;
 	  $tf++;
 	}
 	$wc = $wc - opt("$mn.warnings"); # only "unexpected" warnings
-	$report .= sprintf "%15s %10d %10d %10d\n", $mn, $ec, $wc, $rc ; # if ($ec || $wc);
+	$report{$mn,"cerr"} += $ec;
+	$report{$mn,"cwar"} += $wc;
+	$report{$mn,"reg"} += $rc;
+	#$report .= sprintf "%15s %10d %10d %10d\n", $mn, $ec, $wc, $rc ; # if ($ec || $wc);
 	$te = $te+$ec;
 	$tw = $tw+$wc;
 	$tr = $tr+$rc;
@@ -1886,12 +1906,28 @@ sub find_errors {
   }
   close(LOG);
 
-  $report .= sprintf "%15s %10d %10d %10d\n", "total", $te, $tw, $tr;
-  if ($tf>0) {
-    $report .= sprintf "%15s %10d\n", "Failed", $tf;
+  my ($rstr)=sprintf "%20s %10s %10s %10s %10s\n", "MODULE", "ERRORS", "WARNINGS", "REGRESS", "JAVADOC";
+  my ($tcerr,$tcwar,$treg,$tdoc);
+  foreach $m (@mods) {
+    my($n)= $m;
+    if ($report{$m,"failed"}) { $n = "($n)"; }
+    my ($mcerr)=$report{$m,"cerr"}+0;
+    my ($mcwar)=$report{$m,"cwar"}+0;
+    my ($mreg) =$report{$m,"reg"} +0;
+    my ($mdoc) =$report{$m,"doc"} +0;
+    $rstr .= sprintf "%20s %10s %10s %10s %10s\n", $n, $mcerr,$mcwar,$mreg,$mdoc;
+    $tcerr += $mcerr;
+    $tcwar += $mcwar;
+    $treg  += $mreg;
+    $tdoc  += $mdoc;
   }
-  print ERR $report if ($te>0 || $tw>0);
-  print STDERR $report;
+
+  $rstr .= sprintf "%20s %10s %10s %10s %10s\n", "TOTALS ", $tcerr,$tcwar,$treg,$tdoc;
+  if ($tf>0) {
+    $rstr .= sprintf "%20s %10d\n", "FAILURES ", $tf;
+  }
+  print ERR $rstr if ($te>0 || $tw>0);
+  print STDERR $rstr;
   close(ERR);
 }
 
