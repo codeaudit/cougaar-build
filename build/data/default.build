@@ -85,7 +85,8 @@ modules=\
 	quo,\
 	qos,\
 	deltaeport,\
-	dbms
+	dbms,\
+	webserver, webtomcat
 
 # leave out Marine for now - it is broken
 
@@ -109,75 +110,116 @@ modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggage
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
 
-# module deps
-#bogon
-server.deps = core
-contract.deps = core
-toolkit.deps = core
-planserver.deps = core
-glm.deps = core,planserver,toolkit
-scalability.deps = core,glm
-aggagent.deps = core,planserver,glm
-vishnu.deps = core,toolkit,glm
-tops.deps = core,glm,toolkit,planserver,vishnu
-datagrabber.deps = core,glm,toolkit,planserver
-glmtrans.deps = core,glm,toolkit,vishnu
-delta.deps = core,glm,toolkit,planserver
-blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
-Marine.deps = core,glm
-uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
-tutorial.deps = core,glm
-csmart.deps = core,server,glm,planserver,scalability
-qos.deps = core
-quo.deps = core, qos
-deltaeport.deps = core,glm,toolkit,planserver,delta
-
-# module libs (in addition to module deps)
+# build tools requires the jdk tools jars
 build.jars = tools
-core.jars = xerces, log4j, servlet
-contract.jars = xerces
-toolkit.jars = xerces
-planserver.jars = xerces
-glm.jars = xerces,fesi-111,jcchart451K
-aggagent.jars = xerces,xalan,jpython,silk
-scalability.jars = xerces
-vishnu.jars = xerces
-tops.jars = xerces,topsga,openmap,chart
-datagrabber.jars = xerces,chart,openmap
-glmtrans.jars = xerces
-delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
-blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
-uiframework.jars = xerces,openmap,vgj,xerces
-Marine.jars = xerces
-tutorial.jars = xerces
-csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk
-quo.jars = quoSumo, jacorb
-qos.jars = quoSumo
-deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
-
-#extra libs to include in distribution
-# for example jdbc drivers for use at runtime
-glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
-tops.extras = mm-mysql-2
-uiframework.extras = mm-mysql-2
-# csmart wants DBMS for regression tests, too
-csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
-
 # include junit.jar in dist, even though it is only needed for
 # build/release
 build.extras = junit
 
-# flag other repositories
-tops.repository = internal
-datagrabber.repository = internal
-glmtrans.repository = internal
-delta.repository = internal
-blackjack.repository = internal
+# core
+core.jars = xerces, log4j, servlet
+
+# app server
+server.deps = core
+
+# contract
+contract.deps = core
+contract.jars = xerces
+
+# toolkit
+toolkit.deps = core
+toolkit.jars = xerces
+
+# (old) psp server
+planserver.deps = core
+planserver.jars = xerces
+
+# glm
+glm.deps = core,planserver,toolkit
+glm.jars = xerces,fesi-111,jcchart451K
+glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
+
+# scalability testing kit
+scalability.deps = core,glm
+scalability.jars = xerces
+
+# aggregation agent
+aggagent.deps = core,planserver,glm
+aggagent.jars = xerces,xalan,jpython,silk
+
+# vishnu scheduler
+vishnu.deps = core,toolkit,glm
+vishnu.jars = xerces
 vishnu.repository = internal
-Marine.repository = internal
-csmart.repository = internal
+
+# tops
+tops.deps = core,glm,toolkit,planserver,vishnu
+tops.jars = xerces,topsga,openmap,chart
+tops.extras = mm-mysql-2
+tops.repository = internal
+
+# datagrabber
+datagrabber.deps = core,glm,toolkit,planserver
+datagrabber.jars = xerces,chart,openmap
+datagrabber.repository = internal
+
+# glm transportation 
+glmtrans.deps = core,glm,toolkit,vishnu
+glmtrans.jars = xerces
+glmtrans.repository = internal
+
+# delta
+delta.deps = core,glm,toolkit,planserver
+delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
+delta.repository = internal
+deltaeport.deps = core,glm,toolkit,planserver,delta
+deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
 deltaeport.repository = internal
+
+# blackjack
+blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
+blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
+blackjack.repository = internal
+
+# Marines
+Marine.deps = core,glm
+Marine.jars = xerces
+Marine.repository = internal
+
+# uiframework
+uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
+uiframework.jars = xerces,openmap,vgj,xerces
+uiframework.extras = mm-mysql-2
+
+# tutorials
+tutorial.deps = core,glm
+tutorial.jars = xerces
+
+# csmart
+csmart.deps = core,server,glm,planserver,scalability
+csmart.jars = xerces,jcchart451K,grappa1_2_bbn,junit,silk
+# csmart wants DBMS for regression tests, too
+csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
+csmart.repository = internal
+
+# quo/qos
+qos.deps = core
+quo.deps = core, qos
+quo.jars = quoSumo, jacorb
+qos.jars = quoSumo
+
+# new PSP/web server
+webserver.deps = core
+webserver.jars = servlet
+webtomcat.deps = webserver
+webtomcat.jars = servlet, tomcat_33
+
+# dbms module
 dbms.repository = dbms
+
+#
+# distribution settings
+#
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
