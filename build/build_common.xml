@@ -1,0 +1,287 @@
+<project name="simple" default="compile" basedir=".">
+
+<taskdef name="pathproperty" classname="org.cougaar.tools.ant.PathProperty"/>
+<taskdef name="trycall" classname="org.cougaar.tools.ant.TryCall"/>
+<taskdef name="foreach" classname="org.cougaar.tools.ant.Foreach"/>
+
+<!-- set global properties from user's .ant.properties file -->
+<property file="${user.home}/.ant.properties"/>
+
+<property name="project.classlib" value="${basedir}/lib"/>
+<property name="project.tmpdir" value="${basedir}/tmpdir"/>
+<property name="codegen.jar" value="${project.classlib}/build.jar"/>
+
+<path id="jars">
+  <fileset dir="${project.classlib}">
+    <include name="*.jar"/>
+  </fileset>
+  <pathelement path="${java.class.path}"/>
+</path>
+
+<!-- Build the jar file unless we already have it. Caller determines
+if we have the jar by setting have.jar -->
+
+<target name="conditional.jar" unless="have.jar">
+  <antcall target="jar"/>
+</target>
+
+<target name="insure.jar">
+  <available property="have.jar" file="${project.classlib}/${module}.jar" />
+  <antcall target="conditional.jar">
+    <param name="module" value="${module}"/>
+  </antcall>
+</target>
+
+<target name="build.jar">
+<antcall target="insure.jar">
+<param name="codegen.disable" value="true" />
+<param name="module" value="build"/>
+</antcall>
+</target>
+<target name="core.jar">
+<antcall target="insure.jar">
+<param name="module" value="core"/>
+</antcall>
+</target>
+<target name="glm.jar">
+<antcall target="insure.jar">
+<param name="module" value="glm"/>
+</antcall>
+</target>
+<target name="configgen.jar">
+<antcall target="insure.jar">
+<param name="module" value="configgen"/>
+</antcall>
+</target>
+<target name="contract.jar">
+<antcall target="insure.jar">
+<param name="module" value="contract"/>
+</antcall>
+</target>
+<target name="javaiopatch.jar">
+<antcall target="insure.jar">
+<param name="module" value="javaiopatch"/>
+</antcall>
+</target>
+<target name="planserver.jar">
+<antcall target="insure.jar">
+<param name="module" value="planserver"/>
+</antcall>
+</target>
+<target name="scalability.jar">
+<antcall target="insure.jar">
+<param name="module" value="scalability"/>
+</antcall>
+</target>
+<target name="server.jar">
+<antcall target="insure.jar">
+<param name="module" value="server"/>
+</antcall>
+</target>
+<target name="tutorial.jar">
+<antcall target="insure.jar">
+<param name="module" value="tutorial"/>
+</antcall>
+</target>
+<target name="toolkit.jar">
+<antcall target="insure.jar">
+<param name="module" value="toolkit"/>
+</antcall>
+</target>
+
+<!-- Here are the module prequisite definitions. The jar files for the
+     prerequisite modules must be in place prior to a compilation -->
+
+<target name="build.prerequisites"       depends=""                                             />
+<target name="javaiopatch.prerequisites" depends="build.jar"                                    />
+<target name="core.prerequisites"        depends="build.jar"                                    />
+<target name="toolkit.prerequisites"     depends="build.jar"                                    />
+<target name="planserver.prerequisites"  depends="build.jar,core.jar"                           />
+<target name="glm.prerequisites"         depends="build.jar,core.jar,toolkit.jar,planserver.jar"/>
+<target name="contract.prerequisites"    depends="build.jar,core.jar"                           />
+<target name="scalability.prerequisites" depends="build.jar,core.jar"                           />
+<target name="server.prerequisites"      depends="build.jar"                                    />
+<target name="tutorial.prerequisites"    depends="build.jar,core.jar,planserver.jar,glm.jar"    />
+<target name="configgen.prerequisites"   depends="build.jar"                                    />
+
+<target name="project.classlib">
+  <mkdir dir="${project.classlib}"/>
+</target>
+
+<target name="project.tmpdir">
+  <mkdir dir="${project.tmpdir}"/>
+</target>
+
+<target name="module.tmpdir">
+  <mkdir dir="${basedir}/${module}/tmpdir"/>
+</target>
+
+<target name="module.classes" depends="module.tmpdir">
+  <mkdir dir="${basedir}/${module}/tmpdir/classes"/>
+</target>
+
+<target name="delete.directory">
+  <available property="dir.exists" file="${dirname}"/>
+  <antcall target="delete.directory.if"/>
+</target>
+
+<target name="delete.directory.if" if="dir.exists">
+  <delete dir="${dirname}"/>
+</target>
+
+<target name="delete.module.tmpdir">
+  <antcall target="delete.directory">
+    <param name="dirname" value="${basedir}/${module}/tmpdir"/>
+  </antcall>
+</target>
+
+<target name="delete.project.tmpdir">
+  <antcall target="delete.directory">
+    <param name="dirname" value="${project.tmpdir}"/>
+  </antcall>
+</target>
+
+<target name="delete.module.jarfile">
+  <delete>
+    <fileset dir="${project.classlib}" includes="${module}.jar"/>
+  </delete>
+</target>
+
+<target name="delete.generated.code" depends="build.jar">
+  <pathproperty name="codegen.path">
+    <path>
+     <pathelement path="${codegen.jar}"/>
+     <path refid="jars"/>
+    </path>
+  </pathproperty>
+
+  <execon executable="java"
+          parallel="false"
+          failonerror="false">
+    <arg line="-classpath ${codegen.path} org.cougaar.tools.build.DefCleaner" />
+    <fileset dir="${basedir}/${module}/src" >
+      <include name="**/*.gen" />
+    </fileset>
+  </execon>
+</target>
+
+<!-- Standard targets -->
+<target name="jar" depends="project.tmpdir,compile">
+  <jar jarfile="${project.tmpdir}/${module}.jar" basedir="${basedir}/${module}/tmpdir/classes"/>
+  <move file="${project.tmpdir}/${module}.jar" todir="${project.classlib}"/>
+</target>
+
+<target name="clean">
+  <antcall target="delete.generated.code"/>
+  <antcall target="delete.module.tmpdir"/>
+  <antcall target="delete.module.jarfile"/>
+</target>
+
+<target name="codegen" unless="codegen.disable">
+  <antcall target="codegen.1"/>
+</target>
+
+<target name="codegen.1" depends="build.jar">
+  <pathproperty name="codegen.path">
+    <path>
+     <pathelement path="${codegen.jar}"/>
+     <path refid="jars"/>
+    </path>
+  </pathproperty>
+
+  <execon executable="java"
+	parallel="false"
+	failonerror="false" >
+    <arg line="-classpath ${codegen.path} org.cougaar.tools.build.DefRunner" />
+    <fileset dir="${basedir}/${module}/src" >
+      <include name="**/*.def" />
+    </fileset>
+  </execon>
+</target>
+
+<target name="compile" depends="project.classlib,module.classes,codegen">
+<!--  <echo message="Compiling ${module}"/> -->
+  <!-- Compiling any module invalidates its jar -->
+  <antcall target="delete.module.jarfile"/>
+  <antcall target="${module}.prerequisites"/>
+  <javac srcdir="${basedir}/${module}/src"
+         destdir="${basedir}/${module}/tmpdir/classes"
+         depend="${build.compile.depend}"
+         deprecation="${build.compile.deprecation}"
+         debug="${build.compile.debug}"
+     >
+     <classpath>
+      <fileset dir="${basedir}">
+        <include name="*/tmpdir/classes"/>
+      </fileset>
+      <path refid="jars"/>
+      <pathelement path="${destdir}"/>
+      <pathelement path="${java.class.path}"/>
+    </classpath>
+  </javac>
+</target>
+
+<!-- Support for doing all modules -->
+<target name="for.all.modules">
+  <antcall target="${target}">
+    <param name="module" value="core"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="glm"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="toolkit"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="configgen"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="contract"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="javaiopatch"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="planserver"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="scalability"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="server"/>
+  </antcall>
+  <antcall target="${target}">
+    <param name="module" value="tutorial"/>
+  </antcall>
+</target>
+
+<target name="clean.all">
+  <antcall target="for.all.modules">
+    <param name="codegen.disable" value="true"/>
+    <param name="target" value="clean"/>
+  </antcall>
+  <antcall target="clean">
+    <param name="module" value="build"/>
+  </antcall>
+  <antcall target="delete.project.tmpdir"/>
+</target>
+
+<target name="compile.all">
+  <antcall target="for.all.modules">
+    <param name="target" value="compile"/>
+  </antcall>
+</target>
+
+<target name="javadoc.all">
+  <antcall target="for.all.modules">
+    <param name="target" value="javadoc"/>
+  </antcall>
+</target>
+
+<target name="jar.all">
+  <antcall target="for.all.modules">
+    <param name="target" value="jar"/>
+  </antcall>
+</target>
+
+</project>
