@@ -134,7 +134,7 @@ deltaeport.deps = core,glm,toolkit,planserver,delta
 
 # module libs (in addition to module deps)
 build.jars = tools
-core.jars = xerces, log4j
+core.jars = xerces, log4j, servlet
 contract.jars = xerces
 toolkit.jars = xerces
 planserver.jars = xerces
