@@ -259,7 +259,7 @@ if (! ($status eq "SUCCEEDED")) {
 # copy whatever is there to $host
 ssh("$host mkdir -p $auto/$tag/$built");
 scp("$builddir/$built/dist/* $host:$auto/$tag/$built");
-ssh("$host cd $auto \\; rm -f latest \\; ln -s $built latest");
+ssh("$host cd $auto/$tag \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
 cleanRemote();
