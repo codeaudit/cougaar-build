@@ -233,7 +233,7 @@ $compiler_touse = "javac";
 addopt("javac.command", "javac");
 addopt("jikes.command", "jikes");
 addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
-addopt("default.javadoc.memory", "-J-Xmx256m -J-Xms128m");
+addopt("default.javadoc.memory", "-J-Xmx512m -J-Xms128m");
 
 #Classpath separator set from property, defaults to Unix version
 $cpsep = opt("cp.sep", ":");
@@ -908,6 +908,8 @@ sub get_classpath {
 sub get_unified_classpath {
   my %member;
   my @cp;
+
+  # get all the module dependencies
   foreach $m (@modules) {
     if (isUnified($m)) {
       foreach $c (split(/$cpsep/,get_classpath($m))) {
@@ -918,7 +920,23 @@ sub get_unified_classpath {
       }
     }
   }
-  return join("$cpsep", @cp);
+  # Now remove the unified module jars from the classpath
+  my @xcp;
+  foreach $j (@cp) {
+    if ( ($j =~ /\/([^\/]+)\.jar/) ) {
+      my ($m) = $1;		# module name
+      if (! isUnified($m)) {
+	#print STDERR "Leaving $j in unified classpath\n" if (verbose);
+	push @xcp, $j;
+      } else {
+	#print STDERR "Dropping $j from unified classpath\n" if (verbose);
+	# is a unified module - ignore it
+      }
+    } else {
+      push @xcp, $j;
+    }
+  }
+  return join("$cpsep", @xcp);
 }
 
 sub findjar {
