@@ -72,7 +72,7 @@ $defaults{file} = "build/data/default.build";
 $specTag;			# default tag as given by the specfile
 $impliedTag;			# tag used to check out the specfile (if known)
 
-$verbose = 1;
+$verbose = 0;
 $auto = "auto";
 $tag;				# tag to use to pass to the build script (-t arg)
 $default_group = "AUTO";
@@ -94,7 +94,6 @@ if ($opt_h) {
   print STDOUT "\t-E\tPrints error log\n";
   print STDOUT "\t-a name\tDirectory name instead of 'auto'\n";
   print STDOUT "\t-S buildspec\tURL or spec to use instead of default HEAD build\n";
-  print STDOUT "\t-t tag\tTag to use instead of 'HEAD' (deprecated - use -S instead)\n";
   print STDOUT "\t-g group\tPosting group to use instead of 'AUTO', defaults to tag if specified\n";
   print STDOUT "\t-C\tOnly clean\n";
   print STDOUT "\t-d file\tData file to use instead of 'default.build'\n";
@@ -304,7 +303,7 @@ exit 0;
 sub mysystem {
   local($command)= @_;
 
-  print STDOUT "$command\n";# if ($verbose>1);
+  print STDOUT "$command\n"; if ($verbose>1);
   if ($pretend) {
     return 0;
   }
@@ -584,7 +583,7 @@ sub grab_buildspec {
     }
 
     my $command = "cvs -d $brep -Q co -p -r $btag $bmod/$bpath";
-    print "getting script with \"$command\"\n";
+    print "getting script with \"$command\"\n" if ($verbose>1);
     mysystem("$command > $buildf");
     if (! -r $buildf) {
       die ("Failed to get build script");
