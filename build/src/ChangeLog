@@ -1,3 +1,8 @@
+2001-10-15  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/tools/make/Targets.java (Repository):
+	cleanClassFiles cleans test classes too.
+
 2001-10-02  Ray Tomlinson  <RTomlinson@HEFEWEIZEN>
 
 	* org/cougaar/tools/make/make_properties.txt (Repository):
