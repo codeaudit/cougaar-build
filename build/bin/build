@@ -536,7 +536,7 @@ sub build_module {
       print "Preparing jar for $mod\n" if $verbose;
       # create jar
       chdir ($tmplib);
-      jar("$product/$mod runtime", $tmplib, "$libdir/$mod.jar", "$mysrc/manifest.mf");
+      jar("$product/$mod runtime", $tmplib, $libdir, $mod, "$mysrc/manifest.mf");
     }
     # clean up
     chdir ($mysrc);
@@ -609,7 +609,7 @@ sub build_module {
 	javadoc($mod, $mysrc, "$tmpdist/doc/api") if (!$nodoc);
       }
 
-      zip("$product $module", $tmpdir, "$distdir/$mod-dev.zip");
+      zip("$product $module", $tmpdir, $distdir, "$mod-dev");
     }
 
     chdir($mysrc);
@@ -846,7 +846,7 @@ sub build_runtime {
   }
 
   chdir $tmpdir;
-  zip("$product runtime", $tmpdir, "$distdir/$product.zip");
+  zip("$product runtime", $tmpdir, $distdir, $product);
   chdir $build_dir;
   mysystem("rm -rf $tmpdir");
   print "Done building runtime dist\n" if $verbose;
@@ -891,7 +891,7 @@ sub build_3rdparty {
   }
 
   chdir $tmpdir;
-  zip("$product thirdparty jars", $tmpdir, "$distdir/$product-support.zip");
+  zip("$product thirdparty jars", $tmpdir, $distdir, "$product-support");
   chdir $build_dir;
   mysystem("rm -rf $tmpdir");
   print "Done building 3rdparty dist\n" if $verbose;
@@ -913,7 +913,7 @@ sub build_javadoc {
   javadoc($mod, "$srcdir/$mod/src", "$tmpdir/doc/api");
 
   chdir $tmpdir;
-  zip("$product javadoc apis", $tmpdir, "$distdir/$dest.zip");
+  zip("$product javadoc apis", $tmpdir, $distdir, $dest);
   chdir $build_dir;
   mysystem("rm -rf $tmpdir");
   print "Done building javadoc for $mod\n" if $verbose;
@@ -970,16 +970,18 @@ sub javadoc {
 
 # zip up a directory, adding appropriate comments, sums, etc.
 sub zip {
-  local($comment, $dir, $dest) = @_;
+  local($comment, $dir, $destdir, $destfile) = @_;
   chdir $dir;
-  add_info($comment, $dir);
+  my ($dest) = "$destdir/$destfile.zip";
+  add_info($comment, $dir, $destfile);
   mysystem("zip -qr $dest *");
 }
 
 sub jar {
-  local($comment, $dir, $dest, $mf) = @_;
+  local($comment, $dir, $destdir, $destfile, $mf) = @_;
   chdir $dir;
-  add_info($comment, $dir);
+  add_info($comment, $dir, $destfile);
+  my ($dest) = "$destdir/$destfile.jar";
   if (-r $mf) {
     mysystem("$jar_command cmf $mf $dest *");
   } else {
@@ -988,8 +990,8 @@ sub jar {
 }
 
 sub add_info {
-  local($comment, $dir) = @_;
-  open(OUT, ">$dir/version.txt");
+  local($comment, $dir, $destfile) = @_;
+  open(OUT, ">$dir/$destfile.version");
   print OUT "COMMENT = $comment\n";
   print OUT "REPOSITORY_TAG = $rtag\n";
   print OUT "REPOSITORY_TIME = $rdate\n";
