@@ -52,10 +52,12 @@ javac.arguments = -source 1.4 -target 1.4 -J-Xmx128m -J-Xms128m
 # javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
 # javadoc.command = javadoc
 # default memory settings are not enough to build the unified javadoc
-javadoc.arguments = -breakiterator -source 1.4 -quiet -J-Xmx256m \
--J-Xms128m -taglet org.cougaar.tools.javadoc.PropertyTaglet \
--taglet org.cougaar.tools.javadoc.ToDoTaglet
-
+# javadoc.memory = -J-Xmx256m -J-Xms128m
+# javadoc.arguments = 
+javadoc.options = -breakiterator -source 1.4 -quiet -splitIndex
+javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
+javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
+	org.cougaar.tools.javadoc.ToDoTaglet
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/

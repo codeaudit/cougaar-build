@@ -216,6 +216,7 @@ $compiler_touse = "javac";
 addopt("javac.command", "javac");
 addopt("jikes.command", "jikes");
 addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
+addopt("javadoc.memory", "-J-Xmx256m -J-Xms128m");
 
 #Classpath separator set from property, defaults to Unix version
 $cpsep = opt("cp.sep", ":");
@@ -260,7 +261,7 @@ $jar_command = jdkCommand(opt("jar.command", "jar"));
     $javadoc_command = $foo;
   } else {
     $javadoc_command = jdkCommand(opt("javadoc.command", "javadoc"));
-    $javadoc_arguments = opt("javadoc.arguments", "-J-Xmx128m -J-Xms128m");
+    $javadoc_arguments = opt("javadoc.arguments");
   }
 }
 $rmic_command = jdkCommand(opt("rmic.command", "rmic"));
@@ -578,6 +579,8 @@ sub build_module {
     # clean up
     chdir ($mysrc);
     mysystem("rm -rf $tmplib");
+
+    sign_jar("$libdir/$mod.jar", $mod);
   }
 
   my $myex = "$mymod/examples";
@@ -654,8 +657,6 @@ sub build_module {
     chdir($mysrc);
     mysystem("rm -rf $tmpdir");
   }
-
-  sign_jar("$libdir/$mod.jar", $mod);
 
   print "Done building $mod\n" if $verbose;
   $moduleDone{$mod}=1;
@@ -1001,11 +1002,26 @@ sub javadoc {
   my $pkgs = join(" ", keys %pmap);
   my $cp = cpWrap(get_classpath($mod));
   $ENV{CLASSPATH} = $cp;
+  my($jdoptions) = opt("javadoc.options");
+  my($args) = "";
+  $args .= " $jdoptions" if ($jdoptions);
+  my($jdmemory) = opt("javadoc.memory");
+  $args .= " $jdmemory" if ($jdmemory);
+
   if (opt("useDoclet", 1)) {
-    mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -tagletpath $libdir/build.jar -splitIndex -d $dst -sourcepath . $pkgs");
-  } else {
-    mysystem("$javadoc_command -splitIndex -d $dst -sourcepath . $pkgs");
+    my(@jddoclets) = opt("javadoc.doclets");
+    my(@jdtaglets) = opt("javadoc.taglets");
+    if ($#jddoclets>=0) {
+      $args .= " -docletpath $libdir/build.jar -doclet ";
+      $args .= join(" -doclet ", @jddoclets);
+    }
+    if ($#jdtaglets>=0) {
+      $args .= " -tagletpath $libdir/build.jar -taglet ";
+      $args .= join(" -taglet ", @jdtaglets);
+    }
   }
+  mysystem("$javadoc_command $javadoc_arguments $args -d $dst -sourcepath . $pkgs");
+
   undef $ENV{CLASSPATH};
 }
 
