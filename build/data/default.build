@@ -138,7 +138,8 @@ core.jars = xerces, log4j, servlet
 server.deps = core, util, bootstrap
 
 # society manager
-manager.deps = core, server, util
+#  (glm is used for examples - oplan)
+manager.deps = core, server, util, glm
 
 # contract
 contract.deps = core, util
