@@ -14,30 +14,23 @@ package org.cougaar.tools.build;
 import java.io.*;
 import java.util.*;
 
-class VersionWriter {
+public class VersionWriter extends WriterBase {
   private String[] args;
   boolean isVerbose = false;
   boolean didIt = false;
 
   String version = null;
 
-  File targetdir = null;
-
   private void readFile(String filename) {
     InputStream stream = null;
     try {
-      targetdir = new File(System.getProperty("user.dir"));
+      setDirectories(filename);
       if (filename.equals("-")) {
         debug("Reading from standard input.");
         stream = new java.io.DataInputStream(System.in);
       } else {
         debug("Reading \""+filename+"\".");
         stream = new FileInputStream(filename);
-
-        int p;
-        if ((p=filename.lastIndexOf(File.separatorChar))!=-1) {
-          targetdir = new File(filename.substring(0,p));
-        }
       }
       
       InputStreamReader isr = new InputStreamReader(stream);
@@ -67,11 +60,11 @@ class VersionWriter {
 
   public void writeFile() {
     try {
-      PrintWriter filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,"version.gen"))));
+      PrintWriter filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),"version.gen"))));
       filelist.println("Version.java");
       filelist.close();
 
-      PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,"Version.java"))));
+      PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),"Version.java"))));
     out.println("/*\n"+
                 " * <copyright>\n"+
                 " * Copyright 1997-2000 Defense Advanced Research Projects Agency (DARPA)\n"+
@@ -117,6 +110,8 @@ class VersionWriter {
           readFile("-");
         } else if (arg.equals("-v")) {
           isVerbose = (!isVerbose);
+        } else if (arg.equals("-d")) {
+          targetDirName = args[++i];
         } else {
           usage("Unknown option \""+arg+"\"");
         }

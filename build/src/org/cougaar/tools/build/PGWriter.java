@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.*;
 
 
-class PGWriter {
+public class PGWriter extends WriterBase {
   private final static String NewTimeSpanText =
     "//NewTimeSpan implementation\n" +
     "  private long theStartTime = org.cougaar.util.TimeSpan.MIN_VALUE;\n" +
@@ -55,8 +55,8 @@ class PGWriter {
     public Writer(PGParser p) {
       this.p = p;
       try {
-        filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,"properties.gen"))));
-        noteFile("properties.gen");
+        filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),getGenFileName()))));
+        noteFile(getGenFileName());
       } catch (IOException ioe) { throw new RuntimeException(); }
     }
     public void noteFile(String s) {
@@ -1434,7 +1434,7 @@ class PGWriter {
       if (writeInterfaces) {
         debug("Writing GetterIfc \""+context+"\" to \""+outname+"\"");
         noteFile(outname);
-        fos = new FileOutputStream(new File(targetdir,outname));
+        fos = new FileOutputStream(new File(getTargetDir(),outname));
         osw = new OutputStreamWriter(fos);
         out = new PrintWriter(osw);
         writeCR(out);
@@ -1444,7 +1444,7 @@ class PGWriter {
         outname = "New" + className.toString() + ".java";
         debug("Writing SetterIfc \""+context+"\" to \""+outname+"\"");
         noteFile(outname);
-        fos = new FileOutputStream(new File(targetdir,outname));
+        fos = new FileOutputStream(new File(getTargetDir(),outname));
         osw = new OutputStreamWriter(fos);
         out = new PrintWriter(osw);
         writeCR(out);
@@ -1455,7 +1455,7 @@ class PGWriter {
       outname = className.toString() + "Impl.java";
       debug("Writing Impl \""+context+"\" to \""+outname+"\"");
       noteFile(outname);
-      fos = new FileOutputStream(new File(targetdir,outname));
+      fos = new FileOutputStream(new File(getTargetDir(),outname));
       osw = new OutputStreamWriter(fos);
       out = new PrintWriter(osw);
       writeCR(out);
@@ -1474,7 +1474,7 @@ class PGWriter {
 
       debug("Writing FactoryImplementation to \""+outname+"\"");
       noteFile(outname);
-      FileOutputStream fos = new FileOutputStream(new File(targetdir,outname));
+      FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
       OutputStreamWriter osw = new OutputStreamWriter(fos);
       PrintWriter out = new PrintWriter(osw);
       writeCR(out);
@@ -1771,7 +1771,7 @@ class PGWriter {
 
       debug("Writing AssetSkeleton to \""+outname+"\"");
       noteFile(outname);
-      FileOutputStream fos = new FileOutputStream(new File(targetdir,outname));
+      FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
       OutputStreamWriter osw = new OutputStreamWriter(fos);
       PrintWriter out = new PrintWriter(osw);
       writeCR(out);
@@ -1895,7 +1895,7 @@ class PGWriter {
       noteFile(outname);
 
       debug("Writing Properties Index to \""+outname+"\"");
-      FileOutputStream fos = new FileOutputStream(new File(targetdir,outname));
+      FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
       OutputStreamWriter osw = new OutputStreamWriter(fos);
       PrintWriter out = new PrintWriter(osw);
 
@@ -1987,26 +1987,18 @@ class PGWriter {
       System.err.println(s);
   }
 
-  File targetdir = null;
-
   void processFile(String filename) {
     InputStream stream = null;
     try {
-      targetdir = new File(System.getProperty("user.dir"));
-
+      setDirectories(filename);
       if (filename.equals("-")) {
         debug("Reading from standard input.");
         stream = new java.io.DataInputStream(System.in);
       } else if (new File(filename).exists()) {
         debug("Reading \""+filename+"\".");
         stream = new FileInputStream(filename);
-
-        int p;
-        if ((p=filename.lastIndexOf(File.separatorChar))!=-1) {
-          targetdir = new File(filename.substring(0,p));
-        }
       } else {
-        debug("Using ClassLoaded to read \""+filename+"\".");
+        debug("Using ClassLoader to read \""+filename+"\".");
         stream = 
           getClass().getClassLoader().getResourceAsStream(filename);
       }
@@ -2051,6 +2043,8 @@ class PGWriter {
           cleanp = true;
         } else if (arg.equals("-properties")) {
           propertiesFile = arguments[++i];
+        } else if (arg.equals("-d")) {
+          targetDirName = arguments[++i];
         } else {
           usage("Unknown option \""+arg+"\"");
         }

@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.*;
 import java.io.File;
 
-class MeasureWriter {
+public class MeasureWriter extends WriterBase {
   class Parser {
     InputStream s;
     public Parser(InputStream s) {
@@ -109,8 +109,8 @@ class MeasureWriter {
     public Writer(Parser p) {
       this.p = p;
       try {
-        filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,"measures.gen"))));
-        noteFile("measures.gen");
+        filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),getGenFileName()))));
+        noteFile(getGenFileName());
       } catch (IOException ioe) { throw new RuntimeException(); }
     }
 
@@ -935,7 +935,7 @@ class MeasureWriter {
         (new File(outname)).delete();
       } else {
         debug("Writing Measure \""+context+"\" to \""+outname+"\"");
-        FileOutputStream fos = new FileOutputStream(new File(targetdir,outname));
+        FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
         OutputStreamWriter osw = new OutputStreamWriter(fos);
         PrintWriter out = new PrintWriter(osw);
       
@@ -960,7 +960,7 @@ class MeasureWriter {
       }
       debug("Writing Derivative Measure Denominator Class \""+className+"\" for \""+
             context+"\" to \""+outname+"\"");
-      FileOutputStream fos = new FileOutputStream(new File(targetdir,outname));
+      FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
       OutputStreamWriter osw = new OutputStreamWriter(fos);
       PrintWriter out = new PrintWriter(osw);
       
@@ -1000,8 +1000,6 @@ class MeasureWriter {
   boolean isVerbose = false;
   boolean cleanp = false;
 
-  File targetdir = null;
-
   public void debug(String s) {
     if (isVerbose)
       System.err.println(s);
@@ -1010,18 +1008,13 @@ class MeasureWriter {
   void processFile(String filename) {
     InputStream stream = null;
     try {
-      targetdir = new File(System.getProperty("user.dir"));
+      setDirectories(filename);
       if (filename.equals("-")) {
         debug("Reading from standard input.");
         stream = new java.io.DataInputStream(System.in);
       } else {
         debug("Reading \""+filename+"\".");
         stream = new FileInputStream(filename);
-
-        int p;
-        if ((p=filename.lastIndexOf(File.separatorChar))!=-1) {
-          targetdir = new File(filename.substring(0,p));
-        }
       }
 
       Parser p = new Parser(stream);
@@ -1055,6 +1048,8 @@ class MeasureWriter {
           isVerbose = (!isVerbose);
         } else if (arg.equals("-clean")) {
           cleanp = true;
+        } else if (arg.equals("-d")) {
+          targetDirName = arguments[++i];
         } else {
           usage("Unknown option \""+arg+"\"");
         }
@@ -1072,7 +1067,6 @@ class MeasureWriter {
   public MeasureWriter(String args[]) {
     arguments=args;
   }
-
 
   public static void main(String args[]) {
     MeasureWriter mw = new MeasureWriter(args);

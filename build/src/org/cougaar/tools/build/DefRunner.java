@@ -18,8 +18,11 @@ import java.lang.reflect.*;
  * .def files.  This supports the ANT build method.
  **/
 public class DefRunner {
-  private static void runDef(String defile, String argline) {
-    List argx = explode(argline, ' ');
+  /**
+   * Run the code generator against the given file and a command line
+   **/
+  public static void runDef(String defile, String argline) {
+    List argx = explode(argline, " ");
     int l = argx.size();
 
     String classname = (String) argx.get(0);
@@ -35,12 +38,10 @@ public class DefRunner {
       }
     }
     nargs.add(defile);          // last argument is always the def file
-    
-    String[] args = new String[nargs.size()];
-    System.arraycopy(nargs.toArray(), 0, args, 0, nargs.size());
 
-    if (true)
-    {
+    String[] args = (String[]) nargs.toArray(new String[nargs.size()]);
+
+    if (true) {
       System.err.print(classname+".main([");
       for (int k=0;k<args.length;k++) {
         if (k!=0) System.err.print(", ");
@@ -64,34 +65,20 @@ public class DefRunner {
     }
   }
 
-  private static final List explode(String s, char sep) {
-    ArrayList v = new ArrayList();
-    int j = 0;                  //  non-white
-    int k = 0;                  // char after last white
-    int l = s.length();
-    int i = 0;
-    while (i < l) {
-      if (sep==s.charAt(i)) {
-        // is white - what do we do?
-        if (i == k) {           // skipping contiguous white
-          k++;
-        } else {                // last char wasn't white - word boundary!
-          v.add(s.substring(k,i));
-          k=i+1;
-        }
-      } else {                  // nonwhite
-        // let it advance
-      }
-      i++;
-    }
-    if (k != i) {               // leftover non-white chars
-      v.add(s.substring(k,i));
+  private static final List explode(String s, String seps) {
+    StringTokenizer tokens = new StringTokenizer(s, seps);
+    List v = new ArrayList();
+    while (tokens.hasMoreTokens()) {
+      v.add(tokens.nextToken());
     }
     return v;
   }
 
-
-  private static void parse(String filename) {
+  /**
+   * Read the first line of a file and construct and run the command
+   * to generate code from that file.
+   **/
+  public static void parse(String filename, String options) {
     InputStream in;
     try {
       if (filename.equals("-")) {
@@ -116,9 +103,17 @@ public class DefRunner {
 
         // check for old syntax
         if ( (i = line.indexOf("!generate:")) != -1) {
-          runDef(filename, line.substring(i+10).trim());
+	  String args = line.substring(i+10).trim();
+	  if (options != null) {
+	    args += " " + options;
+	  }
+          runDef(filename, args);
         } else if ( (i = line.indexOf("!")) != -1) {
-          runDef(filename, line.substring(i+1).trim());
+	  String args = line.substring(i+1).trim();
+	  if (options != null) {
+	    args += " " + options;
+	  }
+          runDef(filename, args);
         } else {
           System.err.println("File \""+filename+"\" is a broken def file!");
         }
@@ -130,9 +125,14 @@ public class DefRunner {
   }
 
   public static void main(String args[]) {
-    for (int i = 0; i<args.length; i++) {
-      String defname = args[i];
-      parse(defname);
+    String options = null;
+    for (int i = 0; i < args.length; i++) {
+      String arg = args[i];
+      if (arg.startsWith("-o")) {
+          options = args[++i];
+      } else {
+          parse(arg, options);
+      }
     }
   }
 }

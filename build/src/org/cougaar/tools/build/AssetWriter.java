@@ -25,7 +25,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Enumeration;
 
-public class AssetWriter {
+public class AssetWriter extends WriterBase {
   public final static String DEFAULT_FILENAME = "assets.def";
 
   class ClassD {
@@ -173,8 +173,8 @@ public class AssetWriter {
     public Session(InputStream s) {
       this.s = s;
       try {
-        filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,"assets.gen"))));
-        noteFile("assets.gen");
+        filelist = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),getGenFileName()))));
+        noteFile(getGenFileName());
 
       } catch (IOException ioe) { throw new RuntimeException(); }
     }
@@ -309,7 +309,7 @@ public class AssetWriter {
       }
       try {
         noteFile(path);
-        PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,path))));
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),path))));
         writeCR(out);
       
         out.println("package " + asset_package + ";");
@@ -353,7 +353,7 @@ public class AssetWriter {
 
         try {
           noteFile(path);
-          PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,path))));
+          PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),path))));
           writeCR(out);
 
 	  out.println("package " + asset_package + ";");
@@ -845,7 +845,7 @@ public class AssetWriter {
 
         try {
           noteFile(path);
-          PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(targetdir,path))));
+          PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(getTargetDir(),path))));
           writeCR(out);
 
           out.println();
@@ -884,8 +884,6 @@ public class AssetWriter {
   
   protected PGParser pgParser = null;
 
-  File targetdir = null;
-
   protected void initProperties(String propertyFilenames) {
     pgParser = new PGParser(isVerbose);
 
@@ -915,7 +913,7 @@ public class AssetWriter {
           if ((p=filename.lastIndexOf('/'))!=-1) {
             pf = new File(filename);
           } else {
-            pf = new File(targetdir, filename);
+            pf = new File(getSourceDir(), filename);
           }
           stream = new FileInputStream(pf);
         } else {
@@ -931,7 +929,7 @@ public class AssetWriter {
                              " IO");
         }
       } catch (Exception e) {
-        System.err.println("targetdir="+targetdir);
+        System.err.println("targetdir="+getSourceDir());
         System.err.println("Unable to parse " + filename);
         System.err.println("Caught: "+e);
         e.printStackTrace();
@@ -943,30 +941,14 @@ public class AssetWriter {
     InputStream stream = null;
 
     try {
-      targetdir = new File(System.getProperty("user.dir"));
+	setDirectories(assetFilename);
       if (assetFilename.equals("-")) {
         debug("Reading from standard input.");
         stream = new java.io.DataInputStream(System.in);
       } else {
         debug("Reading \""+assetFilename+"\".");
         stream = new FileInputStream(assetFilename);
-
-        int p;
-        if ((p=assetFilename.lastIndexOf(File.separatorChar))!=-1) {
-          targetdir = new File(assetFilename.substring(0,p));
-        }
-
       }
-
-      /*
-      if (assetFilename.indexOf('/') == -1) {
-      } else {
-        debug("Using ClassLoader to read \""+assetFilename+"\".");
-        stream = 
-          getClass().getClassLoader().getResourceAsStream(assetFilename);
-      }
-      */
-      
 
       Session p = new Session(stream);
       session = p;
@@ -1019,6 +1001,8 @@ public class AssetWriter {
           cleanp = true;
         } else if (arg.equals("-assets")) {
           assetsFile = arguments[++i];
+        } else if (arg.equals("-d")) {
+          targetDirName = arguments[++i];
         } else {
           usage("Unknown option \""+arg+"\"");
         }
