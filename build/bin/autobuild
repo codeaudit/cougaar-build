@@ -355,7 +355,7 @@ sub cleanRemote {
 
 sub rrm {
   my ($p) = @_;
-  #ssh("$host rm -rf $auto/$p");
+  ssh("$host rm -rf $auto/$p");
 }
 
 sub checkRemoteStatus {
