@@ -1577,6 +1577,7 @@ sub find_errors {
   my ($wc) = 0;			# current module warnings detected
   my ($l) = 0;			# which line are we on?
   my ($cl) = -1;		# up to which line should we report on?
+  my ($tf) = 0;
   while (<LOG>) {
     chomp;
     if (/Building module (\w*)/) {
@@ -1585,6 +1586,10 @@ sub find_errors {
     }
     if (/Done building (\w+)/) {
       if ($mn eq $1) {
+	if ($moduleFailed{$mn}) {
+	  $mn = "($mn)";
+	  $tf++;
+	}
 	$report .= sprintf "%15s %7d %7d\n", $mn, $ec, $wc ; # if ($ec || $wc);
 	$te = $te+$ec;
 	$tw = $tw+$wc;
@@ -1662,6 +1667,9 @@ sub find_errors {
   close(LOG);
 
   $report .= sprintf "%15s %7d %7d\n", "total", $te, $tw;
+  if ($tf>0) {
+    $report .= sprintf "%15s %7d\n", "Failed", $tf;
+  }
   print ERR $report if ($te>0 || $tw>0);
   print STDERR $report;
   close(ERR);
