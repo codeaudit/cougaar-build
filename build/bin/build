@@ -281,34 +281,34 @@ sub build_module {
 
   my $cp = get_classpath($mod);
 
-  print "Generating code for $mod\n" if $verbose;
-  # run code generators
-  generate_code($mysrc, $cp);
+  if (-d $mysrc) {		# src exists
+    print "Generating code for $mod\n" if $verbose;
+    # run code generators
+    generate_code($mysrc, $cp);
 
+    # compile sources
+    print "Compiling $mod\n" if $verbose;
+    chdir $mysrc;
+    my $tmpfile = "/tmp/build.$$";
+    mysystem("find . -name '*.java' -print>$tmpfile");
+    my $jc = $javac_command;
+    $jco = opt("$mod.javac");
+    if ($jco) { $jc = $javac_commands{$jco}; }
 
-  # compile sources
-  print "Compiling $mod\n" if $verbose;
-  chdir $mysrc;
-  my $tmpfile = "/tmp/build.$$";
-  mysystem("find . -name '*.java' -print>$tmpfile");
-  my $jc = $javac_command;
-  $jco = opt("$mod.javac");
-  if ($jco) { $jc = $javac_commands{$jco}; }
+    mysystem("$jc -d $tmplib -classpath $cp \@$tmpfile");
 
-  mysystem("$jc -d $tmplib -classpath $cp \@$tmpfile");
+    print "Preparing jar for $mod\n" if $verbose;
+    # copy non-java "sources" to tmplib
+    add_module_files($mysrc, $tmplib);
 
-  print "Preparing jar for $mod\n" if $verbose;
-  # copy non-java "sources" to tmplib
-  add_module_files($mysrc, $tmplib);
+    # create jar
+    chdir ($tmplib);
+    jar("$product/$mod runtime", $tmplib, "$libdir/$mod.jar", "$mysrc/manifest.mf");
 
-  # create jar
-  chdir ($tmplib);
-  jar("$product/$mod runtime", $tmplib, "$libdir/$mod.jar", "$mysrc/manifest.mf");
-
-
-  # clean up
-  chdir ($mysrc);
-  mysystem("rm -rf $tmplib $tmpfile");
+    # clean up
+    chdir ($mysrc);
+    mysystem("rm -rf $tmplib $tmpfile");
+  }
 
   # now create the product-module.zip file
   if (!opt("$mod.internal")) {
@@ -499,7 +499,9 @@ sub build_runtime {
   my $tl = "$tmpdir/lib";
   mkd $tl;
   foreach $mod (@modules) {
-    mysystem("cp $build_dir/lib/$mod.jar $tl");
+    if (-e "$build_dir/lib/$mod.jar") {
+      mysystem("cp $build_dir/lib/$mod.jar $tl");
+    }
     my $extraspec = opt("$mod.runtime");
     my $moddir = "$srcdir/$mod";
     chdir $moddir;
