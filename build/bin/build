@@ -307,34 +307,6 @@ if ($opt_m) {
   print "Computed modules from $opt_m = \n\t$foo\n";
 }
 
-sub compute_modules {
-  my ($modspec) = @_;
-  local(%done);
-  local(@acc);
-  local(@stack);
-  foreach $mod (split /\s*,\s*/, $modspec) {
-    compute_modules1($mod) if (! $done{$mod});
-  }
-  return @acc;
-}
-
-sub compute_modules1 {
-  my ($mod) = @_;
-  return if ($done{$mod});
-  if (member($mod,@stack)) {
-    die "Fatal error: dependency loop: $mod in @acc\n";
-  }
-  push @stack, $mod;
-  my ($foo) = opt("$mod.deps");
-  foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
-    if (! $done{$dep}) {
-      compute_modules1($dep);
-    }
-  }
-  pop @stack;
-  $done{$mod}=1;
-  push @acc, $mod;
-}
 
 {
   local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
@@ -426,6 +398,14 @@ mkd $clibdir;
 # distdir is where we put end products
 $distdir = "$build_dir/dist";
 mkd $distdir;
+
+# tmp directory for javadocs
+# per-module javadocs are generated beneath this directory and will be packaged up
+# at dist time
+$apidir = "$build_dir/javadoc";
+# unified will go in $apidir/doc/api
+# non-unified modules will go in $apidir/<mod>/doc/api
+mkd $apidir;
 
 chdir($distdir) || die("Couldn't chdir to $distdir");
 
@@ -524,6 +504,36 @@ exit(0);
 #
 # the pass routines
 #
+
+sub compute_modules {
+  my ($modspec) = @_;
+  local(%done);
+  local(@acc);
+  local(@stack);
+  foreach $mod (split /\s*,\s*/, $modspec) {
+    compute_modules1($mod) if (! $done{$mod});
+  }
+  return @acc;
+}
+
+sub compute_modules1 {
+  my ($mod) = @_;
+  return if ($done{$mod});
+  if (member($mod,@stack)) {
+    die "Fatal error: dependency loop: $mod in @acc\n";
+  }
+  push @stack, $mod;
+  my ($foo) = opt("$mod.deps");
+  foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
+    if (! $done{$dep}) {
+      compute_modules1($dep);
+    }
+  }
+  pop @stack;
+  $done{$mod}=1;
+  push @acc, $mod;
+}
+
 
 # moby checkout
 sub checkout {
@@ -643,6 +653,24 @@ sub checkDeps {
   }
   pop @depstack;		# pop the current mod from the stack
   return @fdeps;
+}
+
+sub build_module_javadoc {
+  my($mod) = @_;
+  return if ($nodoc);		# bail if we're not documenting
+  my @splits = &opt("$mod.split");
+  my $split_p = ($#splits >= 0);
+  # don't document split modules
+  # but: always do unified docs, even if we're going to throw them away later
+  if (! $split_p) {
+    my $mysrc = "$srcdir/$mod/src";
+    chdir "$srcdir/$mod";
+    mysystem("rm -rf $apidir/$mod/doc");	# clear out any leftovers from previous builds
+    mkd "$apidir/$mod";
+    mkd "$apidir/$mod/doc";
+    mkd "$apidir/$mod/doc/api";
+    javadoc($mod, $mysrc, "$apidir/$mod/doc/api");
+  }
 }
 
 sub build_module_src {
@@ -848,6 +876,9 @@ sub build_module {
   $moduleFailed{$mod} = !$builtjar;
 
   print "Done building $mod\n";
+
+  build_module_javadoc($mod);	# ugly - would rather put this inside the above line
+
   $moduleDone{$mod}=1;
   return 1;
 }
@@ -1101,45 +1132,36 @@ sub build_moby_api {
 
   print "Building moby javadoc\n";
 
-  my $tmpdir = "$tmp/build-moby_api.$$";
-  mkd $tmpdir;
+  # $apidir is a temporary directory, a sib of distdir
+  # unified docs -> $apidir/doc/api
+  # module docs  -> $apidir/MOD/doc/api
 
-  my $make_zip = 0;		# should we emit a zipfile?
-
-  my @todo;
-  push @todo, @modules;
-  push @todo, "unified";
-  foreach $mod (@todo) {
-    my $mymod = "$srcdir/$mod";
-    my $mysrc = "$mymod/src";
-
-    my $tmpdist = "$tmpdir/$mod";
-    $tmpdist = "$tmpdir" if ($mod eq "unified"); # unified goes directly under CIP/doc
-    mkd "$tmpdist";
-
-    chdir "$srcdir/$mod";
-
-    my @splits = &opt("$mod.split");
-    my $split_p = ($#splits >= 0);
-
-    # only do javadoc if it is not part of the unified build, and not split
-    if ((! $split_p) && (! isUnified($mod))) {
-      mkd "$tmpdist/doc";
-      mkd "$tmpdist/doc/api";
-      javadoc($mod, $mysrc, "$tmpdist/doc/api") if (!$nodoc);
+  if (!$nodoc) {
+    if ($enableUnified) {
+      my $mysrc = "$srcdir/unified/src";
+      chdir "$srcdir/unified";
+      mysystem("rm -rf $apidir/doc");	# clear out any leftovers from previous builds
+      mkd "$apidir/doc";
+      mkd "$apidir/doc/api";
+      javadoc("unified", $mysrc, "$apidir/doc/api");
     }
+
+    # zip it up
+    my @dirs;
+    push @dirs, "doc" if $enableUnified;
+
+    foreach $mod (@modules) {
+      push @dirs, $mod if (! isUnified($mod));
+    }
+
+    zip("Javadoc package", $apidir, $distdir, "$product-api", @dirs);
+
+    # cleanup
+    chdir($tmp);
   }
-
-  # zip it up
-  zip("Javadoc package", $tmpdir, $distdir, "$product-api");
-
-  # cleanup
-  chdir($tmp);
-  mysystem("rm -rf $tmpdir");
 
   print "Done building moby javadoc\n";
 }
-
 
 
 #
@@ -1404,11 +1426,12 @@ sub javadoc {
 
 # zip up a directory, adding appropriate comments, sums, etc.
 sub zip {
-  local($comment, $dir, $destdir, $destfile) = @_;
+  local($comment, $dir, $destdir, $destfile, @files) = @_;
   chdir $dir;
   my ($dest) = "$destdir/$destfile.zip";
   add_info($destfile,$comment, $dir, $destfile);
-  mysystem("zip -qr $dest *");
+  my ($p) = ($#files>0)?join(" ", @files):"*";
+  mysystem("zip -qr $dest $p");
 }
 
 sub jar {
@@ -1772,6 +1795,7 @@ sub find_errors {
   my ($ec) = 0;			# current module errors detected
   my ($wc) = 0;			# current module warnings detected
   my ($rc) = 0;			# current module regression failures
+  my ($rct) = 0;		# current module regression tests (total)
   my ($l) = 0;			# which line are we on?
   my ($cl) = -1;		# up to which line should we report on?
   my ($tf) = 0;
@@ -1792,7 +1816,7 @@ sub find_errors {
     if (/Building module (\w*)/) {
       $mn = $1;
       push @mods, $mn;
-      $ec = 0; $wc = 0; $rc=0;
+      $ec = 0; $wc = 0; $rc=0; $rct=0;
       $mode = "compile";
     }
     if (/Done building (\w+)/) {
@@ -1806,6 +1830,7 @@ sub find_errors {
 	$report{$mn,"cerr"} += $ec;
 	$report{$mn,"cwar"} += $wc;
 	$report{$mn,"reg"} += $rc;
+	$report{$mn,"regt"} += $rct;
 	#$report .= sprintf "%15s %10d %10d %10d\n", $mn, $ec, $wc, $rc ; # if ($ec || $wc);
 	$te = $te+$ec;
 	$tw = $tw+$wc;
@@ -1820,6 +1845,9 @@ sub find_errors {
     }
     if (/Finished unit testing of (\w*)/) {
       $mode = "compile";
+    }
+    if ($mode eq "unit" && /OK \((\w*) test.*\)/) {
+      $rct+=$1;
     }
 
     my $nl = 0;
@@ -1916,22 +1944,24 @@ sub find_errors {
   close(LOG);
 
   my ($rstr)=sprintf "%20s %10s %10s %10s %10s\n", "MODULE", "ERRORS", "WARNINGS", "REGRESS", "JAVADOC";
-  my ($tcerr,$tcwar,$treg,$tdoc);
+  my ($tcerr,$tcwar,$treg,$tregt,$tdoc);
   foreach $m (sort @mods) {
     my($n)= $m;
     if ($report{$m,"failed"}) { $n = "($n)"; }
     my ($mcerr)=$report{$m,"cerr"}+0;
     my ($mcwar)=$report{$m,"cwar"}+0;
     my ($mreg) =$report{$m,"reg"} +0;
+    my ($mregt) =$report{$m,"regt"} +0;
     my ($mdoc) =$report{$m,"doc"} +0;
-    $rstr .= sprintf "%20s %10s %10s %10s %10s\n", $n, $mcerr,$mcwar,$mreg,$mdoc;
+    $rstr .= sprintf "%20s %10s %10s %10s %10s\n", $n, $mcerr,$mcwar,"$mreg/$mregt",$mdoc;
     $tcerr += $mcerr;
     $tcwar += $mcwar;
     $treg  += $mreg;
+    $tregt += $mregt;
     $tdoc  += $mdoc;
   }
 
-  $rstr .= sprintf "%20s %10s %10s %10s %10s\n", "TOTALS ", $tcerr,$tcwar,$treg,$tdoc;
+  $rstr .= sprintf "%20s %10s %10s %10s %10s\n", "TOTALS ", $tcerr,$tcwar,"$treg/$tregt",$tdoc;
   if ($tf>0) {
     $rstr .= sprintf "%20s %10d\n", "FAILURES ", $tf;
   }
