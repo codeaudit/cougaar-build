@@ -126,6 +126,7 @@ build.extras = junit
 
 # bootstrap
 bootstrap.jars = xerces, log4j
+bootstrap.keystore.alias = bootstrapper
 
 # util
 util.jars = xerces, log4j, servlet
