@@ -989,6 +989,7 @@ sub build_3rdparty {
     foreach $dep (@deps) {
       my $jar = findjar($dep, @alljars);
       if (!$jar) {
+	next if ($dep eq "tools"); # skip tools (and other java standard ones, even if required)
 	my $foo = join("$cpsep",@alljars);
 	print STDERR "Warning: could not find $dep in $foo\n";
       }
