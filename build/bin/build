@@ -2257,7 +2257,7 @@ sub generateProductAntRecipe {
 
   my ($allmods) = join ",",@modules;
   foreach $pass (split /\s*,\s*/, "build,compile,install,test") {
-    sopt($prod, "$pass.depends", joinopt($pass,$allmods));
+    sopt($prod, "$pass.depends", joinopt($pass, split /\s*,\s*/, $allmods));
   }
 
   my $template = "$srcdir/build/data/productTemplate.xml";
@@ -2288,10 +2288,28 @@ sub generateProductAntRecipe {
 	  foreach $mod (@modules) {
 	    my ($modspec);
 	    $modspec = opt("$mod.deps");
-	    foreach $pass (split /\s*,\s*/, "build,compile,install,test") {
-	      sopt($mod, "$pass.depends", joinopt($pass,$modspec));
+	    my (@modspecs);
+	    @modspecs = split /\s*,\s*/, $modspec;
+
+	    # add build as first dependency for all (built) modules
+	    if ($mod ne "build") {
+	      unshift @modspecs, "build";
 	    }
+
+	    my ($modjars,$modext);
+	    $modjars = opt("$mod.jars");
+	    $modext = opt("$mod.extras");
+	    if ($modjars ne "" || $modext ne "") {
+	      unshift @modspecs, "jars";
+	    }
+	    foreach $pass (split /\s*,\s*/, "build,compile,install,test") {
+	      sopt($mod, "$pass.depends", joinopt($pass,@modspecs));
+	    }
+
+	    #debug
+	    $modspec = join ",", @modspecs;
 	    print "mod=$mod: deps=$modspec\n";
+	    #debug
 
 	    sopt($mod, "Name", $mod);
 	    sopt($mod, "PrettyName", $mod); # build file can override.
@@ -2329,9 +2347,9 @@ sub generateProductAntRecipe {
 }
 
 sub joinopt {
-  my ($prefix, $modspec) = @_;
+  my ($prefix, @modspecs) = @_;
   my @prod;
-  foreach $dep (split /\s*,\s*/, $modspec) {
+  foreach $dep (@modspecs) {
     push @prod, "$prefix.$dep";
   }
   return join(",", @prod);

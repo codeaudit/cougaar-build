@@ -90,34 +90,63 @@
 
     <!-- Individuals should not need to modify below here. -->
 
-    <!-- Build the entire product -->
-    <target name="build" depends="%{build.depends}"
-            description="Compile all source for the modules in this product">
-    </target>
-
     <!-- Install the entire product, putting new jar files in /lib -->
     <target name="install" depends="%{install.depends}"
             description="Install built jar files in ./lib">
     </target>
+    <!-- Build the entire product -->
+    <target name="test" depends="%{test.depends}"
+            description="Compile all source for the modules in this product">
+    </target>
+    <target name="clean" depends="%{clean.depends}"
+            description="Compile all source for the modules in this product">
+    </target>
 
+    <!-- Special case (for now) for jars module -->
+    <target name="build.jars" description="build standard jarfile stuff">
+    </target>
+    <target name="clean.jars" description="clean standard jarfile stuff">
+    </target>
+    <target name="test.jars" description="test standard jarfile stuff">
+    </target>
+    <target name="install.jars" description="Install standard jarfiles">
+      <mkdir dir="${SOURCEBASE}/sys"/>
+      <copy todir="${SOURCEBASE}/sys">
+	<fileset dir="${SOURCEBASE}/jars/lib">
+	  <patternset id="jars and html">
+	    <include name="**/*.jar"/>
+	    <include name="**/*.zip"/>
+	    <include name="**/*.html"/>
+	    <include name="**/*.htm"/>
+	  </patternset>
+	</fileset>
+      </copy>
+    </target>
 <!-- Now define the sub-targets for each module in the product -->
 
 <!-- %{MODULE_START} The start of the per-module recipe -->
-    <target name="build.%{MODULE}" depends="%{build.depends}"
-            description="Compile the %{MODULE} module">
-      <ant dir="${SOURCEBASE}/%{MODULE}" target="build"
-	   inheritAll="true">
-<!--    <property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" /> -->
-      </ant>
-    </target>
+
+    <!-- Module %{MODULE} -->
     <target name="install.%{MODULE}" depends="%{install.depends}"
             description="Install the built jar file for %{MODULE} in the
                          appropriate lib directory">
       <ant dir="${SOURCEBASE}/%{MODULE}" target="install"
 	   inheritAll="true">
-<!--	<property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" /> -->
       </ant>
     </target>
+    <target name="clean.%{MODULE}" depends="%{clean.depends}"
+            description="Compile the %{MODULE} module">
+      <ant dir="${SOURCEBASE}/%{MODULE}" target="clean"
+	   inheritAll="true">
+      </ant>
+    </target>
+    <target name="test.%{MODULE}" depends="%{test.depends}"
+            description="Compile the %{MODULE} module">
+      <ant dir="${SOURCEBASE}/%{MODULE}" target="test"
+	   inheritAll="true">
+      </ant>
+    </target>
+
 <!-- %{MODULE_END} End of per-module recipe -->    
 
 <!-- Need separate compile-but-dont do all the rest target -->
