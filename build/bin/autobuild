@@ -58,10 +58,11 @@ $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
-&Getopts('vm:a:t:d:hkT:H:po:n:j:C');
+&Getopts('vVm:a:t:d:hkT:H:po:n:j:C');
 if ($opt_h) {
   print STDOUT "Usage: autobuild [args]\n";
   print STDOUT "\t-v\tVerbose mode\n";
+  print STDOUT "\t-V\tVery Verbose mode (also prints error log)\n";
   print STDOUT "\t-a name\tDirectory name instead of 'auto'\n";
   print STDOUT "\t-t tag\tTag to use instead of 'HEAD'\n";
   print STDOUT "\t-C\tOnly clean\n";
@@ -86,6 +87,7 @@ $extraargs = $opt_o if ($opt_o);
 $javahome = $opt_j if ($opt_j);
 
 $verbose++ if $opt_v;
+$verbose=3 if $opt_V;
 $auto = $opt_a if ($opt_a);
 $data = $opt_d if ($opt_d);
 $mailaddr = $opt_m if ($opt_m);
@@ -189,6 +191,12 @@ $keep = $opt_n if $opt_n;	# reset the keep value if we need to
 mysystem("rm -rf $builddir");
 &mkd($builddir);
 
+# let them know we're in progress
+{
+  my($ds) = datestr();
+  ssh("$host mkdir -p $auto/$tag \\; rm -f $auto/$tag/STATUS \\; echo BUILD started at $ds \\> $auto/$tag/STATUS");
+}
+
 # start a fresh build
 $rarg = "";
 $rarg = "-r $tag" if (! ($tag eq "HEAD"));
@@ -251,6 +259,9 @@ $status = "UNKNOWN";
   }
 }
 
+# output the error log for requested builds
+printErrors() if ($verbose>2);
+
 # send email if requested
 if (! ($status eq "SUCCEEDED")) {
   mailreport($status);
@@ -263,6 +274,12 @@ ssh("$host cd $auto/$tag \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
 cleanRemote();
+
+{
+  my($ds) = datestr();
+  ssh("$host rm -f $auto/$tag/STATUS \\; echo BUILD $status finished at $ds \\> $auto/$tag/STATUS");
+}
+
 
 mysystem("rm -rf $tmpdir");
 mysystem("rm -rf $builddir") if $cleanup;
@@ -442,6 +459,18 @@ sub checkRemoteStatus {
     $result = "FAILED";
   }
   $result;
+}
+
+sub printErrors {
+  my($statfile)= "$builddir/$built/dist/errors.out";
+  if (-r $statfile) {
+    print STDOUT "\nError log $statfile:\n";
+    open(R, "<$statfile");
+    while (<R>) {
+      print STDOUT $_;
+    }
+    close(R);
+  }
 }
 
 sub mailreport {
