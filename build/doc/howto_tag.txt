@@ -6,7 +6,13 @@ others interested in using the cougaar build system for maintaining
 other java projects)
 
 Example: we'll be tagging the exact software which was shipped as
-cougaar 9.2.0.  We'll tag it with "V9_2" and we'll make it a branch. 
+cougaar 9.2.0.  We'll tag it with "B9_2" and we'll make it a branch. 
+
+Current policy for tag names:
+	Bx_y_z	Branch tag names (x_y_z is version x.y.z)
+	Rx_y_z	release point tag name
+	Tx_y_z	unreleased point tags
+	X*	experimental tags.
 
 1. find the date (and, if appropriate, base tag) of the version you
 want to tag with the new name.
@@ -25,7 +31,7 @@ You can always run "build -h" to get some help information.
 
   - our example:
 
-    build -v -D '5/1/2002 15:00:07' -t V9_2 -b
+    build -v -D '5/1/2002 15:00:07' -t B9_2 -b
 
     (	-v	verbose mode
 	-D <x>	tag/build the sources as of date/time <x>
@@ -35,7 +41,7 @@ You can always run "build -h" to get some help information.
   to make sure that you can reconstruct that build.  We'll use the
   following:
 
-    build -v -D '5/1/2002 15:00:07' -r V9_2 -t V9_2_0
+    build -v -D '5/1/2002 15:00:07' -r B9_2 -t R9_2_0
 
     (	-r <t>	tag/build relative to the named branch instead of
 		HEAD )
