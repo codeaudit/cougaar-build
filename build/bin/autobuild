@@ -55,8 +55,9 @@ $cleanup = 1;
 
 $ssh = "ssh -n";
 $scp = "scp -B";
+$extraargs="";
 
-&Getopts('va:t:d:hkT:H:p');
+&Getopts('va:t:d:hkT:H:po:');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
   print STDERR "\t-v\tVerbose mode\n";
@@ -68,12 +69,14 @@ if ($opt_h) {
   print STDERR "\t-H host\tPublish to host instead of \"$host\"\n";
   print STDERR "\t-h\tThis usage commend\n";
   print STDERR "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
+  print STDERR "\t-o string\tPass string as extra arguments to build\n";
   exit(-1);
 }
 
 $host = $opt_H if $opt_H;
 $cleanup=0 if $opt_k;
 $tag = $opt_t if ($opt_t);
+$extraargs = $opt_o if ($opt_o);
 
 if ($opt_T) {
   $tmp = $opt_T;
@@ -136,7 +139,7 @@ mysystem("rm -rf $builddir");
 # start a fresh build
 $rarg = "";
 $rarg = "-r $tag" if (! ($tag eq "HEAD"));
-mysystem("$buildscript -v $rarg -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$auto.out");
+system("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$auto.out");
 
 # what did we build?
 opendir D, $builddir;
