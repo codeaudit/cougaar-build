@@ -762,11 +762,16 @@ sub build_module {
       if (/$java_home/) {
 	  s/$java_home/\$\{java.home\}/;
 	  push @apccp, $_;
+	  next;
       }
       s/$libdir/\$\{target.lib\}/;
       s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
       s/$syslib/\$\{target.sys\}/;
       push @pccp, $_;
+    }
+    # HACK: If pccp empty, put a dummy on the list
+    if ($#pccp < 0) {
+	push @pccp, "DUMMYJAR";
     }
     sopt($mod, "compile.jarlist", join(",",@pccp));
     # Is cpsep really the right separator? Will this work cross-platform?
@@ -785,16 +790,26 @@ sub build_module {
       if (/$java_home/) {
 	  s/$java_home/\$\{java.home\}/;
 	  push @apccp, $_;
+	  next;
       }
       s/$libdir/\$\{target.lib\}/;
       s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
       s/$syslib/\$\{target.sys\}/;
       push @pccp, $_;
     }
+    # HACK: If pccp empty, put a dummy on the list
+    if ($#pccp < 0) {
+	push @pccp, "DUMMYJAR";
+    }
     sopt($mod, "run.jarlist", join(",",@pccp));
     # Is cpsep really the right separator? Will this work cross-platform?
     sopt($mod, "run.abs.jarlist", join("$cpsep",@apccp));
   }
+
+  # FIXME: Somehow if the current module has no javadoc packages,
+  # it is being assigned the list of packages for the previous module.
+  # See base getting blackjack's modules, dbms getting quo? -would have thought
+  # qos
 
   # Get the Javadoc packages set up now...
   get_javadoc_packages($mod, "$mysrc");
