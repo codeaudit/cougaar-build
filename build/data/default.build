@@ -78,16 +78,18 @@ modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,aggagent,\
 	vishnu,glmtrans,datagrabber,\
-	delta,uiframework,blackjack,\
+	uiframework,blackjack,\
 	base,\
 	tutorial,\
 	csmart,\
-	quo,\
-	qos,\
-	deltaeport,\
+	quo, qos,\
 	dbms,\
 	server, manager,\
 	webserver, webtomcat
+
+#disable delta until functional in HEAD again
+#	delta, deltaeport
+
 
 # default publicness to true - disable with mod.private=1
 default.public=1
