@@ -81,7 +81,8 @@ modules=\
 	base,\
 	tutorial,\
 	csmart,\
-	qos
+	qos,\
+	deltaeport
 
 # leave out Marine for now - it is broken
 
@@ -122,6 +123,7 @@ uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
 tutorial.deps = core,glm
 csmart.deps = core,server,glm,planserver,scalability
 qos.deps = core
+deltaeport.deps = core,glm,toolkit,planserver,delta
 
 # module libs (in addition to module deps)
 core.jars = xerces, log4j
@@ -135,13 +137,14 @@ vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
 datagrabber.jars = xerces,chart,openmap
 glmtrans.jars = xerces
-delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents,jbcl,xmlparserv2,oracle12
+delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
 blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
 csmart.jars = xerces,jcchart451K,grappa1_2_bbn
 qos.jars = QuoKernel
+deltaeport.jars = jsdk,jbcl,xmlparserv2,oracle12
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
@@ -162,6 +165,7 @@ blackjack.repository = internal
 vishnu.repository = internal
 Marine.repository = internal
 csmart.repository = internal
+deltaeport.repository = internal
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
