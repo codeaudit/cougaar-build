@@ -481,21 +481,26 @@ public class AssetWriter extends WriterBase {
                       "    "+name+" _thing = ("+name+") super.clone();");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
             SlotD sd = (SlotD) sls.nextElement();
-            String sname = sd.getName();
-            String stype = sd.getType();
-            boolean stimephased = sd.getTimePhased();
+            // Don't clone RelationshipSchedules
+            // Hack until we figure out how to do this right
+            if (!sd.getHasRelationships()) {
+              String sname = sd.getName();
+              String stype = sd.getType();
+              boolean stimephased = sd.getTimePhased();
+              
+              String vname = "my"+sname;
+              String vv = vname;
+              
+              if (!stimephased) {
+                if (!sd.getExact()) { // if it's a property, we'll need to lock it
+                  vv = vv+".lock()";
+                }
+                println(out,"    if ("+vname+"!=null) _thing.set"+sname+"("+vv+");");
 
-            String vname = "my"+sname;
-            String vv = vname;
-
-            if (!stimephased) {
-              if (!sd.getExact()) { // if it's a property, we'll need to lock it
-                vv = vv+".lock()";
+              } else {
+                vname = vname+"Schedule";
+                println(out,"    if ("+vname+"!=null) _thing.set"+sname+"Schedule((PropertyGroupSchedule) "+vname+".clone());");
               }
-              println(out,"    if ("+vname+"!=null) _thing.set"+sname+"("+vv+");");
-            } else {
-              vname = vname+"Schedule";
-              println(out,"    if ("+vname+"!=null) _thing.set"+sname+"Schedule((PropertyGroupSchedule) "+vname+".clone());");
             }
           }
           println(out,"    return _thing;\n"+
