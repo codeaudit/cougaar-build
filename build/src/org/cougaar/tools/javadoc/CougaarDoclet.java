@@ -55,7 +55,7 @@ public class CougaarDoclet
   public static boolean start(RootDoc root) throws IOException {
     try { 
       configuration().setOptions(root);
-      (new Cougaar()).startGeneration(root);
+      (new CougaarDoclet()).startGeneration(root);
     } catch (DocletAbortException exc) {
       return false; // message has already been displayed
     }
