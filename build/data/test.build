@@ -21,8 +21,8 @@ product.name=cougaar
 ## eiger:
 java = /usr/local/java/j2sdk1_3_1/bin/java
 javac = /usr/local/java/jikes-1.14 -g
-javadoc = /usr/local/java/j2sdk1_3_0_02/bin/javadoc -J-Xmx128m -J-Xms128m
-sys.lib=/export/home/build/alpbuild-2001/build.jars
+javadoc = /usr/local/java/j2sdk1_3_1/bin/javadoc -J-Xmx128m -J-Xms128m
+sys.lib=/build/cougaar/build.jars 
 
 
 
