@@ -1114,7 +1114,7 @@ sub junit {
   }
 
   if (-e "$classdir/Regress.class") {
-    java($cp,"junit.textui.TestRunner $classdir/Regress.class");
+    java("$classdir:$cp","junit.textui.TestRunner Regress.class");
   } else {
     print "Error: Module $mod has a regress directory, but no compilable Regress.class\n";
   }
