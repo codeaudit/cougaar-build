@@ -49,6 +49,7 @@ $javac_command = "jikes -g";
 		   "javac" => "javac -J-Xmx128m -J-Xms128m -g",
 		   "jikes" => "jikes -g",
 		   );
+$rmic_command = "rmic -g -v1.2";
 
 $java_command = "java";
 $javadoc_command = "/usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m";
@@ -275,6 +276,9 @@ sub build_module {
   my ($mod) = @_;
   my $mysrc = "$srcdir/$mod/src";
 
+  print "Building module $mod\n" if $verbose;
+
+
   my $tmplib = "/tmp/build-lib$$";
   mysystem("rm -rf $tmplib");
   mkd $tmplib;
@@ -297,6 +301,19 @@ sub build_module {
 
     mysystem("$jc -d $tmplib -classpath $cp \@$tmpfile");
 
+    # search for files/classes to rmic
+    print "Searching for sources to RMIC\n" if $verbose;
+    my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
+    if ($#rmicfiles>=0) {
+      foreach $rf (@rmicfiles) {
+	chomp $rf;
+	$rf =~ /\.\/(.*)\.java/;
+	$rf=$1;
+	$rf =~ s/\//\./g;
+	mysystem("$rmic_command -d $tmplib -classpath $tmplib:$cp $rf");
+      }
+    }
+
     print "Preparing jar for $mod\n" if $verbose;
     # copy non-java "sources" to tmplib
     add_module_files($mysrc, $tmplib);
@@ -311,7 +328,7 @@ sub build_module {
   }
 
   # now create the product-module.zip file
-  if (!opt("$mod.internal")) {
+  if (isPublic($mod)) {
     my $tmpdir = "/tmp/build-$mod.$$";
     mkd $tmpdir;
     my $tmpdist = "$tmpdir/$mod";
@@ -331,7 +348,7 @@ sub build_module {
     mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
 
     # only do javadoc if it is not part of the unified build
-    if (! opt("$mod.unified")) {
+    if (! isUnified($mod)) {
       mkd "$tmpdist/api";
       javadoc($mod, $mysrc, "$tmpdist/api") if (!$nodoc);
     }
@@ -392,7 +409,7 @@ sub get_unified_classpath {
   my %member;
   my @cp;
   foreach $m (@modules) {
-    if (opt("$m.unified")) {
+    if (isUnified($m)) {
       foreach $c (split(/:/,get_classpath($m))) {
 	if (! ($member{$c})) {
 	  $member{$c} = 1;
@@ -478,7 +495,7 @@ sub unify {
   mkd "$mysrc";
 
   foreach $m (@modules) {
-    if (opt("$m.unified")) {
+    if (isUnified($m)) {
       my $nbase = "$srcdir/$m";
       my $nsrc = "$nbase/src";
       chdir $nsrc;
@@ -672,9 +689,14 @@ sub add_info {
 
 sub add_md5 {
   local($dir) = @_;
-  my @archives = findbypattern($dir, "\.(jar|zip|tar|tgz)\$");
-  my $list = join(" ", @archives);
   chdir($dir);
+  my @archives = findbypattern(".", "\.(jar|zip|tar|tgz)\$");
+  my @list;
+  foreach $a (@archives) {
+    $a =~ s/^\.\///;
+    push @list, $a;
+  }
+  my $list = join(" ", @list);
   mysystem("md5sum $list > md5sums.txt");
 }
 
@@ -773,10 +795,26 @@ sub parse_config {
   my $file = $ARGV[0];
   open(STUFF,"<$file");
   my $count = 0;
+  my $leftover = "";
   while(<STUFF>) {
+    chomp;
     $count++;
-    next if (/^\s*$/);		# empty line
-    next if (/^\s*\#/);		# comments
+
+    s/\s*\#.*//; # drop comments immediately with leading whitespace
+
+    # incorporate previous wrapped line text
+    if (! ($leftover eq "")) {
+      $_ = "$leftover$_";
+      $leftover = "";
+    }
+
+    next if (/^\s*$/);		# empty line - handles empty comment line, too
+
+    # detect line wrap directives
+    if (/(.*)\\$/) {
+      $leftover = $1;
+      next;
+    }
 
     if (/\s*(\S+)\s*=\s*(.+)\s*$/) {
       my $key = $1;
@@ -788,8 +826,13 @@ sub parse_config {
   }
   close(STUFF);
 
-  @modules = split(/\s*,\s*/, opt("modules"));
+  @modules = listify(opt("modules"));
   #print STDERR "modules = @modules\n";
+}
+
+sub listify {
+  my ($s) = @_;
+  return split(/\s*,\s*/, $s);
 }
 
 sub opt {
@@ -799,5 +842,29 @@ sub opt {
     $value = $default;
   }
   return $value;
+}
+
+sub isPublic {
+  my ($mod) = @_;
+  # backward compatability
+  return 0 if (opt("$mod.internal")); # it is non-public if defined as internal.
+
+  return grep /$mod/, listify(opt("modules.public"));
+}
+
+sub isUnified {
+  my ($mod) = @_;
+  # backward compatability
+  return 1 if (opt("$mod.unified"));
+
+  return grep /$mod/, listify(opt("modules.unified"));
+}
+
+sub sysPipe {
+  my ($command) = @_;
+  open(P, "$command|");
+  my (@lines) = <P>;
+  close(P);
+  return @lines;
 }
 
