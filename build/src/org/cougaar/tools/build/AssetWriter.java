@@ -346,7 +346,7 @@ public class AssetWriter extends WriterBase {
         writeCR(out,deffilename);
       
         println(out,"package " + asset_package + ";");
-        println(out,"import org.cougaar.domain.planning.ldm.asset.EssentialAssetFactory;");
+        println(out,"import org.cougaar.planning.ldm.asset.EssentialAssetFactory;");
         println(out);
         println(out,"public class AssetFactory extends EssentialAssetFactory {");
         println(out,"  public static String[] assets = {");
@@ -390,7 +390,7 @@ public class AssetWriter extends WriterBase {
           writeCR(out,deffilename);
 
 	  println(out,"package " + asset_package + ";");
-          println(out,"import org.cougaar.domain.planning.ldm.asset.*;");
+          println(out,"import org.cougaar.planning.ldm.asset.*;");
           println(out,"import java.io.ObjectOutputStream;");
           println(out,"import java.io.ObjectInputStream;");
           println(out,"import java.io.IOException;");
@@ -405,9 +405,9 @@ public class AssetWriter extends WriterBase {
           }
 
           if (cd.getHasRelationships()) {
-            println(out,"import org.cougaar.domain.planning.ldm.plan.HasRelationships;");
-            println(out,"import org.cougaar.domain.planning.ldm.plan.RelationshipSchedule;");
-            println(out,"import org.cougaar.domain.planning.ldm.plan.RelationshipScheduleImpl;");
+            println(out,"import org.cougaar.planning.ldm.plan.HasRelationships;");
+            println(out,"import org.cougaar.planning.ldm.plan.RelationshipSchedule;");
+            println(out,"import org.cougaar.planning.ldm.plan.RelationshipScheduleImpl;");
           }
 
           String doc = cd.getDoc();
@@ -476,7 +476,7 @@ public class AssetWriter extends WriterBase {
           println(out);
 
           // clone - used by copy
-          println(out,"  /** For infrastructure only - use org.cougaar.domain.planning.ldm.Factory.copyInstance instead. **/");
+          println(out,"  /** For infrastructure only - use org.cougaar.core.domain.Factory.copyInstance instead. **/");
           println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
                       "    "+name+" _thing = ("+name+") super.clone();");
           for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
@@ -1173,7 +1173,7 @@ public class AssetWriter extends WriterBase {
 
   private String arguments[];
 
-  private String asset_package = "org.cougaar.domain.planning.ldm.asset";
+  private String asset_package = "org.cougaar.planning.ldm.asset";
   
   protected void usage(String s) {
     System.err.println(s);

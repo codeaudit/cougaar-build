@@ -160,16 +160,16 @@ public class PGWriter extends WriterBase {
       if (pkg == null)
         pkg = p.get("global", "package");
       if (pkg == null)
-        pkg = "org.cougaar.domain.planning.ldm.asset";
+        pkg = "org.cougaar.planning.ldm.asset";
       return pkg;
     }
 
     void doPackaging(PrintWriter out, String context) {
       println(out,"package "+findPackage(context)+";");
       println(out);
-      println(out,"import org.cougaar.domain.planning.ldm.measure.*;");
-      println(out,"import org.cougaar.domain.planning.ldm.asset.*;");
-      println(out,"import org.cougaar.domain.planning.ldm.plan.*;");
+      println(out,"import org.cougaar.planning.ldm.measure.*;");
+      println(out,"import org.cougaar.planning.ldm.asset.*;");
+      println(out,"import org.cougaar.planning.ldm.plan.*;");
       if (isTimePhased(context)) {
         println(out,"import org.cougaar.util.TimeSpan;");
       }
@@ -180,8 +180,8 @@ public class PGWriter extends WriterBase {
         doImports(out, context);
 
       if (hasRelationships(context)) {
-        println(out,"import org.cougaar.domain.planning.ldm.plan.HasRelationships;");
-        println(out,"import org.cougaar.domain.planning.ldm.plan.RelationshipSchedule;");
+        println(out,"import org.cougaar.planning.ldm.plan.HasRelationships;");
+        println(out,"import org.cougaar.planning.ldm.plan.RelationshipSchedule;");
       }
     }
     void doImports(PrintWriter out, String context) {
@@ -239,7 +239,7 @@ public class PGWriter extends WriterBase {
       // figure out what we're supposed to extend
 
       { 
-        String dq = (hasDQ(context)?", org.cougaar.domain.planning.ldm.dq.HasDataQuality":"");
+        String dq = (hasDQ(context)?", org.cougaar.planning.ldm.dq.HasDataQuality":"");
         String local = (isLocal(context)?", LocalPG":"");
         String timePhased = (isTimePhased(context)?"TimePhased":"");
 
@@ -451,7 +451,7 @@ public class PGWriter extends WriterBase {
       println(out,"  public boolean hasDataQuality() { return false; }");
 
       if (hasDQ(context)) {     // if the class has it, we need to implement the getter
-        println(out,"  public org.cougaar.domain.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
+        println(out,"  public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
       }
       println(out,"}");
 
@@ -572,7 +572,7 @@ public class PGWriter extends WriterBase {
                   "    return (_real!=null) && _real.hasDataQuality();\n"+
                   "  }");
       if (hasDQ(context)) {     // if the class has it, we need to implement the getter
-        println(out,"  public synchronized org.cougaar.domain.planning.ldm.dq.DataQuality getDataQuality() {\n"+
+        println(out,"  public synchronized org.cougaar.planning.ldm.dq.DataQuality getDataQuality() {\n"+
                     "    return (_real==null)?null:(_real.getDataQuality());\n"+
                     "  }");
       }
@@ -621,7 +621,7 @@ public class PGWriter extends WriterBase {
 
       // figure out what we're supposed to extend
       String timePhased = (isTimePhased(context)?"TimePhased":"");
-      String dq = (hasDQ(context)?", org.cougaar.domain.planning.ldm.dq.HasDataQuality":"");
+      String dq = (hasDQ(context)?", org.cougaar.planning.ldm.dq.HasDataQuality":"");
       String hasRelationships = (hasRelationships(context)?", HasRelationships":"");
       String extendstring = "extends "+className+ ", New"+timePhased+"PropertyGroup"+dq+hasRelationships;
       
@@ -1047,16 +1047,16 @@ public class PGWriter extends WriterBase {
 
       if (hasDQ(context)) {
         println(out,"  public boolean hasDataQuality() { return false; }");
-        println(out,"  public org.cougaar.domain.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
+        println(out,"  public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
         /*
           // classes without runtime support do not implement NewHasDataQuality!
-        println(out,"  public void setDataQuality(org.cougaar.domain.planning.ldm.dq.DataQuality dq) {\n"+
+        println(out,"  public void setDataQuality(org.cougaar.planning.ldm.dq.DataQuality dq) {\n"+
                     "    throw new IllegalArgumentException(\"This instance does not support setting of DataQuality.\");\n"+
                     "  }");
         */
         println(out);
         println(out,"  // static inner extension class for real DataQuality Support");
-        println(out,"  public final static class DQ extends "+className+"Impl implements org.cougaar.domain.planning.ldm.dq.NewHasDataQuality {");
+        println(out,"  public final static class DQ extends "+className+"Impl implements org.cougaar.planning.ldm.dq.NewHasDataQuality {");
         println(out,"   public DQ() {\n"+ // never copy data quality
                     "    super();\n"+
                     "   }");
@@ -1065,17 +1065,17 @@ public class PGWriter extends WriterBase {
                     "    super(original);\n"+
                     "   }");
         println(out,"   public Object clone() { return new DQ(this); }");
-        println(out,"   private transient org.cougaar.domain.planning.ldm.dq.DataQuality _dq = null;");
+        println(out,"   private transient org.cougaar.planning.ldm.dq.DataQuality _dq = null;");
         println(out,"   public boolean hasDataQuality() { return (_dq!=null); }");
-        println(out,"   public org.cougaar.domain.planning.ldm.dq.DataQuality getDataQuality() { return _dq; }");
-        println(out,"   public void setDataQuality(org.cougaar.domain.planning.ldm.dq.DataQuality dq) { _dq=dq; }");
+        println(out,"   public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return _dq; }");
+        println(out,"   public void setDataQuality(org.cougaar.planning.ldm.dq.DataQuality dq) { _dq=dq; }");
         println(out,"   private void writeObject(ObjectOutputStream out) throws IOException {\n"+
                     "    out.defaultWriteObject();\n"+
-                    "    if (out instanceof org.cougaar.core.cluster.persist.PersistenceOutputStream) out.writeObject(_dq);\n"+
+                    "    if (out instanceof org.cougaar.core.persist.PersistenceOutputStream) out.writeObject(_dq);\n"+
                     "   }");
         println(out,"   private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {\n"+
                     "    in.defaultReadObject();\n"+
-                    "    if (in instanceof org.cougaar.core.cluster.persist.PersistenceInputStream) _dq=(org.cougaar.domain.planning.ldm.dq.DataQuality)in.readObject();\n"+
+                    "    if (in instanceof org.cougaar.core.persist.PersistenceInputStream) _dq=(org.cougaar.planning.ldm.dq.DataQuality)in.readObject();\n"+
                     "   }");
         println(out,"    ");
         println(out,"    private final static PropertyDescriptor properties[]=new PropertyDescriptor[1];\n"+
@@ -1320,7 +1320,7 @@ public class PGWriter extends WriterBase {
       if (hasDQ(context)) {
         println(out,"  public final boolean hasDataQuality() { return "+
                     implclassName+".this.hasDataQuality(); }");
-        println(out,"  public final org.cougaar.domain.planning.ldm.dq.DataQuality getDataQuality() { return "+
+        println(out,"  public final org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return "+
                     implclassName+".this.getDataQuality(); }");
       } else {
         println(out,"  public final boolean hasDataQuality() { return false; }");
@@ -1829,7 +1829,7 @@ public class PGWriter extends WriterBase {
       println(out,"/** Abstract Asset Skeleton implementation");
       println(out," * Implements default property getters, and additional property");
       println(out," * lists.");
-      println(out," * Intended to be extended by org.cougaar.domain.planning.ldm.asset.Asset");
+      println(out," * Intended to be extended by org.cougaar.planning.ldm.asset.Asset");
       println(out," **/");
       println(out);
       doPackaging(out,"global");
@@ -1838,7 +1838,7 @@ public class PGWriter extends WriterBase {
       println(out,"import java.beans.IndexedPropertyDescriptor;" );
       println(out);
       String baseclass = p.get("global","skeletonBase");
-      if (baseclass == null) baseclass = "org.cougaar.domain.planning.ldm.asset.Asset";
+      if (baseclass == null) baseclass = "org.cougaar.planning.ldm.asset.Asset";
       println(out,"public abstract class AssetSkeleton extends "+baseclass+" {");
       println(out);
       // default constructor

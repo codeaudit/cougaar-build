@@ -27,7 +27,7 @@ import java.util.Map;
  * This class defines sets of Fixers for removing various aspects of a society.
  **/
 public class Remove {
-    private static String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
+    private static String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugIn";
     private static String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
     private static String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
     private static String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SubsistenceInventoryPlugIn";
@@ -39,7 +39,7 @@ public class Remove {
     };
 
     public static Fix.Fixer[] construction = {
-        new Fix.PlugIn("plugin = org.cougaar.domain.mlm.construction.DT"),
+        new Fix.PlugIn("plugin = org.cougaar.mlm.construction.DT"),
         new Fix.DeleteParameter(pi1, "Construction", true),
     };
 
@@ -70,17 +70,17 @@ public class Remove {
         new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
         new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
         new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
-        new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
-        new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.MedicalInventoryPlugIn"),
+        new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
+        new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.MedicalInventoryPlugIn"),
         new Fix.DeleteParameter(pi1, "ClassVIIIMedical", true),
     };
 
     public static Fix.Fixer[] sra = {
-        new Fix.PlugIn("plugin = org.cougaar.domain.css."),
+        new Fix.PlugIn("plugin = org.cougaar.css."),
     };
 
     public static Fix.Fixer[] transport = {
-        new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
+        new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
         new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportExpanderPlugIn"),
         new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAggregatorPlugIn"),
         new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAllocatorPlugIn"),

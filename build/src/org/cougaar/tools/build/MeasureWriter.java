@@ -204,7 +204,7 @@ public class MeasureWriter extends WriterBase {
       println(out," **/");
       println(out);
       println(out);
-      println(out,"package org.cougaar.domain.planning.ldm.measure;");
+      println(out,"package org.cougaar.planning.ldm.measure;");
       println(out,"import java.io.*;");
       println(out);
     }

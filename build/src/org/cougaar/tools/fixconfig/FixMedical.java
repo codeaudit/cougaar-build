@@ -94,16 +94,16 @@ public class FixMedical extends Fix {
 
     protected Fixer[] getFixes() {
 
-        String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
+        String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugIn";
         String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
         String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
         String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.MedicalInventoryPlugIn";
         return new Fixer[] {
-            new Fix.PlugIn("plugin = org.cougaar.domain.css."),
+            new Fix.PlugIn("plugin = org.cougaar.css."),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Subsistence"),
-            // new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.SubsistenceInventoryPlugIn"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
+            // new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
+            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.SubsistenceInventoryPlugIn"),
+            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.LimitResourcesPolicyPlugIn"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportExpanderPlugIn"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAggregatorPlugIn"),

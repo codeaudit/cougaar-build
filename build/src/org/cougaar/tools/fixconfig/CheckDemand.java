@@ -22,7 +22,7 @@ package org.cougaar.tools.fixconfig;
 
 public class CheckDemand {
     public static Fix.Checker[] getDemandCheckers() {
-        String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
+        String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugIn";
         String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SubsistenceInventoryPlugIn";
         String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
         String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.MedicalInventoryPlugIn";

@@ -52,23 +52,23 @@ public class FixPOL extends Fix {
     };
 
     protected Fixer[] getFixes() {
-        String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
+        String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugIn";
         String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
         String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
         return new Fixer[] {
-            new Fix.PlugIn("plugin = org.cougaar.domain.css."),
+            new Fix.PlugIn("plugin = org.cougaar.css."),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.MedicalInventoryPlugIn"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
+            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
+            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.MedicalInventoryPlugIn"),
+            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.LimitResourcesPolicyPlugIn"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Transport"),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Subsistence"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.mlm.construction.DT"),
-            new Fix.PlugIn("plugin = org.cougaar.domain.css.subsistence."),
-            new Fix.PlugIn("plugin = org.cougaar.domain.css.policy."),
+            new Fix.PlugIn("plugin = org.cougaar.mlm.construction.DT"),
+            new Fix.PlugIn("plugin = org.cougaar.css.subsistence."),
+            new Fix.PlugIn("plugin = org.cougaar.css.policy."),
             new Fix.DeleteParameter(pi1, "StrategicTransportation", true),
             new Fix.DeleteParameter(pi1, "Consumable", true),
             new Fix.DeleteParameter(pi1, "ClassVIIIMedical", true),
