@@ -564,6 +564,7 @@ sub build_module {
 
   my $mysrc = "$mymod/src";
   my $tmplib = "$tmp/build-lib$$";
+  my $builtjar = 0;
 
   if (-d $mysrc) {
     print "Compiling $mod src:\n" if $verbose;
@@ -575,12 +576,11 @@ sub build_module {
       # create jar
       chdir ($tmplib);
       jar("$product/$mod runtime", $tmplib, $libdir, $mod, "$mysrc/manifest.mf");
+      $builtjar = 1;
     }
     # clean up
     chdir ($mysrc);
     mysystem("rm -rf $tmplib");
-
-    sign_jar("$libdir/$mod.jar", $mod);
   }
 
   my $myex = "$mymod/examples";
@@ -620,6 +620,8 @@ sub build_module {
     mysystem("rm -rf $tmplib");
 
   }
+
+  sign_jar("$libdir/$mod.jar", $mod) if ($builtjar);
 
   # now create the product-module.zip file
   if (isPublic($mod)) {
