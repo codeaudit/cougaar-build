@@ -93,6 +93,9 @@ $ENV{'TERM'} = "vt100";
 
 #------- Main -------#
 
+# Set path used to search for binaries.
+set_bin_path();
+
 # Parse command line, modify defaults.
 parse_options();
 
@@ -105,8 +108,6 @@ print_build_parameters();
 # Set the global locations.
 set_globals();
 
-# Set path used to search for binaries.
-set_bin_path();
 
 # Create directory skeleton used in build.
 create_directory_skeleton()    if ($BUILD_SKIP_CVS eq "FALSE");
