@@ -12,7 +12,7 @@ product.name=cougaar
 sys.lib=/home/mthome/.lib/build.jars
 build.root=/tmp/V82
 
-modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine
+modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine,base
 
 ##
 ## module-specific flags
@@ -87,6 +87,7 @@ aggagent.unified = 1
 
 # runtime specs. Runtime always gets built libs, too.
 core.runtime = doc
-glm.runtime = bin,configs
+#glm.runtime = bin,configs
+base.runtime = bin,configs
 
 
