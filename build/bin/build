@@ -286,6 +286,7 @@ sub checkout {
     my $rep = opt("$mod.repository");
     if (!$rep) {
       $rep = opt("repository.default");
+      $rep = "cougaar" if (!$rep);
     }
     my $tag = opt("$mod.tag");
     $tag = $rtag if (!$tag);
