@@ -101,13 +101,9 @@ modules=\
 	server,\
 	manager,\
 	webserver, webtomcat,\
-	community, bol,\
+	community, \
 	albbn, alsra, stoplight,\
 	servicediscovery
-
-#disable delta until functional in HEAD again
-#	delta, deltaeport
-
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -156,10 +152,15 @@ bootstrap.keystore.alias = bootstrapper
 # util
 util.deps = bootstrap
 util.jars = log4j, xerces
+# 4 implementations of deprecated jdbc methods
+util.warnings = 4
 
 # core
 core.deps = bootstrap, util
 core.jars = log4j, servlet, concurrent
+# 3 implementations of deprecated jdbc methods
+# 2 implementing blackboard methods
+core.warnings = 5
 
 # yellow pages
 yp.deps = util, core
@@ -260,27 +261,6 @@ webserver.deps = bootstrap,core,util
 webserver.jars = servlet
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
-
-# bol module
-bol.repository = external
-bol.deps = util,core,planning,glm
-bol.jars = servlet,hsql,jess50,graph,xerces
-# Split bol packages into sub packages of src
-bol.split = lesson1,lesson2,lesson3,lesson4
-# bol is an add-on, don't make it part of the runtime
-bol.standalone = 1
-# might want to do the following at some point.
-#bol.lesson1.deps = core,planning,glm
-#bol.lesson1.jars = servlet
-#bol.lesson2.deps = core,planning,glm
-#bol.lesson2.jars = servlet,hsql,jess50
-#bol.lesson3.jars = servlet,hsql,jess50,graph
-#bol.lesson4.jars = servlet,hsql,jess50,graph,xerces
-# bol needs javac for now
-bol.compiler=javac
-bol.compiler.deprecation = 1
-# we don't have an ant solution for bol right now
-bol.noant=1
 
 # community
 community.deps = util,core,planning,glm,manager,webserver
