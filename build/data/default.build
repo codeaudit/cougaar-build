@@ -73,7 +73,7 @@ vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
 delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50
 blackjack.jars = xerces,jcchart451K,jsdk
-uiframework.jars = xerces,openmap,j2ee,vgj,xerces
+uiframework.jars = xerces,openmap,j2ee,vgj,xerces,tops
 Marine.jars = xerces
 tutorial.jars = xerces
 
@@ -81,6 +81,7 @@ tutorial.jars = xerces
 # for example jdbc drivers for use at runtime
 glm.extras = oracle12
 tops.extras = mm-mysql-2
+uiframework.extras = mm-mysql-2
 
 # flag other repositories
 tops.repository = internal
