@@ -271,7 +271,10 @@ if ( $compiler_command =~ /jikes/ ) {
   if ($javahome) {
     $rtjar = "$javahome/jre/lib/rt.jar";
     @rtjars = ($rtjar);
-    $augmented_classpath = "$augmented_classpath:$rtjar";
+    my @exts = findbypattern("$javahome/jre/lib/ext", "\.jar\$");
+    push @rtjars, @exts;
+    my $rtx = join(":",$rtjars);
+    $augmented_classpath = "$augmented_classpath:$rtx";
   }
 }
 
