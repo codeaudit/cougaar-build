@@ -274,7 +274,7 @@ dbms.repository = dbms
 #
 # AL BBN
 albbn.deps = core,planserver,util,toolkit,glm,vishnu
-albbn.jars = xerces,openmap,fesi-111,jcchart,servlet
+albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 albbn.module = bbn
 
