@@ -39,8 +39,8 @@ cleanAll       -- removes all the classFiles in and under the cwd
 cleanGenCode   -- deletes all the generated files
 cleanClassFiles-- deletes all the class files
 generateCode   -- generates code from all the .def files of the module
-jar            -- jars all the class files into a jar file in the
-                  project lib directory
+jar            -- makes the rmic target and then jars all the class
+                  files into a jar file in the project lib directory
 jax            -- creates executable jars for corresponding to every
                   .ejm (executable jar manifest) file. The executable
                   jar contains all the class files and files having
@@ -51,6 +51,19 @@ jax            -- creates executable jars for corresponding to every
 tags           -- makes a TAGS file using etags of all the source and
                   generated code for the module.
 projectTags    -- makes all.tags and the project tags file
+rmic           -- makes the compile target and then runs rmic to
+                  create stub classes for rmi server implementations.
+                  The server classes are identified by listing their
+                  the names in a file having a .rmic extension. When
+                  the rmic target is made, the module source
+                  directories aresearched for any files with the .rmic
+                  extension. The contents are parsed for the names of
+                  the classes. The class names should be listed one
+                  per line. Lines beginning with # or // are ignored
+                  (comments). Also, any leading or trailing whitespace
+                  is removed.
+rmicDir        -- makes the compileDir target and the runs rmic only
+                  one .rmic files found in the current directory
 
 Targets marked with * are used internally and there is no reason for
 them to be used by a user.
