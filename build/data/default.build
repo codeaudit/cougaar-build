@@ -105,8 +105,12 @@ modules=\
 default.public=1
 # modules which are public - that is, fully released
 
-# modules which contribute to unified api (javadoc)
-modules.unified = build,core,server,contract,toolkit,planserver,glm,scalability,aggagent,webserver
+# modules which contribute to unified api (javadoc & moby src)
+modules.unified = build,bootstrap,util,core,\
+	contract,toolkit,planserver,\
+	glm,glmtrans,scalability,aggagent,\
+	uiframework, server, manager, community,\
+	webserver,server
 
 ##
 ## module-specific flags
