@@ -109,6 +109,11 @@ The default ReleaseDescriptionFile is "default.build".  If the file is not
 found as specified, it will try to check from cvs using the current CVSROOT from
 build/data/<ReleaseDescriptionFile> and use that.
 
+More parameters of the sort found in a ReleaseDescriptionFile may be places in 
+HOME/.cougaar-build-HOST.FOO.COM, HOME/.cougaar-build-HOST, or
+HOME/.cougaar-build-system-specific (searched in exactly that order, first found
+wins).
+
 For signing of jar files to work, the following parameters should be set:
   default.keystore (defaults to sys.lib/signingCA.keystore)
   default.keystore.storepass (required)
@@ -174,10 +179,34 @@ sub mkd {
   mkdir $p, 0777 if (!$pretend);
 }
 
+use Sys::Hostname;
 
-if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
-  print "parsing $ENV{HOME}/.cougaar-build-system-specific\n";
-  parse_config("$ENV{HOME}/.cougaar-build-system-specific");
+sub maybeLoadParams {
+  my ($p) = @_;
+  if ( -e $p )  {
+    print "parsing \"$p\"\n" if ($verbose);
+    parse_config($p);
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+{
+  local($host) = hostname();
+  local($home) = $ENV{HOME};
+  local($success) = 0;
+  if ($host && -d $home) {
+    my ($shost);
+    if ($host =~ /^([^.]+)\./) {
+      $shost = $1;
+      print "shost = $shost\n";
+    }
+
+    $success = maybeLoadParams("$home/.cougaar-build-$host") || 
+      ($shost && maybeLoadParams("$home/.cougaar-build-$shost"));
+  }
+  maybeLoadParams("$home/.cougaar-build-system-specific") if (! $success);
 }
 
 # try to circumvent some VM problems
@@ -402,9 +431,9 @@ $augmented_classpath = $sysclasspath;
 @rtjars;
 if ($java_home) {
   if ( $compiler_touse =~ /jikes/ ) { # find rt.jar for jikes
-    $rtjar = "$java_home/jre/lib/rt.jar";
-    @rtjars = ($rtjar);
-    my @exts = findbypattern("$java_home/jre/lib/ext", "\.jar\$");
+#    $rtjar = "$java_home/jre/lib/rt.jar";
+    @rtjars = ();
+    my @exts = findbypattern("$java_home/jre/lib", "\.jar\$");
     push @rtjars, @exts;
     my $rtx = join("$cpsep",$rtjars);
     $augmented_classpath = "$augmented_classpath$cpsep$rtx";
@@ -974,11 +1003,13 @@ sub javadoc {
   close(LIST);
   my $pkgs = join(" ", keys %pmap);
   my $cp = cpWrap(get_classpath($mod));
+  $ENV{CLASSPATH} = $cp;
   if (opt("useDoclet", 1)) {
-    mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+    mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -splitIndex -d $dst -sourcepath . $pkgs");
   } else {
-    mysystem("$javadoc_command -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+    mysystem("$javadoc_command -splitIndex -d $dst -sourcepath . $pkgs");
   }
+  undef $ENV{CLASSPATH};
 }
 
 # zip up a directory, adding appropriate comments, sums, etc.
@@ -1356,9 +1387,9 @@ sub find_errors {
       $nl = max($nl,(8 * $1));	# 8 lines per warning
     }
 
-    # search for javac (in 1.3) warnings/errors
+    # search for javac & javadoc (in 1.3/1.4) warnings/errors
     if (/\.java:(\d+):/) {
-      if (/warning:/) {
+      if (/warning/) {
 	$wc++;
       } else {
 	$ec++;
@@ -1524,10 +1555,8 @@ sub compile_dir {
     chdir $from;
     my $tmpfile = "$tmp/build.$$";
     mysystem("find . -name '*.java' -print>$tmpfile");
-    my $jc = compiler_command($mod);
     if (-s $tmpfile) {
-	$mycp = &cpWrap($cp);
-      mysystem("$jc -d $to -classpath $mycp \@$tmpfile");
+      javac($mod, $cp, "-d $to \@$tmpfile");
     } else {
       print "Error: Module $mod $from does not seem to actually have any sources to compile\n";
     }
@@ -1541,8 +1570,7 @@ sub compile_dir {
 	$rf =~ /\.\/(.*)\.java/;
 	$rf=$1;
 	$rf =~ s/\//\./g;
-	$mycp = &cpWrap("$to$cpsep$cp");
-	mysystem("$rmic_command $rmi_arguments -d $to -classpath $mycp $rf");
+	rmic($mod, "$to$cpsep$cp", "-d $to $rf");
       }
     }
 
@@ -1554,12 +1582,36 @@ sub compile_dir {
   }
 }
 
+sub javac {
+  my ($mod, $cp, $args) = @_;
+  my $jc = compiler_command($mod);
+  $cp = &cpWrap($cp);
+  $ENV{CLASSPATH}="$cp";
+  $ENV{JIKESPATH}="$cp";
+  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  mysystem("$jc $args");
+  undef $ENV{CLASSPATH};
+  undef $ENV{JIKESPATH};
+}
 sub java {
   my ($cp, $args) = @_;
   $cp = &cpWrap($cp);
   my ($j) = jdkCommand($java_command);
-  mysystem("$j -classpath $cp $args");
+  $ENV{CLASSPATH}="$cp";
+  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  mysystem("$j $args");
+  undef $ENV{CLASSPATH};
 }
+
+sub rmic {
+  my ($mod, $cp, $args) = @_;
+  $cp = &cpWrap($cp);
+  $ENV{CLASSPATH}="$cp";
+  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  mysystem("$rmic_command $rmi_arguments $args");
+  undef $ENV{CLASSPATH};
+}
+
 
 sub compiler_command {
   my ($mod) = @_;
