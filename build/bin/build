@@ -1145,7 +1145,7 @@ sub find_errors {
 
   open(LOG, "<$errout");
   open(ERR, ">$distdir/errors.out");
-  my ($report)=sprintf "%15s %7d %7d\n", "module", "errors", "warnings";
+  my ($report)=sprintf "%15s %7s %7s\n", "module", "errors", "warnings";
   my ($te)=0;			# total errors
   my ($tw)=0;			# total warnings
   my ($mn);			# which module are we parsing?
