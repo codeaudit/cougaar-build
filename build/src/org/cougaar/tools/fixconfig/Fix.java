@@ -1,9 +1,17 @@
 package org.cougaar.tools.fixconfig;
 
 import java.io.*;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public abstract class Fix {
+    public static class ClusterOptionSet {
+        String option;
+        String[] clusters;
+        public ClusterOptionSet(String option, String[] clusters) {
+            this.option = option;
+            this.clusters = clusters;
+        }
+    }
     public static interface Fixer {
         String fix(String line);
     }
@@ -120,5 +128,67 @@ public abstract class Fix {
                 System.err.println(ioe + ": " + files[i]);
             }
         }
+    }
+
+    private static void addOrgs(Set clusters, Relationships ships, String[] names) {
+        for (int k = 0; k < names.length; k++) {
+            clusters.add(ships.findOrMakeOrg(names[k]));
+        }
+    }
+
+    protected static void fix(ClusterOptionSet[] options, String[] args, String[] roles) {
+        Relationships ships;
+        try {
+            ships = new Relationships(new File("."));
+        } catch (IOException ioe) {
+            System.err.println("Failed to read prototype-ini files");
+            ioe.printStackTrace();
+            return;
+        }
+        Set clusters = new TreeSet();
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if (arg.startsWith("-")) {
+                boolean matched = false;
+                for (int j = 0; j < options.length; j++) {
+                    if (options[j].option.startsWith(arg)) {
+                        String[] names = options[j].clusters;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    System.err.println("Unrecognized option: " + arg);
+                    System.exit(1);
+                }
+            } else {
+                clusters.add(ships.findOrMakeOrg(arg));
+            }
+        }
+        if (clusters.size() == 0) {
+            addOrgs(clusters, ships, options[0].clusters);
+        }
+        Collection needed = new HashSet();
+        for (Iterator i = clusters.iterator(); i.hasNext(); ) {
+            Relationships.Org org = (Relationships.Org) i.next();
+            needed.addAll(ships.getClosure(org, Relationships.SUPERIOR));
+            for (int j = 0; j < roles.length; j++) {
+                needed.addAll(ships.getClosure(org, roles[j]));
+            }
+        }
+        needed.removeAll(clusters);
+        if (needed.size() > 0) {
+            System.err.println("Additional clusters needed:");
+            for (Iterator j = needed.iterator(); j.hasNext(); ) {
+                System.err.println("   " + j.next());
+            }
+            clusters.addAll(needed);
+        }
+        String[] clusterNames = new String[clusters.size()];
+        int j = 0;
+        for (Iterator i = clusters.iterator(); i.hasNext(); ) {
+            clusterNames[j++] = i.next().toString();
+        }
+        new FixFood(clusterNames).fix();
     }
 }

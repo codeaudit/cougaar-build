@@ -10,7 +10,25 @@ import java.io.*;
  * node ini file are written to stdout.
  **/
 public class FixFood extends Fix {
-    public static final String[] CLUSTERS = {
+    /**
+     * This cluster list includes two battalions and _only_ subsistence. No transportation
+     **/
+    public static final String[] SHORT_CLUSTERS = {
+        "NCA",
+        "CENTCOM-HHC",
+        "JTF-HHC",
+        "3ID-HHC",
+        "2-BDE-3ID-HHC",
+        "2-7-INFBN",
+        "3-69-ARBN",
+        "3-FSB",
+        "703-MSB",
+        "553-CSB-HHD",
+        "10-TCBN-HHC",
+        "DLAHQ",
+        "SubsistenceICP",
+    };
+    public static final String[] LONG_CLUSTERS = {
         "3-DISCOM-HHC",
         "NCA",
         "2-7-INFBN",
@@ -85,7 +103,13 @@ public class FixFood extends Fix {
         };
     }
 
+    private static ClusterOptionSet[] clusterSetOptions = {
+        new ClusterOptionSet("-short", SHORT_CLUSTERS),
+        new ClusterOptionSet("-long", LONG_CLUSTERS),
+    };
+
     public static void main(String[] args) {
-        new FixFood(args.length > 0 ? args : CLUSTERS).fix();
+        String[] roles = {"SubsistenceSupplyProvider"};
+        fix(clusterSetOptions, args, roles);
     }
 }
