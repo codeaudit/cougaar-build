@@ -121,7 +121,7 @@ vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
 glmtrans.jars = xerces
 delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
-blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk
+blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
 uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
@@ -146,4 +146,16 @@ csmart.repository = internal
 core.runtime = doc
 base.runtime = bin,configs
 
+# for each module, copy these files directly to the dist directory.
+# This is really intended to be a one-shot for pointers to the 
+# release notes and installation instructions.
+# Leading directories disappear... e.g. so the following:
+#   core.dist = doc/README.txt
+# would copy README.txt from the doc subdirectory of core to 
+# the top level dist.  If the last file is actually a directory, then
+# the whole directory is copied.. e.g. :
+#   core.dist = doc
+# would copy the whole doc subdirectory into to top level dist as a
+# new doc subdirectory.
+base.dist = README
 
