@@ -94,13 +94,13 @@
     <target name="build.%{MODULE}" depends="%{build.depends}">
       <ant dir="${SOURCEBASE}/%{MODULE}" target="build"
 	   inheritAll="true">
-	<property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" />
+<!--    <property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" /> -->
       </ant>
     </target>
     <target name="install.%{MODULE}" depends="%{install.depends}">
       <ant dir="${SOURCEBASE}/%{MODULE}" target="install"
 	   inheritAll="true">
-	<property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" />
+<!--	<property name="MODSOURCE" value="${SOURCEBASE}/%{MODULE}" /> -->
       </ant>
     </target>
 <!-- %{MODULE_END} End of per-module recipe -->    
