@@ -137,6 +137,9 @@ modules.unified = build,bootstrap,util,core,planning,\
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
 
+# Moved to Cougaarforge
+javaiopatch.repository = :ext:cougaar.org:/cvs/core
+
 # build tools requires the jdk tools jars
 build.jars = tools
 # include junit.jar in dist, even though it is only needed for
@@ -144,15 +147,21 @@ build.jars = tools
 build.extras = junit
 # compiletime means that it is installed as clib rather than lib
 build.compiletime = 1
+# Moved to Cougaarforge
+build.repository = :ext:cougaar.org:/cvs/build
 
 # bootstrap
 bootstrap.keystore.alias = bootstrapper
+# Moved to Cougaarforge
+bootstrap.repository = :ext:cougaar.org:/cvs/util
 
 # util
 util.deps = bootstrap
 util.jars = log4j, xerces
 # 4 implementations of deprecated jdbc methods
 util.warnings = 4
+# Moved to Cougaarforge
+util.repository = :ext:cougaar.org:/cvs/util
 
 # core
 core.deps = bootstrap, util
@@ -160,36 +169,52 @@ core.jars = log4j, servlet, concurrent
 # 3 implementations of deprecated jdbc methods
 # 2 implementing blackboard methods
 core.warnings = 5
+# Moved to Cougaarforge
+core.repository = :ext:cougaar.org:/cvs/core
 
 # yellow pages
 yp.deps = util, core
 yp.jars = uddi4j, juddi, hsqldb
+# Moved to Cougaarforge
+yp.repository = :ext:cougaar.org:/cvs/yp
 
 # planning
 planning.deps = util, core
 planning.jars = xerces, servlet
+# Moved to Cougaarforge
+planning.repository = :ext:cougaar.org:/cvs/planning
 
 # contract
 contract.deps = util
 contract.jars = xerces
+# Moved to Cougaarforge
+contract.repository = :ext:cougaar.org:/cvs/util
 
 # toolkit
 toolkit.deps = core, planning, util
 toolkit.jars = xerces
+# Moved to Cougaarforge
+toolkit.repository = :ext:cougaar.org:/cvs/glm
 
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
+# Moved to Cougaarforge
+glm.repository = :ext:cougaar.org:/cvs/glm
 
 # aggregation agent
 aggagent.deps = core,planning,glm,util
 aggagent.jars = xerces,jpython,silk,servlet
+# Moved to Cougaarforge
+aggagent.repository = :ext:cougaar.org:/cvs/aggagent
 
 # vishnu scheduler
 vishnu.deps = core,planning,toolkit,glm,util
 vishnu.jars = xerces,vishnuServer
-vishnu.repository = internal
+#vishnu.repository = internal
+# Moved to Cougaarforge
+vishnu.repository = :ext:cougaar.org:/cvs/vishnu
 
 # uiframework
 uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
@@ -207,26 +232,41 @@ csmart.deps = core,planning,server,glm,bootstrap,util
 csmart.jars = xerces,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = mm-mysql-2, log4j
-csmart.repository = internal
+#csmart.repository = internal
+# Moved to Cougaarforge
+csmart.repository = :ext:cougaar.org:/cvs/csmart
 # Set PrettyName for ANT script generation
 csmart.PrettyName = CSMART
 
 # quo/qos
 qos.deps = core,util
 qos.jars = quoSumo
+# Moved to Cougaarforge
+qos.repository = :ext:cougaar.org:/cvs/qos
 
 quo.deps = core,planning,qos,util
 quo.jars = quoSumo, xerces
+# Moved to Cougaarforge
+quo.repository = :ext:cougaar.org:/cvs/qos
+
+# App (Node) Server
+server.repository = :ext:cougaar.org:/cvs/util
 
 # new PSP/web server
 webserver.deps = bootstrap,core,util
 webserver.jars = servlet
+# Moved to Cougaarforge
+webserver.repository = :ext:cougaar.org:/cvs/webserver
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
+# Moved to Cougaarforge
+webtomcat.repository = :ext:cougaar.org:/cvs/webserver
 
 # community
 community.deps = util,core,planning,glm,webserver
 community.jars = log4j,xerces,servlet,concurrent
+# Moved to Cougaarforge
+community.repository = :ext:cougaar.org:/cvs/community
 
 #
 # Adaptive Logistics jars
@@ -266,6 +306,8 @@ servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xerces,jena,servlet,uddi4j
 servicediscovery.extras = icu4j
 #servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
+# Moved to Cougaarforge
+servicediscovery.repository = :ext:cougaar.org:/cvs/servicediscovery
 
 #
 # UL-only overlay
@@ -277,6 +319,8 @@ ulconfigs.repository = :ext:cvs.ultralog.net:/cvs/commons/bbn
 #
 # distribution settings
 #
+
+base.repository = :ext:cougaar.org:/cvs/util
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
