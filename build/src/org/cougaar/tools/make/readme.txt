@@ -57,19 +57,24 @@ files specified with the -properties option
 
 The following options may be specified:
 
-basedir              -- the project directory
-jikes.class.path     -- the additional classpath need to run jikes
-jikes                -- true to use jikes instead of javac
-                        (typically $(JDK)/jre/lib/rt.jar)
-debug                -- true to turn on debugging printout
-3rd.party.jars       -- the location of the third party jar files. Defaults
-                        to <project>/jars
-omit.module.<module> -- set to true to leave <module> out of the list
-                        of all modules
+org.cougaar.tools.make.basedir
+       the project directory
+org.cougaar.tools.make.jikes.class.path
+       the additional classpath need to run jikes
+org.cougaar.tools.make.jikes
+       true to use jikes instead of javac (typically
+       $(JDK)/jre/lib/rt.jar)
+org.cougaar.tools.make.debug
+       true to turn on debugging printout
+org.cougaar.tools.make.3rd.party.jars
+       the location of the third party jar files. Defaults to
+       <project>/jars
+org.cougaar.tools.make.omit.module.<module>
+       set to true to leave <module> out of the list of all modules
 
 Prequisites
 
 Compilation and code generation in any module may require some other
 module to be compiled first. Default prerequisites are created by
 Make, but may be overridden with properties of the form:
-<module>.prerequisites=<module1> <module2> <module3> ...
+org.cougaar.tools.make.<module>.prerequisites=<module1> <module2> <module3> ...

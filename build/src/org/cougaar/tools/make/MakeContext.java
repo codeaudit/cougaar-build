@@ -28,12 +28,13 @@ public class MakeContext {
     private static final String BUILD_JAR = "build.jar";
     private static final String DEFRUNNER = "org.cougaar.tools.build.DefRunner";
 
-    public static final String PROP_BASEDIR = "basedir";
-    public static final String PROP_DEBUG = "debug";
-    public static final String PROP_TEST = "test";
-    public static final String PROP_JIKES_CLASS_PATH = "jikes.class.path";
-    public static final String PROP_JIKES = "jikes";
-    public static final String PROP_3RD_PARTY_JARS = "3rd.party.jars";
+    public static final String PROP_PREFIX           = "org.cougaar.tools.make.";
+    public static final String PROP_BASEDIR          = PROP_PREFIX + "basedir";
+    public static final String PROP_DEBUG            = PROP_PREFIX + "debug";
+    public static final String PROP_TEST             = PROP_PREFIX + "test";
+    public static final String PROP_JIKES_CLASS_PATH = PROP_PREFIX + "jikes.class.path";
+    public static final String PROP_JIKES            = PROP_PREFIX + "jikes";
+    public static final String PROP_3RD_PARTY_JARS   = PROP_PREFIX + "3rd.party.jars";
 
     private String theModuleName;
     private File theCurrentDirectory;
@@ -324,7 +325,7 @@ public class MakeContext {
      **/
     public String[] getPrerequisites(String aModuleName) {
         StringTokenizer tokens =
-            new StringTokenizer(theProperties.getProperty(aModuleName + ".prerequisites", ""));
+            new StringTokenizer(theProperties.getProperty(PROP_PREFIX + aModuleName + ".prerequisites", ""));
         String[] result = new String[tokens.countTokens()];
         for (int i = 0; i < result.length; i++) {
             result[i] = tokens.nextToken();
