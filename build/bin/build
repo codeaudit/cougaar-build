@@ -1239,9 +1239,10 @@ sub javadoc {
   }
   close(LIST);
 
-  my $cp = cpWrap(get_classpath($mod));
+  #my $cp = cpWrap(get_classpath($mod)); # cpWrap not necc when using env vars
+  my $cp = get_classpath($mod);
   $ENV{CLASSPATH} = $cp;
-  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  print STDERR "CLASSPATH = $ENV{CLASSPATH}\n" if ($verbose>1);
 
   my $lineargs = "";
   my($jdmemory) = gopt($mod, "javadoc.memory");
@@ -1978,10 +1979,10 @@ sub javac {
   my ($mod, $cp, $args) = @_;
   my ($time0) = time;
   my $jc = compiler_command($mod);
-  $cp = &cpWrap($cp);
+  #$cp = &cpWrap($cp); # Not apparently necessary when using env vars
   $ENV{CLASSPATH}="$cp";
   $ENV{JIKESPATH}="$cp";
-  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  print STDERR "CLASSPATH = $ENV{CLASSPATH}\n" if ($verbose>1);
   my ($result) = mysystem("$jc $args");
   undef $ENV{CLASSPATH};
   undef $ENV{JIKESPATH};
@@ -1989,13 +1990,14 @@ sub javac {
   addtime("compile",$time1-$time0);
   return ($result == 0);
 }
+
 sub java {
   my ($cp, $args) = @_;
   my ($time0) = time;
-  $cp = &cpWrap($cp);
+  #$cp = &cpWrap($cp); # Not apparently necessary when using env vars
   my ($j) = jdkCommand($java_command);
   $ENV{CLASSPATH}="$cp";
-  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  print STDERR "CLASSPATH = $ENV{CLASSPATH}\n" if ($verbose>1);
   my ($result) = mysystem("$j $args");
   undef $ENV{CLASSPATH};
   my ($time1) = time;
@@ -2006,9 +2008,9 @@ sub java {
 sub rmic {
   my ($mod, $cp, $args) = @_;
   my ($time0) = time;
-  $cp = &cpWrap($cp);
+  #$cp = &cpWrap($cp); # Not apparently necessary when using env vars
   $ENV{CLASSPATH}="$cp";
-  print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
+  print STDERR "CLASSPATH = $ENV{CLASSPATH}\n" if ($verbose>1);
   my ($result) = mysystem("$rmic_command $rmi_arguments $args");
   undef $ENV{CLASSPATH};
   my ($time1) = time;
@@ -2051,7 +2053,7 @@ sub trimNewLine {
 sub cpWrap {
     my ($cp) = @_;
     if ($cpsep eq ";") {
-	$cp = "\"$cp\"";
+	$cp = "\"$cp\"" unless ($cp =~ /^\".*\"$/);
     }
     return $cp;
 }
