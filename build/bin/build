@@ -191,7 +191,16 @@ if (! $java_home) {
 }
 
 $jar_command = jdkCommand(opt("jar.command", "jar"));
-$javadoc_command = jdkCommand(opt("javadoc.command", "javadoc"));
+{
+  my ($foo) = opt("javadoc");
+  if ($foo) {
+    print "Warning: Using javadoc property: should use javadoc.command and javadoc.arguments instead.";
+    $javadoc_command = $foo;
+  } else {
+    $javadoc_command = jdkCommand(opt("javadoc.command", "javadoc"));
+    $javadoc_arguments = opt("javadoc.arguments", "-J-Xmx128m -J-Xms128m");
+  }
+}
 $rmic_command = jdkCommand(opt("rmic.command", "rmic"));
 $rmic_arguments = opt("rmic.arguments", "-g -v1.2");
 
@@ -904,7 +913,7 @@ sub javadoc {
   my $pkgs = join(" ", keys %pmap);
   my $cp = get_classpath($mod);
   if (opt("useDoclet", 1)) {
-    mysystem("$javadoc_command -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
+    mysystem("$javadoc_command $javadoc_arguments -doclet org.cougaar.tools.javadoc.CougaarDoclet -docletpath $libdir/build.jar -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
   } else {
     mysystem("$javadoc_command -classpath $cp -splitIndex -d $dst -sourcepath . $pkgs");
   }

@@ -48,11 +48,10 @@ compiler.debug = 1
 #javac.arguments = -J-Xmx128m -J-Xms128m
 #jikes.arguments =
 
-javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
-
-# java = /usr/local/java/jdk1.3/bin/java
-# #java = /usr/local/java/jdk1.4/bin/java
-# #javadoc = /usr/local/java/jdk1.4/bin/javadoc
+# javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
+# javadoc.command = javadoc
+# default memory settings are not enough to build the unified javadoc
+# javadoc.arguments = -J-Xmx128m -J-Xms128m
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/
