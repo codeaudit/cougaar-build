@@ -9,7 +9,7 @@
  -->
 
 <!-- %{BEGIN} Everything after this line will be included in the generated module build.xml files -->
-<!-- Autobuild-generated ANT script for building Cougaar modules. -->
+<!-- Autobuild-generated ANT script for building the Cougaar module "%{Name}". -->
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
 <!-- autobuild might execute this with something like:
@@ -36,7 +36,7 @@
      Individuals may choose to edit or override in particular the 'Tool options' below
      (compiler, toggle deprecation warnings, etc). 
 
-     For target options, from the %{Name} directory or a
+     For target options, from the "%{Name}" directory or a
      sub-directory, do:
           ant -projecthelp
      Or more generally, do:
@@ -72,6 +72,10 @@
     <property name="build.compiler.deprecation" value="off"/>
     <!-- Don't exclude basic debug info -->
     <property name="build.compiler.optimize" value="off"/>
+
+    <!-- ================ Ant options ================ -->
+    <!-- Keep the ant environment separate from the target environment -->
+    <property name="build.sysclasspath" value="ignore"/>
 
     <!-- ================ Directories ================ -->
 
@@ -314,8 +318,15 @@
     <target name="compile" depends="prepare, defrunner, really-compile, rmic-source"
 	    description="Compile the source Code"> </target>
 
+    <!-- see if the jarfile needs recompiling -->
+    <target name="check-sources" depends="prepare,defrunner" if="has.src">
+      <uptodate property="jarfile.uptodate" targetfile="foo.jar">
+	<srcfiles dir="${src}" includes="**/*.java"/>
+      </uptodate>
+    </target>
+
     <!-- This really does the compilation. The above just calls this -->
-    <target name="really-compile" depends="prepare, defrunner" if="has.src">
+    <target name="really-compile" depends="prepare, defrunner,check-sources" if="has.src">
       <mkdir dir="${build}" />
       <available property="has.build" file="${build}"/>
       <!-- source=1.4 required for asserts -->
