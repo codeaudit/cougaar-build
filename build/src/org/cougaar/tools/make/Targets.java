@@ -195,6 +195,7 @@ public class Targets {
 
     public void cleanClassFiles() throws MakeException {
         cleanDirectory(theContext.getClassesRoot(), null, true, true);
+        cleanDirectory(theContext.getTestClassesRoot(), null, true, true);
     }
 
     public void cleanGenCode() throws MakeException {
