@@ -97,7 +97,7 @@ modules=\
 	csmart,\
 	quo, qos, ping,\
 	server,\
-	webserver, webtomcat,\
+	webserver, webtomcat, webaxis,\
 	community, \
 	albbn, stoplight, datagrabber,\
 	servicediscovery, vishnu,\
@@ -259,8 +259,8 @@ quo.deps = core,planning,qos,util,mtsstd
 quo.jars = quoSumo
 quo.repository = :ext:cvs.cougaar.org:/cvsroot/qos
 
-ping.deps = core,planning,qos,quo,util,mtsstd
-ping.jars = quoSumo,servlet
+ping.deps = core,util
+ping.jars = servlet
 ping.repository = :ext:cvs.cougaar.org:/cvsroot/qos
 
 # App (Node) Server
@@ -274,6 +274,12 @@ webserver.repository = :ext:cvs.cougaar.org:/cvsroot/webserver
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
 webtomcat.repository = :ext:cvs.cougaar.org:/cvsroot/webserver
+
+# web services, note that some jars are in webaxis/lib
+webaxis.deps = util,core,mtsstd
+webaxis.jars = activation,servlet,axis_1_2_beta,mail
+#webaxis.extras = axis_1_2_beta
+webaxis.repository = :ext:cvs.cougaar.org:/cvsroot/cws
 
 # community
 community.deps = util,core
