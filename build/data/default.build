@@ -270,8 +270,8 @@ bol.compiler.deprecation = 1
 # (incorrectly) checked into cvs as "mic" for now
 community.module = mic
 community.repository = external
-community.deps = util,core,glm,planserver,manager
-community.jars = log4j,xerces
+community.deps = util,core,glm,planserver,manager,webserver
+community.jars = log4j,xerces,servlet
 
 # dbms module
 dbms.repository = dbms
