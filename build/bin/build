@@ -601,7 +601,9 @@ sub build_module {
 
     chdir "$srcdir/$mod";
     # bin,data,configs are now shipped as runtime parts.
-    my @shipped_subdirs = ( "src", "examples", "regress" );
+    # Ship "dev" as a hack location for non-java and codegen source
+    # placeholder.
+    my @shipped_subdirs = ( "src", "examples", "regress", "dev" );
     my @subdirs = ();
     foreach $sub (@shipped_subdirs) {
       if (-d "$srcdir/$mod/$sub") {
