@@ -24,13 +24,13 @@ $verbose = 1;
 sub parse_args {
   while ($#ARGV>=0) {
     $_ = shift @ARGV;
-    if ( /-o(.+)/) {
+    if ( /^-o(.+)/) {
       push @opt_overrides, $1;
-    } elsif (/-r/) {
+    } elsif (/^-r/) {
       $opt_r = shift @ARGV;
-    } elsif (/-D/) {
+    } elsif (/^-D/) {
       $opt_D = shift @ARGV;
-    } elsif ( /-(.+)/) {
+    } elsif ( /^-(.+)/) {
       foreach $c (split //, $1) {
 	if ($c eq "h") {
 	  usage();
