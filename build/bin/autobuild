@@ -557,12 +557,12 @@ sub grab_buildspec {
   close(F);
 
   my $ddate;
+  my $dtag;
   {
     my $brep;
     my $bmod = "build";
     my $btag;
     my $bpath = "bin/build";
-    my $dtag;
     # parse content for important bits
     foreach $_ (split("\n",$content)) {
       next if (/\s*#/);
@@ -570,7 +570,7 @@ sub grab_buildspec {
       $brep = $1 if (/^\s*build\.repository\s*=\s*(.*)/);
       $bpath = $1 if (/^\s*build\.script\s*=\s*(.*)/);
       $bmod = $1 if (/^\s*build\.module\s*=\s*(.*)/);
-      $dtag = $1 if (/^\s*default\.tag\s*=\s*@?(.*)/);
+      $dtag = $1 if (/^\s*tag\.default\s*=\s*(.*)/);
       $ddate = $1 if (/^\s*default\.date\s*=\s*(.*)/);
       $bgroup = $1 if (/^\s*build\.group\s*=\s*(.*)/);
     }
