@@ -1,0 +1,92 @@
+
+java = /usr/local/java/jdk1.3/bin/java
+#java = /usr/local/java/jdk1.4/bin/java
+#javadoc = /usr/local/java/jdk1.4/bin/javadoc
+javac = jikes -g
+#javac = javac -J-Xmx128m -J-Xms128m -g
+
+repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
+repository.default=cougaar
+tag.default=HEAD
+product.name=cougaar
+sys.lib=/home/mthome/.lib/build.jars
+build.root=/tmp/V82
+
+modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine
+
+##
+## module-specific flags
+##
+
+#uiframework.javac=javac
+
+
+# module deps
+#bogon
+server.deps = core
+contract.deps = core
+toolkit.deps = core
+planserver.deps = core
+glm.deps = core,planserver,toolkit
+scalability.deps = core,glm
+aggagent.deps = core,planserver,glm
+vishnu.deps = core,toolkit,glm
+tops.deps = core,glm,toolkit,planserver,vishnu
+delta.deps = core,glm,toolkit,planserver
+blackjack.deps = core,glm,planserver,toolkit,vishnu
+Marine.deps = core,glm
+uiframework.deps = core,glm,planserver,aggagent
+
+# module libs (in addition to module deps)
+core.jars = xerces
+contract.jars = xerces
+toolkit.jars = xerces
+planserver.jars = xerces
+glm.jars = xerces,fesi-111,omcore,jcchart451K
+aggagent.jars = xerces,xalan
+scalability.jars = xerces
+uiframework.jars = omcore,xerces,cuimap,j2ee,vgj
+vishnu.jars = xerces
+tops.jars = xerces,topsga,omcore,openmap,chart
+delta.jars = xerces,activation,jms,jndi,jsdk,mail,omcore,qslink,jess50
+blackjack.jars = xerces,jcchart451K,jsdk
+uiframework.jars = xerces,cuimap,j2ee,vgj,xerces
+Marine.jars = xerces
+
+#extra libs - e.g. for runtime
+glm.extras = oracle12
+tops.extras = mm-mysql-2
+
+# flag other repositories
+tops.repository = internal
+delta.repository = internal
+blackjack.repository = internal
+vishnu.repository = internal
+Marine.repository = internal
+# don't supply sources/docs/etc for some modules
+tops.internal = true
+delta.internal = true
+blackjack.internal = true
+vishnu.internal = true
+Marine.internal = true
+ULLS.internal = true
+
+
+#
+#
+
+# unified build
+core.unified = 1
+toolkit.unified = 1
+contract.unified = 1
+planserver.unified = 1
+glm.unified = 1
+scalability.unified = 1
+server.unified = 1
+aggagent.unified = 1
+
+# runtime specs. Runtime always gets built libs, too.
+core.runtime = doc
+glm.runtime = bin,configs
+
+
