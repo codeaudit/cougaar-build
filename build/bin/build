@@ -601,9 +601,9 @@ sub build_module {
 }
 
 # try to find exactly the set of jars needed based on dependencies, etc
-#
+# if second arg!=0, will include .extras
 sub get_classpath {
-  local($mod) = @_;
+  local($mod,$xp) = @_;
 
   if ($mod eq "unified") {
     return get_unified_classpath();
@@ -659,6 +659,17 @@ sub get_classpath {
       print "Warning: could not find $dep jar for $mod\n";
     } else {
       push @cp, $jar;
+    }
+  }
+
+  if ($xp) {
+    foreach $dep (split /\s*,\s*/, opt("$mod.extras")) {
+      my $jar = findjar($dep, @alljars);
+      if ($jar eq "") {
+	print "Warning: could not find $dep runtime jar for $mod\n";
+      } else {
+	push @cp, $jar;
+      }
     }
   }
 
@@ -1372,7 +1383,7 @@ sub tag {
 
 sub junit {
   my ($mod, $classdir, $extrajars) = @_;
-  my $cp = get_classpath($mod);
+  my $cp = get_classpath($mod,1); # get runtime jars, too
   if ($extrajars) {
     $cp = "$extrajars:$cp";
   }
