@@ -244,6 +244,9 @@ print "Output is in $errout\n" if $verbose;
 # build unified javadoc
 &build_javadoc("unified", "$product-api") if (!$nodoc);
 
+# find and report on errors/warnings
+&find_errors();
+
 add_md5("$build_dir/dist");
 
 # get end time and report on elapsed time
@@ -263,7 +266,7 @@ exit(0);
 
 # moby checkout
 sub checkout {
-  print "Starting checkout\n" if $verbose;
+  print "\nStarting checkout\n" if $verbose;
   mkd $srcdir;
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
@@ -308,7 +311,7 @@ sub checkout {
 #
 
 sub build {
-  print "Starting building modules\n" if $verbose;
+  print "\nStarting building modules\n" if $verbose;
 
   build_module("build") || die("Compile of build module failed");
 
@@ -323,7 +326,7 @@ sub build_module {
   my ($mod) = @_;
   my $mysrc = "$srcdir/$mod/src";
 
-  print "Building module $mod\n" if $verbose;
+  print "\nBuilding module $mod\n" if $verbose;
 
   my $tmplib = "/tmp/build-lib$$";
   mysystem("rm -rf $tmplib");
@@ -557,7 +560,7 @@ sub unify {
   my $mod = "unified";
   my $mysrc = "$srcdir/$mod/src";
 
-  print "Building unified sources\n" if $verbose;
+  print "\nBuilding unified sources\n" if $verbose;
   mkd "$srcdir/$mod";
   mkd "$mysrc";
 
@@ -578,7 +581,7 @@ sub unify {
 sub build_runtime {
   my $mod;
   my $tmpdir = "/tmp/runtime.$$";
-  print "Building runtime dist\n" if $verbose;
+  print "\nBuilding runtime dist\n" if $verbose;
   mkd $tmpdir;
   my $tl = "$tmpdir/lib";
   mkd $tl;
@@ -619,7 +622,7 @@ sub build_3rdparty {
   my %member;
   my $mod;
   my $tmpdir = "/tmp/runtime.$$";
-  print "Building 3rdparty dist\n" if $verbose;
+  print "\nBuilding 3rdparty dist\n" if $verbose;
   mkd $tmpdir;
   my $tl = "$tmpdir/sys";
   mkd $tl;
@@ -656,7 +659,7 @@ sub build_javadoc {
 
   $dest = "$mod-api" if ($dest eq "");
 
-  print "Building javadoc of $mod\n" if $verbose;
+  print "\nBuilding javadoc of $mod\n" if $verbose;
 
   # generate javadoc from unified source
   my $tmpdir = "/tmp/javadoc.$$";
@@ -919,3 +922,66 @@ sub sysPipe {
   return @lines;
 }
 
+sub find_errors {
+  print "\nSearching for errors\n" if ($verbose);
+
+  open(LOG, "<$errout");
+  open(ERR, ">$distdir/errors.out");
+  my ($ec) = 0;			# errors detected
+  my ($wc) = 0;			# warnings detected
+  my ($l) = 0;			# which line are we on?
+  my ($cl) = -1;		# up to which line should we report on?
+  while (<LOG>) {
+    chomp;
+    $nl = 0;
+    # search for jikes warnings
+    if (/Issued (\d+) semantic warning/) {
+      $wc += $1;		# incr warning count
+      $nl = max($nl,(5 * $1));	# 5 lines per warning
+    }
+    # search for jikes errors
+    if (/Found (\d+) semantic error/) {
+      $ec += $1;		# incr warning count
+      $nl = max($nl,(5 * $1));	# 5 lines per warning
+    }
+
+    # search for javac (in 1.3) warnings/errors
+    if (/\.java:(\d+):/) {
+      if (/warning:/) {
+	$wc++;
+      } else {
+	$ec++;
+      }
+      $nl = max($nl,5);
+    }
+    if (/^Note: /) {		# dep warnings
+      $wc++;
+      $nl = max($nl,1);
+    }
+
+    # search for build errors/warnings
+    if (/^Warning:/) {
+      $wc++;
+      $nl = max($nl,1);
+    }
+
+    # do we need to advance the context pointer?
+    my($x) = $l+$nl;
+    $cl = $x if ($cl<$x);
+
+    # copy the line to err if needed
+    print ERR "$_\n" if ($l<$cl);
+    $l++;
+  }
+  close(LOG);
+
+  print ERR "\nTotal $ec errors and $wc warnings\n" if ($ec>0 || $wc>0);
+  close(ERR);
+
+  print STDERR "\nTotal $ec errors and $wc warnings\n" if ($ec>0 || $wc>0);
+}
+
+sub max {
+  my($x,$y) = @_;
+  ($x>$y)?$x:$y;
+}
