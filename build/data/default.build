@@ -246,7 +246,7 @@ webtomcat.jars = servlet, tomcat_40
 # bol module
 bol.repository = external
 bol.deps = util,core,glm,planserver
-bol.jars = servlet,hsql,jess50,graph
+bol.jars = servlet,hsql,jess50,graph,xerces
 # Split bol packages into sub packages of src
 bol.split = lesson1,lesson2,lesson3,lesson4
 # bol is an add-on, don't make it part of the runtime
@@ -256,8 +256,11 @@ bol.standalone = 1
 #bol.lesson1.jars = servlet
 #bol.lesson2.deps = core,glm,planserver
 #bol.lesson2.jars = servlet,hsql,jess50
+#bol.lesson3.jars = servlet,hsql,jess50,graph
+#bol.lesson4.jars = servlet,hsql,jess50,graph,xerces
 # bol needs javac for now
 bol.compiler=javac
+bol.compiler.deprecation = 1
 
 # community
 # (incorrectly) checked into cvs as "mic" for now
