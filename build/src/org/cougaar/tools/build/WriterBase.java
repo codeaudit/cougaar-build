@@ -50,8 +50,8 @@ public class WriterBase {
 
     // Now: which piece of this is the package?
     // Assume Version is under a "src" dir
-    if (dirName.indexOf("src") != -1) {
-      dirName = dirName.substring(dirName.indexOf("src") + 4);
+    if (dirName.lastIndexOf("src") != -1) {
+      dirName = dirName.substring(dirName.lastIndexOf("src") + 4);
     } else {
     }
 
