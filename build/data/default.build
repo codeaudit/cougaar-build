@@ -124,6 +124,7 @@ build.extras = junit
 
 # core
 core.jars = xerces, log4j, servlet
+core.deps = javaiopatch
 
 # app server
 server.deps = core
