@@ -1,3 +1,11 @@
+2002-03-04  Noelle Givler  <ngivler@bbn.com>
+
+	* org/cougaar/tools/build/PGWriter.java (Repository):
+	Augment support for TimePhasedPropertyGroups. Generated 
+	PropertyGroupFactory now includes both getXXXPG() and 
+	getXXXPG(long time) for all TimePhasedPropertyGroups. getXXXPG() 
+	returns the default PG from the associated PropertyGroupSchedule.
+
 2001-10-15  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/tools/make/Targets.java (Repository):
