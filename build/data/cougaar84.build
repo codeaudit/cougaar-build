@@ -1,0 +1,184 @@
+# COUGAAR release build driver for the HEAD (currently > 8.2)
+
+product.name=cougaar
+
+java = /usr/local/java/jdk1.3/bin/java
+
+# which compiler to use.  valid options are "javac" and "jikes" and
+# the actual command executed will depend on the $javac.command
+# options below
+compiler = jikes
+
+# these may be modified to have full path names
+javac.command = javac
+jikes.command = jikes
+
+# other compiler options.  May be module prefixed (e.g. core.compiler.pedantic=1)
+# pedantic compilation - issue lots of style/usage warnings (jikes only)
+#compiler.pedantic = 1
+# include as much debugging info as possible (local vars)
+#compiler.debug = 1
+# report uses of deprecated features.
+#compiler.deprecation = 1
+# optimize bytecode
+#compiler.optimize = 1
+
+# arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
+#javac.arguments = -J-Xmx128m -J-Xms128m
+#jikes.arguments =
+
+javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
+
+# java = /usr/local/java/jdk1.3/bin/java
+# #java = /usr/local/java/jdk1.4/bin/java
+# #javadoc = /usr/local/java/jdk1.4/bin/javadoc
+
+# repository.base defaults to CVSROOT without the trailing "cougaar"
+#repository.base=/cvs/alp/
+
+# default repository tag is "cougaar"
+#repository.default=cougaar
+
+# HEAD is the default
+#tag.default=HEAD
+
+# where should we get the basic (3rd party) jars from?
+sys.lib=/home/cougaar/build.jars
+# Expected third-party jars:
+# activation
+# fesi-111
+# grappa1_2_bbn		1.2 + bbn mods
+# j2ee
+# jcchart451k
+# jess50
+# jms
+# jsdk
+# log4j 		1.1.3 (full)
+# mail
+# openmap		4.2 (*not* omcore!)
+# qslink		(partnet driver)
+# vgj
+# xalan
+# xerces		3.1.1
+
+# run time only:
+# jce1_2-do		1.2
+# mm-mysql-2		2.0
+# oracle12		(for >= jdk 1.2)
+
+# build time only:
+# junit		3.7
+
+
+# build.root defaults to /tmp/{product.name}
+# build.root=/tmp/head
+
+modules=\
+	build,javaiopatch,core,contract,toolkit,planserver, \
+	glm,scalability,server,aggagent,\
+	vishnu,tops,glmtrans,datagrabber,\
+	delta,uiframework,blackjack,\
+	base,\
+	tutorial,\
+	csmart,\
+	qos
+
+# leave out Marine for now - it is broken
+
+# modules which are public - that is, fully released
+modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
+	glm,scalability,server,aggagent,uiframework,base,tutorial,\
+	tops,datagrabber,glmtrans,vishnu,csmart,qos
+
+# modules which contribute to unified api (javadoc)
+modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
+
+##
+## module-specific flags
+##
+
+# per-module compiler selection:
+# all of the compiler.* options may be prefixed by a module name:
+#core.compiler.pedantic = 1
+#core.compiler.deprecation = 1
+
+# module deps
+#bogon
+server.deps = core
+contract.deps = core
+toolkit.deps = core
+planserver.deps = core
+glm.deps = core,planserver,toolkit
+scalability.deps = core,glm
+aggagent.deps = core,planserver,glm
+vishnu.deps = core,toolkit,glm
+tops.deps = core,glm,toolkit,planserver,vishnu
+datagrabber.deps = core,glm,toolkit,planserver
+glmtrans.deps = core,glm,toolkit,vishnu
+delta.deps = core,glm,toolkit,planserver
+blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
+Marine.deps = core,glm
+uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
+tutorial.deps = core,glm
+csmart.deps = core,server,glm,planserver,scalability
+qos.deps = core
+
+# module libs (in addition to module deps)
+core.jars = xerces, log4j
+contract.jars = xerces
+toolkit.jars = xerces
+planserver.jars = xerces
+glm.jars = xerces,fesi-111,jcchart451K
+aggagent.jars = xerces,xalan
+scalability.jars = xerces
+vishnu.jars = xerces
+tops.jars = xerces,topsga,openmap,chart
+datagrabber.jars = xerces,chart,openmap
+glmtrans.jars = xerces
+delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
+blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
+uiframework.jars = xerces,openmap,j2ee,vgj,xerces
+Marine.jars = xerces
+tutorial.jars = xerces
+csmart.jars = xerces,jcchart451K,grappa1_2_bbn
+qos.jars = QuoKernel
+
+#extra libs to include in distribution
+# for example jdbc drivers for use at runtime
+glm.extras = oracle12
+tops.extras = mm-mysql-2
+uiframework.extras = mm-mysql-2
+
+# include junit.jar in dist, even though it is only needed for
+# build/release
+build.extras = junit
+
+# flag other repositories
+tops.repository = internal
+datagrabber.repository = internal
+glmtrans.repository = internal
+delta.repository = internal
+blackjack.repository = internal
+vishnu.repository = internal
+Marine.repository = internal
+csmart.repository = internal
+
+# runtime specs. Runtime always gets built libs, too.
+# The build process will also try to exclude these guys
+# from the "standard" locations to avoid duplication/confusion.
+core.runtime = doc
+base.runtime = bin,configs
+
+# for each module, copy these files directly to the dist directory.
+# This is really intended to be a one-shot for pointers to the 
+# release notes and installation instructions.
+# Leading directories disappear... e.g. so the following:
+#   core.dist = doc/README.txt
+# would copy README.txt from the doc subdirectory of core to 
+# the top level dist.  If the last file is actually a directory, then
+# the whole directory is copied.. e.g. :
+#   core.dist = doc
+# would copy the whole doc subdirectory into to top level dist as a
+# new doc subdirectory.
+base.dist = README
+
