@@ -2027,7 +2027,7 @@ sub fixbats {
 sub fixbat {
   my ($bat) = @_;
   my ($tmp) = "/tmp/dingbat.$$";
-  print "Fixing CRLFs in $bat\n" if $verbose;
+  #print "Fixing CRLFs in $bat\n" if $verbose;
 
   copy($bat, $tmp);
 
