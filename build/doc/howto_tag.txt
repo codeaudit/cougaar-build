@@ -50,15 +50,19 @@ You can always run "build -h" to get some help information.
 We have just had the 9.4 Development freeze, and need a branch for it.
 So we:
 1) Find the appropriate succesful head build, and the time of that
-build from build.out (6/17/2002 12:00:07 in this case)
+build from build.out (6/17/2002 12:00:11 in this case)
 2) Do a branch, a la:
 
-   build -v -D '6/17/2002 12:00:07' -t B9_4 -b
+   build -v -D '6/17/2002 12:00:11' -t B9_4 -b
 
 Note: This is a branch, so use the prefix 'B'. We are branching off of
 the head, so no '-r' option is necessary.
+Also note that this may take a while to run - up to 45 minutes for all
+the modules.
 3) Update the HEAD builds if necessary (less frequent) and start
 regular builds of the branch.
+4) Update core/src/org/cougaar/version.def appropriately on both the
+Branch and the HEAD.
 
 Notes:
  - the build scripts will take a while to run - don't worry.
