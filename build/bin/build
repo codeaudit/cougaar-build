@@ -172,18 +172,17 @@ if ($skip) {
 $build_dir = "$build_root/$bdate";
 
 # just a copy of the enviroment variable (or maybe a command line option)
-#$classpath = $ENV{CLASSPATH};
-$classpath;
+$sysclasspath;
 @sysjars;
 # skip the classpath evar and use the sys.lib param
 {
   @sysjars = findbypattern(opt("sys.lib"), "\.(jar|zip)\$");
-  $classpath = join(":", @sysjars);
+  $sysclasspath = join(":", @sysjars);
 }
 
 
 # classpath, possibly with rt.jar added for use by jikes
-$augmented_classpath = $classpath;
+$augmented_classpath = $sysclasspath;
 @rtjars;
 # hack for jikes until it is Java2 complient
 if ( $javac_command =~ /jikes/ ) {
@@ -338,60 +337,64 @@ sub build {
   print "Finished building modules\n" if $verbose;
 }
 
-
 sub build_module {
   my ($mod) = @_;
-  my $mysrc = "$srcdir/$mod/src";
-
+  my $mymod = "$srcdir/$mod";
   print "\nBuilding module $mod\n" if $verbose;
 
+  my $mysrc = "$mymod/src";
   my $tmplib = "/tmp/build-lib$$";
-  mysystem("rm -rf $tmplib");
 
-  my $cp = get_classpath($mod);
-
-  if (-d $mysrc) {		# src exists
-    print "Generating code for $mod\n" if $verbose;
-
+  if (-d $mysrc) {
+    print "Compiling $mod src:\n" if $verbose;
+    mysystem("rm -rf $tmplib");
     mkd $tmplib;
-    # run code generators
-    generate_code($mysrc, $cp);
 
-    # compile sources
-    print "Compiling $mod\n" if $verbose;
-    chdir $mysrc;
-    my $tmpfile = "/tmp/build.$$";
-    mysystem("find . -name '*.java' -print>$tmpfile");
-    my $jc = $javac_command;
-    $jco = opt("$mod.javac");
-    if ($jco) { $jc = $javac_commands{$jco}; }
-
-    mysystem("$jc -d $tmplib -classpath $cp \@$tmpfile");
-
-    # search for files/classes to rmic
-    print "Searching for sources to RMIC\n" if $verbose;
-    my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
-    if ($#rmicfiles>=0) {
-      foreach $rf (@rmicfiles) {
-	chomp $rf;
-	$rf =~ /\.\/(.*)\.java/;
-	$rf=$1;
-	$rf =~ s/\//\./g;
-	mysystem("$rmic_command -d $tmplib -classpath $tmplib:$cp $rf");
-      }
+    if (compile_dir($mod, $mysrc, $tmplib)) {
+      print "Preparing jar for $mod\n" if $verbose;
+      # create jar
+      chdir ($tmplib);
+      jar("$product/$mod runtime", $tmplib, "$libdir/$mod.jar", "$mysrc/manifest.mf");
     }
+    # clean up
+    chdir ($mysrc);
+    mysystem("rm -rf $tmplib");
+  }
 
-    print "Preparing jar for $mod\n" if $verbose;
-    # copy non-java "sources" to tmplib
-    add_module_files($mysrc, $tmplib);
+  my $myex = "$mymod/examples";
+  if ( -d $myex) {
+    print "Compiling $mod examples:\n" if $verbose;
+    mysystem("rm -rf $tmplib");
+    mkd $tmplib;
 
-    # create jar
-    chdir ($tmplib);
-    jar("$product/$mod runtime", $tmplib, "$libdir/$mod.jar", "$mysrc/manifest.mf");
+    # compile examples, but don't jar the results up
+    compile_dir($mod, $myex, $tmplib, "$libdir/$mod.jar");
 
     # clean up
     chdir ($mysrc);
-    mysystem("rm -rf $tmplib $tmpfile");
+    mysystem("rm -rf $tmplib");
+  }
+
+  my $myreg = "$mymod/regress";
+  if (-d $myreg) {
+    print "Compiling $mod regression tests:\n" if $verbose;
+    mysystem("rm -rf $tmplib");
+    mkd $tmplib;
+    my $extrajars = "$libdir/$mod.jar";
+    my $syslib = opt("sys.lib");
+    if (-e "$syslib/junit.jar") {
+      $extrajars = "$extrajars:$syslib/junit.jar";
+    }
+    # compile regress tests, but don't jar the results up
+    compile_dir($mod, $myreg, $tmplib, $extrajars);
+
+    print "Running $mod regression tests:\n" if $verbose;
+    junit($mod, $tmplib, "$libdir/$mod.jar");
+
+    # clean up
+    chdir ($mysrc);
+    mysystem("rm -rf $tmplib");
+
   }
 
   # now create the product-module.zip file
@@ -404,23 +407,26 @@ sub build_module {
     chdir "$srcdir/$mod";
     # bin,data,configs are now shipped as runtime parts.
     #my @shipped_subdirs = ("bin", "doc", "examples", "src", "data", "configs");
-    my @shipped_subdirs = ("examples", "src");
+    my @shipped_subdirs = ( "src", "examples", "regress" );
     my @subdirs = ();
     foreach $sub (@shipped_subdirs) {
       if (-d "$srcdir/$mod/$sub") {
 	push @subdirs, $sub ;
       }
     }
+
     my $subdirs = join(" ", @subdirs);
-    mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
+    if ($subdirs) {
+      mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
 
-    # only do javadoc if it is not part of the unified build
-    if (! isUnified($mod)) {
-      mkd "$tmpdist/api";
-      javadoc($mod, $mysrc, "$tmpdist/api") if (!$nodoc);
+      # only do javadoc if it is not part of the unified build
+      if (! isUnified($mod)) {
+	mkd "$tmpdist/api";
+	javadoc($mod, $mysrc, "$tmpdist/api") if (!$nodoc);
+      }
+
+      zip("$product $module", $tmpdir, "$distdir/$mod-dev.zip");
     }
-
-    zip("$product $module", $tmpdir, "$distdir/$mod-dev.zip");
 
     chdir($mysrc);
     mysystem("rm -rf $tmpdir");
@@ -564,11 +570,12 @@ sub rundef {
     #print "Running $class\n" if $verbose;
     $args = join " ", @words[1..$#words];
     chdir($dirpath);
-    $rc = mysystem("$java_command -classpath $libdir/build.jar:$cp $class $args $path");
+    $rc = java("$libdir/build.jar:$cp", "$class $args $path");
   }
   close(DEF);
   return $rc;
 }
+
 
 #
 # build the unified tree
@@ -582,6 +589,7 @@ sub unify {
   mkd "$mysrc";
 
   foreach $m (@modules) {
+    print "Adding module $m sources\n" if $verbose;
     if (isUnified($m)) {
       my $nbase = "$srcdir/$m";
       my $nsrc = "$nbase/src";
@@ -1090,4 +1098,80 @@ sub tag {
     my $Farg = $forceP?"-F":"";
     mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' -F $barg $Farg $newtag $mod");
   }
+}
+
+sub junit {
+  my ($mod, $classdir, $extrajars) = @_;
+  my $cp = get_classpath($mod);
+  if ($extrajars) {
+    $cp = "$extrajars:$cp";
+  }
+  my $syslib = opt("sys.lib");
+  if (-e "$syslib/junit.jar") {
+    $cp = "$cp:$syslib/junit.jar";
+  } else {
+    print "Error: cannot find junit.jar in sys.lib: regress($mod) will probably fail.\n";
+  }
+
+  if (-e "$classdir/Regress.class") {
+    java($cp,"junit.textui.TestRunner $classdir/Regress.class");
+  } else {
+    print "Error: Module $mod has a regress directory, but no compilable Regress.class\n";
+  }
+}
+
+sub compile_dir {
+  my ($mod, $from, $to, $extrajars) = @_;
+  my $cp = get_classpath($mod);
+  if ($extrajars) {
+    $cp = "$extrajars:$cp";
+  }
+
+  if (-d $from) {		# src exists
+    print "Compiling $from\n" if $verbose;
+
+    my $cp = get_classpath($mod);
+    if ($extrajars) {
+      $cp = "$extrajars:$cp";
+    }
+
+    # run code generators
+    generate_code($from, $cp);
+    # compile sources
+    chdir $from;
+    my $tmpfile = "/tmp/build.$$";
+    mysystem("find . -name '*.java' -print>$tmpfile");
+    my $jc = $javac_command;
+    $jco = opt("$mod.javac");
+    if ($jco) { $jc = $javac_commands{$jco}; }
+    if (-s $tmpfile) {
+      mysystem("$jc -d $to -classpath $cp \@$tmpfile");
+    } else {
+      print "Error: Module $mod examples does not seem to actually have any examples\n";
+    }
+    unlink($tmpfile);
+
+    # search for files/classes to rmic
+    my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
+    if ($#rmicfiles>=0) {
+      foreach $rf (@rmicfiles) {
+	chomp $rf;
+	$rf =~ /\.\/(.*)\.java/;
+	$rf=$1;
+	$rf =~ s/\//\./g;
+	mysystem("$rmic_command -d $to -classpath $to:$cp $rf");
+      }
+    }
+
+    # copy non-java "sources" to tmplib
+    add_module_files($from, $to);
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+sub java {
+  my ($cp, $args) = @_;
+  mysystem("$java_command -classpath $cp $args");
 }
