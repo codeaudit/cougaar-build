@@ -217,7 +217,7 @@ qos.deps = core,util
 qos.jars = quoSumo
 
 quo.deps = core,planning,qos,util
-quo.jars = quoSumo, jacorb, xerces
+quo.jars = quoSumo, xerces
 
 # new PSP/web server
 webserver.deps = bootstrap,core,util
