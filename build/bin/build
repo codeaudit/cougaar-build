@@ -781,7 +781,7 @@ sub build_runtime {
   foreach $mod (@modules) {
     print "Adding $mod runtime\n" if $verbose;
     if (-e "$build_dir/lib/$mod.jar") {
-      mysystem("cp $build_dir/lib/$mod.jar $tl");
+      cp("$build_dir/lib/$mod.jar", "$tl");
     }
     my $moddir = "$srcdir/$mod";
     chdir $moddir;
@@ -838,9 +838,13 @@ sub build_3rdparty {
       }
       if ($jar && ! ($member{$jar})) {
 	  $member{$jar} = 1;
-	  mysystem("cp $jar $tl");
+	  cp($jar, $tl);
 	}
     }
+  }
+
+  if (-e "$syslib/index.html") {
+    cp("$syslib/index.html","$tl/index.html");
   }
 
   chdir $tmpdir;
@@ -1452,4 +1456,9 @@ sub jdkCommand {
 sub absPath {
   my ($arg) = @_;
   return ($arg =~ /^\//);
+}
+
+sub cp {
+  my($f, $t) = @_;
+  return mysystem("cp $f $t");
 }
