@@ -145,9 +145,9 @@ set_classpath();
 recursive_build("$SRC/$BUILD_PREFIX/src",  "$CLASS/$BUILD_PREFIX")  if ($BUILD_SKIP_BUILD eq "FALSE");
 
 # Create the jar for the modules, and sign it.
-create_jar($LIB, "$BUILD_PREFIX.jar", "$CLASS/$BUILD_PREFIX");
-update_jar($LIB, "$BUILD_PREFIX.jar", "$SRC/$BUILD_PREFIX/src");
-sign_jar("$LIB/$BUILD_PREFIX.jar", "/usr/local/etc/.keystore");
+create_jar($LIB, "$BUILD_PREFIX.jar", "$CLASS/$BUILD_PREFIX")      if ($BUILD_SKIP_BUILD eq "FALSE");
+update_jar($LIB, "$BUILD_PREFIX.jar", "$SRC/$BUILD_PREFIX/src")    if ($BUILD_SKIP_BUILD eq "FALSE");
+sign_jar("$LIB/$BUILD_PREFIX.jar", "/usr/local/etc/.keystore")     if ($BUILD_SKIP_BUILD eq "FALSE");
 
 # Jar/Sign the 'Writers' too.
 ##6x##create_jar($LIB, "build.jar", "$SRC/build/src")            if ($BUILD_PREFIX eq "core");
@@ -163,8 +163,8 @@ sign_jar("$LIB/$BUILD_PREFIX.jar", "/usr/local/etc/.keystore");
 
 # copy keys to distribution.
 
-create_javadoc();
-zip_sources()        if ( building_plugin() eq 'FALSE' );
+create_javadoc()     if ($BUILD_SKIP_BUILD eq "FALSE");
+zip_sources()        if ( (building_plugin() eq 'FALSE') || ($BUILD_PREFIX eq "vishnu") );
 zip_distribution();
 check_for_errors()   if ($BUILD_INTERACTIVE eq "FALSE"); 
 move_log_files()     if ($BUILD_INTERACTIVE eq "FALSE");
@@ -422,6 +422,7 @@ sub building_plugin()
     if ( 
          ($BUILD_PREFIX eq 'build')         || 
          ($BUILD_PREFIX eq 'core')          || 
+         ($BUILD_PREFIX eq 'javaiopatch')   || 
          ($BUILD_PREFIX eq 'toolkit')       || 
          ($BUILD_PREFIX eq 'planserver')    || 
          ($BUILD_PREFIX eq 'glm')           || 
@@ -628,6 +629,13 @@ sub set_classpath()
     } # if
 
 
+#    # 3.7) Hardcoded carp that can't be handled otherwise.
+#    if ( $BUILD_PREFIX eq 'tops' ) {
+#        print("\n=>    3.7) Hardcoded: Adding $BUILD_LOCATION/vishnu-$BUILD_WITH/vishnu/lib to tops build.\n");
+#	$BUILD_WITH_PATH .= ":" if ( $BUILD_WITH_PATH ne "" );
+#	$BUILD_WITH_PATH .= "$BUILD_LOCATION/vishnu-$BUILD_WITH/vishnu/lib";
+#    } # if
+
 
     # 1) -w flag
     # - Expand 'BUILD_WITH' to a 'core' and 'alpine' build locations.
@@ -649,6 +657,7 @@ sub set_classpath()
 	my @modules = (
                         'build', 
                         'core', 
+			'javaiopatch',
                         'toolkit', 
                         'planserver', 
                         'glm', 
@@ -790,8 +799,8 @@ sub recursive_build()
     if ($BUILD_BOOTCLASSPATH ne "") {
        $cmd .= " -bootclasspath $BUILD_BOOTCLASSPATH ";
     } # if
-    print "\n\n ====>" . `pwd`; 
-    print "\n\n ====> The secret word is:  $cmd \n\n";
+    print "\n\n =>" . `pwd`; 
+    print "\n\n =>  $cmd \n\n";
     system ($cmd);
 
 } # recursive_build()
