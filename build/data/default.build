@@ -160,6 +160,8 @@ deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
 glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
 tops.extras = mm-mysql-2
 uiframework.extras = mm-mysql-2
+# csmart wants DBMS for regression tests, too
+csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
 
 # include junit.jar in dist, even though it is only needed for
 # build/release
