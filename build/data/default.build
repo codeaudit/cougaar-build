@@ -80,9 +80,8 @@ modules=\
 	base,\
 	tutorial,\
 	csmart,\
-	qos
+	qos, datagrabber
 
-# datagrabber is broken
 # leave out Marine for now - it is broken
 
 # modules which are public - that is, fully released
@@ -113,12 +112,12 @@ scalability.deps = core,glm
 aggagent.deps = core,planserver,glm
 vishnu.deps = core,toolkit,glm
 tops.deps = core,glm,toolkit,planserver,vishnu
-datagrabber.deps = core,glm,toolkit,vishnu
+datagrabber.deps = core,glm,toolkit,planserver
 glmtrans.deps = core,glm,toolkit,vishnu
 delta.deps = core,glm,toolkit,planserver
-blackjack.deps = core,glm,planserver,toolkit,vishnu,uiframework
+blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
 Marine.deps = core,glm
-uiframework.deps = core,glm,planserver,aggagent,tops
+uiframework.deps = core,glm,planserver,aggagent,datagrabber,tops
 tutorial.deps = core,glm
 csmart.deps = core,server,glm,planserver,scalability
 qos.deps = core
@@ -133,7 +132,7 @@ aggagent.jars = xerces,xalan
 scalability.jars = xerces
 vishnu.jars = xerces
 tops.jars = xerces,topsga,openmap,chart
-datagrabber.jars = xerces
+datagrabber.jars = xerces,chart,openmap
 glmtrans.jars = xerces
 delta.jars = xerces,activation,jms,jsdk,mail,qslink,jess50,NetComponents
 blackjack.jars = xerces,jcchart451K,jsdk,j2ee,silk,jpython
