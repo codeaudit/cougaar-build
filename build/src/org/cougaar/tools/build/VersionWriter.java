@@ -72,9 +72,19 @@ public class VersionWriter extends WriterBase {
       println(out);
       println(out,"package org.cougaar;");
       if (version == null) version = "unknown";
+      String rtag = System.getProperty("repository.tag");
+      String rtim = System.getProperty("repository.time");
+      boolean rmod = "true".equals(System.getProperty("repository.modified"));
       println(out,"public final class Version {\n"+
                   "  public final static String version = \""+version+"\";\n"+
                   "  public final static long buildTime = "+System.currentTimeMillis()+"L;\n"+
+		  "  public final static void main(String args[]) {\n"+
+		  "    System.out.println(\"version=\"+version);\n"+
+		  "    System.out.println(\"build time=\"+new Date(buildTime));");
+      println(out, "    System.out.println(\"repository tag=\""+rtag+
+	  (rmod?" (modified)":"")+"\");");
+      println(out, "    System.out.println(\"repository time=\""+rtim+"\");");
+      println(out,"  }\n"+
                   "}");
       out.close();
     } catch (Exception e) {
