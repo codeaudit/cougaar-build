@@ -445,6 +445,8 @@ public class PGWriter extends WriterBase {
         println(out,"  public long getEndTime() { throw new UndefinedValueException(); }");
       }
 
+      println(out,"  public boolean equals(Object object) { throw new UndefinedValueException(); }");
+
       println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
                   "    throw new CloneNotSupportedException();\n"+
                   "  }");
@@ -533,6 +535,11 @@ public class PGWriter extends WriterBase {
                       "  }");
         }
       }      
+
+      println(out,"  public boolean equals(Object object) {\n"+
+	      "    waitForFinalize();\n"+
+	      "    return _real.equals(object);\n"+
+	      "  }");
 
       Vector v = getAllDelegateSpecs(context);
       if (v != null) {
@@ -1062,6 +1069,9 @@ public class PGWriter extends WriterBase {
       println(out,"  }");
       println(out);
 
+      // .equals 
+      writeEquals(out, context, className);
+      
       if (hasDQ(context)) {
         println(out,"  public boolean hasDataQuality() { return false; }");
         println(out,"  public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
@@ -1269,6 +1279,9 @@ public class PGWriter extends WriterBase {
                     implclassName + ".this.getEndTime(); }");
       }
 
+      println(out,"    public boolean equals(Object object) { return " + 
+	      implclassName + ".this.equals(object); }");
+      
       // dispatch getters
       se = slotspecs.elements();
       while (se.hasMoreElements()) {
@@ -1480,7 +1493,119 @@ public class PGWriter extends WriterBase {
       println(out,"  }");
     }
     
+    protected void writeEquals(PrintWriter out, String context, 
+			       String className ) {
 
+      if (delegatesEquals(context)) {
+	return;
+      }
+
+      String otherVar = "other" + className;
+
+      println(out,"  public boolean equals(Object other) {");
+      println(out);
+      println(out, "    if (!(other instanceof " + className + ")) {");
+      println(out, "      return false;");
+      println(out, "    }");
+      println(out);
+      println(out, "    " + className + " " + otherVar + " = (" + className + 
+	      ") other;");
+      println(out);
+
+      String implClassName = className + "Impl";
+
+      Vector slotspecs = getAllSlotSpecs(context);
+      Enumeration se = slotspecs.elements();
+      while (se.hasMoreElements()) {
+        String slotspec = ((String)se.nextElement()).trim();
+        int s = slotspec.indexOf(" ");
+        String type = slotspec.substring(0,s);
+        String name = slotspec.substring(s+1);
+        ActiveSlot as = parseActiveSlot(slotspec);
+
+	String getter;
+
+        if (as != null) {
+	  // Limit comparison to handler's .equals()
+	  getter = "get" + as.handlerName() + "()";
+	  type = as.handlerName();
+	} else {
+	  String var = (String)p.get(context,name+".var");
+	  if (var == null) { 
+	    var = "the"+toClassName(name); 
+	  } // set the default
+	  if (var.equals("")) { var = null; } // unset if specified as empty
+          
+	  getter =  (String)p.get(context,name+".getter");
+
+	  if (getter == null) {	  
+	    getter = "get" + toClassName(name) +  "()";
+	  } 
+	}
+
+	// Does method return an object or a primitive data type?
+	if (primitiveDataType(type)) {
+	  println(out, "    if (!(" + getter + " == " + otherVar +
+		  "." + getter + ")) {");
+	  println(out, "      return false;");
+	  println(out, "    }");
+	  println(out);
+	} else if (as != null) {
+	  println(out, "    if (other instanceof " + implClassName + ") {");
+	  println(out, "      if (" + getter + " == null) {");
+	  println(out, "        if (((" + implClassName + ") " +
+		  otherVar + ")." + getter + " != null) {");
+	  println(out, "          return false;");
+	  println(out, "        }");
+	  println(out, "      } else if (!(" + getter + ".equals(((" + 
+		  implClassName + ") " + otherVar +
+		  ")." + getter + "))) {");
+	  println(out, "        return false;");
+	  println(out, "      }");
+	  println(out, "    }");
+	  println(out);
+	} else {
+	  println(out, "    if (" + getter + " == null) {");
+	  println(out, "      if (" + otherVar + "." + getter + " != null) {");
+	  println(out, "        return false;");
+	  println(out, "      }");
+	  println(out, "    } else if (!(" + getter + ".equals(" + otherVar +
+		  "." + getter + "))) {");
+	  println(out, "      return false;");
+	  println(out, "    }");
+	  println(out);
+	}
+      }
+
+      // Call .equals for all delegates
+      Vector vs = getAllDelegateSpecs(context);
+      //BG only accessible from impl class so can't compare _Locked and Impl
+      if ((vs != null) &&
+	  (vs.size() > 0)) {
+	println(out, "    if (other instanceof " + implClassName + ") {");
+	for (int i = 0; i < vs.size(); i++) {
+	  Argument dv = (Argument) vs.elementAt(i);
+	  String getter = "get" + toClassName(dv.name) +  "()";
+	  println(out, "      if (" + getter + " == null) {");
+	  println(out, "        if (((" + implClassName + ") " + otherVar + 
+		  ")." + getter + " != null) {");
+	  println(out, "          return false;");
+	  println(out, "        }");
+	  println(out, "      } else if (!(" + getter + ".equals(((" + 
+		  implClassName + ") " + otherVar +
+		  ")." + getter + "))) {");
+	  println(out, "        return false;");
+	  println(out, "      }");
+	  println(out);
+	}
+	println(out, "    }");
+      }
+
+      println(out, "    return true;");
+      println(out, "  }");
+      println(out);
+    }
+    
     void writePropertyGroup(String context) throws Exception {
       String className = toClassName(context);
 
@@ -1640,6 +1765,42 @@ public class PGWriter extends WriterBase {
 
       println(out,"}");
       out.close();
+    }
+
+    protected boolean delegatesEquals(String context) {
+      Vector vs = getAllDelegateSpecs(context);
+      if (vs != null) {
+	for (int i = 0; i < vs.size(); i++) {
+	  Argument dv = (Argument) vs.elementAt(i);
+	  Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
+	  for (int j = 0; j < dsv.size(); j++) {
+	    DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
+	    if ((ds.type.equals("boolean")) &&
+		(ds.name.equals("equals")) &&
+		(ds.args.size() == 1)) {
+	      Argument arg = (Argument) ds.args.elementAt(0);
+	      if (arg.type.equals("Object")) {
+		return true;
+	      } else {
+		return false;
+	      }
+	    }
+	  }
+	}
+      }
+      return false;
+    }
+
+    protected boolean primitiveDataType(String type) {
+      return ((type != null) && 
+	      ((type.equals("boolean")) ||
+	       (type.equals("char")) ||
+	       (type.equals("byte")) ||
+	       (type.equals("short")) ||
+	       (type.equals("int")) ||
+	       (type.equals("long")) ||
+	       (type.equals("float")) ||
+	       (type.equals("double"))));
     }
 
     protected class CollectionType {
