@@ -9,7 +9,7 @@ repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
 repository.default=cougaar
 tag.default=V8_2
 product.name=cougaar
-sys.lib=/home/mthome/.lib/build.jars
+sys.lib=/home/cougaar/build.jars
 build.root=/tmp/V82
 
 modules=\

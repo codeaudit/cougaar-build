@@ -1,3 +1,4 @@
+# COUGAAR release build driver for the HEAD (currently > 8.2)
 
 java = /usr/local/java/jdk1.3/bin/java
 #java = /usr/local/java/jdk1.4/bin/java
@@ -9,7 +10,7 @@ repository.base=:ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
 repository.default=cougaar
 tag.default=HEAD
 product.name=cougaar
-sys.lib=/home/mthome/.lib/build.jars
+sys.lib=/home/cougaar/build.jars
 build.root=/tmp/hourly
 
 modules=\
@@ -55,15 +56,14 @@ core.jars = xerces
 contract.jars = xerces
 toolkit.jars = xerces
 planserver.jars = xerces
-glm.jars = xerces,fesi-111,omcore,jcchart451K
+glm.jars = xerces,fesi-111,openmap,jcchart451K
 aggagent.jars = xerces,xalan
 scalability.jars = xerces
-uiframework.jars = omcore,xerces,cuimap,j2ee,vgj
 vishnu.jars = xerces
-tops.jars = xerces,topsga,omcore,openmap,chart
-delta.jars = xerces,activation,jms,jndi,jsdk,mail,omcore,qslink,jess50
+tops.jars = xerces,topsga,openmap,chart
+delta.jars = xerces,activation,jms,jndi,jsdk,mail,qslink,jess50
 blackjack.jars = xerces,jcchart451K,jsdk
-uiframework.jars = xerces,cuimap,j2ee,vgj,xerces
+uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
 
