@@ -200,7 +200,7 @@ if ($BUILD_PREFIX eq "tops") {
 # copy keys to distribution.
 
 create_javadoc()     if ($BUILD_SKIP_BUILD eq "FALSE");
-zip_sources()        if ( (building_plugin() eq 'FALSE') || ($BUILD_PREFIX eq "vishnu") );
+zip_sources()        if ( (building_plugin() eq 'FALSE') || ($BUILD_PREFIX eq "vishnu") || ($BUILD_PREFIX eq "aggagent") || ($BUILD_PREFIX eq "uiframework") );
 zip_distribution();
 check_for_errors()   if ($BUILD_INTERACTIVE eq "FALSE"); 
 move_log_files()     if ($BUILD_INTERACTIVE eq "FALSE");
@@ -466,8 +466,6 @@ sub building_plugin()
          ($BUILD_PREFIX eq 'scalability')   || 
          ($BUILD_PREFIX eq 'server')        || 
          ($BUILD_PREFIX eq 'tutorial')      || 
-         ($BUILD_PREFIX eq 'aggagent')      || 
-         ($BUILD_PREFIX eq 'uiframework')   || 
          ($BUILD_PREFIX eq 'configgen') 
        ) {
 	return 'FALSE';
@@ -659,7 +657,7 @@ sub set_classpath()
 
     # 3.5) Add path of plugin's lib directory
     if ( building_plugin() eq 'TRUE') {
-        print("\n=>    3.5) Adding path to plugins lib dir, if it exitst BUILD_WITH_PATH \n");
+        print("\n=>    3.5) Adding path to plugins lib dir, if it exist BUILD_WITH_PATH \n");
 	if ( -d "$DIST/$BUILD_PREFIX/lib") {
 	    $BUILD_WITH_PATH .= ":" if ( $BUILD_WITH_PATH ne "" );
 	    $BUILD_WITH_PATH .= "$DIST/$BUILD_PREFIX/lib";
