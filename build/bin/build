@@ -48,6 +48,8 @@ sub parse_args {
       $opt_D = shift @ARGV;
     } elsif (/^-t/) {
       $tag = shift @ARGV;
+    } elsif (/^-R/) {
+      $opt_R = shift @ARGV;
     } elsif (/^-m/) {
       $opt_m = shift @ARGV;
     } elsif ( /^-(.+)/) {
@@ -111,6 +113,7 @@ Usage: build [options] [ReleaseDescriptionFile]
 	        will figure out the right order and all dependencies.
         -p      Assume building from a point-tag rather than a branch (avoid use of -D)
 	-k	Dont sign any jars
+	-R DIR	alias for -obuild.root=DIR
 
 The default ReleaseDescriptionFile is "default.build".  If the file is not
 found as specified, it will try to check from cvs using the current CVSROOT from
@@ -358,6 +361,7 @@ $rdate = $opt_D if ($opt_D);
 
 # root of the build directory tree
 $build_root = opt("build.root");
+$build_root = $opt_R if ($opt_R);
 $tmp = opt("tmp", "/tmp");
 if (! $build_root) {
   my $foo = opt("product.name");
