@@ -1083,13 +1083,18 @@ sub add_md5 {
 }
 
 sub sign_report {
-  if ($#signed_jars>=0) {
-    print "Signed the following jars: \n";
-    foreach $j (@signed_jars) {
-      print "\t$j\n";
+  my ($count) = $#signed + 1;
+  if ($verbose>1) {
+    if ($#signed_jars>=0) {
+      print "Signed the following jars: \n";
+      foreach $j (@signed_jars) {
+	print "\t$j\n";
+      }
+    } else {
+      print "Signed no jars\n";
     }
   } else {
-    print "Signed no jars\n";
+    print "Signed $count jars\n";
   }
 }
 
