@@ -88,9 +88,9 @@ $auto = $opt_a if ($opt_a);
 $data = $opt_d if ($opt_d);
 $mailaddr = $opt_m if ($opt_m);
 
-if ($opt_t && !$opt_a) {
-  $auto = $opt_t;
-}
+#if ($opt_t && !$opt_a) {
+#  $auto = $opt_t;
+#}
 
 if ($opt_T) {
   $tmp = $opt_T;
@@ -154,7 +154,7 @@ $SIG{INT} = 'sighandler';
 $SIG{QUIT} = 'sighandler';
 
 # bootstrap the build process
-$tmpdir = "$tmp/$auto-build.$$";
+$tmpdir = "$tmp/$tag-build.$$";
 mysystem("rm -rf $tmpdir");
 mkd($tmpdir);
 {
@@ -165,7 +165,7 @@ mkd($tmpdir);
 $basedir = "$tmpdir/build";
 
 # this is where build will build into
-$builddir = "$tmp/$auto";
+$builddir = "$tmp/$tag";
 
 
 $buildscript = "$basedir/bin/build";
@@ -188,7 +188,7 @@ $rarg = "-r $tag" if (! ($tag eq "HEAD"));
 if ($javahome) {
   $extaargs = "$extraargs -ojava.home=$javahome";
 }
-mysystem("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$auto.out");
+mysystem("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$tag.out");
 
 # what did we build?
 opendir D, $builddir;
@@ -242,8 +242,8 @@ if (! ($status eq "SUCCEEDED")) {
 }
 
 # copy whatever is there to $host
-ssh("$host mkdir -p $auto/$built");
-scp("$builddir/$built/dist/* $host:$auto/$built");
+ssh("$host mkdir -p $auto/$tag/$built");
+scp("$builddir/$built/dist/* $host:$auto/$tag/$built");
 ssh("$host cd $auto \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
@@ -331,7 +331,7 @@ sub datestr {
 
 sub logMessage {
   local($s)=@_;
-  open(LOG, ">>$tmp/$auto.log");
+  open(LOG, ">>$tmp/$tag.log");
   my ($d) = datestr();
   print LOG "$d\t$s\n";
   close(LOG);
@@ -405,13 +405,13 @@ sub cleanRemote {
 
 sub rrm {
   my ($p) = @_;
-  ssh("$host rm -rf $auto/$p");
+  ssh("$host rm -rf $auto/$tag/$p");
 }
 
 sub checkRemoteStatus {
   my ($rd) = @_;
 
-  open(R, "$ssh $host tail -1 $auto/$rd/build.out|");
+  open(R, "$ssh $host tail -1 $auto/$tag/$rd/build.out|");
   my @lines;
   @lines = <R>;
   close(R);
