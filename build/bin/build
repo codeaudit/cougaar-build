@@ -612,16 +612,34 @@ sub build_module_main {
   my $builtjar = &build_module_src($mod,$mysrc,$jname);
   my $extrajars = "$libdir/$jname.jar";
 
-  my $myex = &compute_path($mypath, "examples", $pext);
-  if ( -d $myex) {
-    print "Compiling $jname examples:\n" if $verbose;
-    &build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+  {
+    my $myex = &compute_path($mypath, "examples", $pext);
+    if ( -d "$myex/src") {
+      print "Compiling $jname examples src:\n" if $verbose;
+      &build_module_src($mod,"$myex/src","${jname}_examples",$extrajars,"examples");
+    } elsif ( -d $myex) {
+      print "Compiling $jname examples:\n" if $verbose;
+      &build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+    }
   }
 
-  my $myreg = &compute_path($mypath, "regress", $pext);
-  if (-d $myreg) {
-    print "Compiling $jname regression tests:\n" if $verbose;
-    &build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+  {
+    my $mytest = &compute_path($mypath, "test", $pext);
+    if ( -d "$mytest/src") {
+      print "Compiling $jname test src:\n" if $verbose;
+      &build_module_src($mod,"$mytest/src","${jname}_test",$extrajars,"test");
+    } elsif ( -d $mytest) {
+      print "Compiling $jname test:\n" if $verbose;
+      &build_module_src($mod,$mytest,"${jname}_test",$extrajars,"test");
+    }
+  }
+
+  {
+    my $myreg = &compute_path($mypath, "regress", $pext);
+    if (-d $myreg) {
+      print "Compiling $jname regression tests:\n" if $verbose;
+      &build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+    }
   }
 
   # sign only after doing examples and regress

@@ -52,12 +52,13 @@ $tag = "HEAD";
 $data = "default.build";
 $host = "eiger.alpine.bbn.com";
 $cleanup = 1;
+$keep = 3;
 
 $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
-&Getopts('va:t:d:hkT:H:po:');
+&Getopts('va:t:d:hkT:H:po:n:');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
   print STDERR "\t-v\tVerbose mode\n";
@@ -70,6 +71,7 @@ if ($opt_h) {
   print STDERR "\t-h\tThis usage commend\n";
   print STDERR "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
   print STDERR "\t-o string\tPass string as extra arguments to build\n";
+  print STDERR "\t-n N\tKeep the last N builds online (default is $keep).\n";
   exit(-1);
 }
 
@@ -130,7 +132,7 @@ if ($data =~ /\//) {
 } else {
   $builddata = "$basedir/data/$data";
 }
-$keep = 4;
+$keep = $opt_n if $opt_n;	# reset the keep value if we need to
 
 # clean up any waxy yellow buildup
 mysystem("rm -rf $builddir");
@@ -162,7 +164,7 @@ close(B);
 
 # skip over keepers
 $i=0;
-while ($i < $keep && ($_= pop @alldirs)) {
+while ($i <= $keep && ($_= pop @alldirs)) {
   $i++;
 }
 
