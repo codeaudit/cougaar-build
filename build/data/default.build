@@ -282,7 +282,7 @@ community.repository = :ext:cougaar.org:/cvsroot/community
 albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 albbn.module = bbn
 #albbn.tag = COUGAAR_*
-albbn.tag = HEAD
+#albbn.tag = HEAD
 #albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
 albbn.jars = xercesImpl,xml-apis,openmap,fesi-111,jcchart,servlet,vishnuServer
@@ -291,7 +291,7 @@ albbn.runtime = bin,configs
 # AL datagrabber
 datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 #datagrabber.tag = COUGAAR_*
-datagrabber.tag = HEAD
+#datagrabber.tag = HEAD
 #datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 datagrabber.deps = core,planning,glm,toolkit,util,albbn
 datagrabber.jars = xercesImpl,xml-apis,chart,openmap,servlet
@@ -299,7 +299,7 @@ datagrabber.jars = xercesImpl,xml-apis,chart,openmap,servlet
 # AL stoplight
 stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 #stoplight.tag = COUGAAR_*
-stoplight.tag = HEAD
+#stoplight.tag = HEAD
 #stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent,uiframework
 stoplight.jars = xercesImpl,xml-apis,servlet
@@ -317,7 +317,7 @@ servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
 #
 # UL-only overlay
 #
-ulconfigs.tag = HEAD
+#ulconfigs.tag = HEAD
 ulconfigs.runtime = configs,csmart,servicediscovery,dbms
 ulconfigs.repository = :ext:cvs.ultralog.net:/cvs/commons/bbn
 
