@@ -64,6 +64,9 @@ org.cougaar.tools.make.jikes.class.path
 org.cougaar.tools.make.jikes
        true to use jikes instead of javac (typically
        $(JDK)/jre/lib/rt.jar)
+org.cougaar.tools.make.jdk.tools
+       The location of the jdk tools jar (typically
+       $(JDK)/lib/tools.jar)
 org.cougaar.tools.make.debug
        true to turn on debugging printout
 org.cougaar.tools.make.3rd.party.jars

@@ -26,7 +26,9 @@ public class MakeContext {
     private static final String GENCODE = "gencode";
     private static final String BUILD_CLASSES = "build" + File.separator + TMPDIR + File.separator + "classes";
     private static final String BUILD_JAR = "build.jar";
-    private static final String DEFRUNNER = "org.cougaar.tools.build.DefRunner";
+    private static final String DEFRUNNER_CLASS = "org.cougaar.tools.build.DefRunner";
+    private static final String JAR_CLASS = "sun.tools.jar.Main";
+    private static final String JAVAC_CLASS = "sun.tools.javac.Main";
 
     public static final String PROP_PREFIX           = "org.cougaar.tools.make.";
     public static final String PROP_BASEDIR          = PROP_PREFIX + "basedir";
@@ -35,6 +37,7 @@ public class MakeContext {
     public static final String PROP_JIKES_CLASS_PATH = PROP_PREFIX + "jikes.class.path";
     public static final String PROP_JIKES            = PROP_PREFIX + "jikes";
     public static final String PROP_3RD_PARTY_JARS   = PROP_PREFIX + "3rd.party.jars";
+    public static final String PROP_JDK_TOOLS        = PROP_PREFIX + "jdk.tools";
 
     private String theModuleName;
     private File theCurrentDirectory;
@@ -48,6 +51,7 @@ public class MakeContext {
     private File theCodeGeneratorClasses;
     private File theGenCodeRoot;
     private File the3rdPartyDirectory;
+    private File theJDKToolsJar;
     private File[] theModuleRoots;
     private Targets theTargets;
     private final String JAVA = "java";
@@ -89,6 +93,10 @@ public class MakeContext {
 	} else {
 	    the3rdPartyDirectory = new File(third).getCanonicalFile();
 	}
+        String jdkToolsJar = theProperties.getProperty(PROP_JDK_TOOLS);
+        if (jdkToolsJar != null) {
+            theJDKToolsJar = new File(jdkToolsJar);
+        }
 	theProjectLib = new File(theProjectRoot, "lib").getCanonicalFile();
         theCurrentDirectory = new File(".").getCanonicalFile();
 	theCodeGeneratorJar = new File(theProjectLib, BUILD_JAR);
@@ -313,6 +321,18 @@ public class MakeContext {
     }
 
     /**
+     * Get the File of the jdk tools jar
+     **/
+    public File getJDKToolsJar() {
+        return theJDKToolsJar;
+    }
+
+    public boolean haveJDKTools() {
+        File jdkTools = getJDKToolsJar();
+        return (jdkTools != null && jdkTools.exists());
+    }
+
+    /**
      * Get an array of the file extension that should extracted from
      * the src tree and included in the jar file.
      **/
@@ -400,12 +420,35 @@ public class MakeContext {
         }
     }
 
+    private void runJavaMain(String className, String[] args) throws MakeException {
+        runJava(className, "main", new Class[] {String[].class}, new Object[] {args});
+    }
+
+    private void runJava(String className, String methodName, Class[] argTypes, Object[] args)
+        throws MakeException
+    {
+        try {
+            ClassLoader pcl = getClass().getClassLoader().getParent();
+            URLClassLoader cl = new URLClassLoader(getClassPathURLs(), pcl);
+            Class cls = cl.loadClass(className);
+            Method method = cls.getMethod(methodName, argTypes);
+            method.invoke(null, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new MakeException(e.toString());
+        }
+    }
+
     /**
      * Run jar on a bunch of arguments.
      **/
     public void jar(String[] args) throws MakeException {
-        int nfiles = args.length;
-        runExecutable(new String[] {"jar"}, args, 0, args.length);
+        if (haveJDKTools()) {
+            runJavaMain(JAR_CLASS, args);
+        } else {
+            int nfiles = args.length;
+            runExecutable(new String[] {"jar"}, args, 0, args.length);
+        }
     }
 
     /**
@@ -456,15 +499,22 @@ public class MakeContext {
      **/
     public void generateCode(File defFile, File genFile) throws MakeException {
         insureDirectory(genFile.getParentFile());
-        String[] command = new String[] {
-            JAVA,
-            "-classpath",
-            getClassPath(),
-            DEFRUNNER,
+        String[] args = {
             "-options",
-            "-d " + genFile.getParent()
+            "-d " + genFile.getParent(),
+            defFile.getPath()
         };
-        runExecutable(command, new String[] {defFile.getPath()}, 0, 1);
+        if (true) {
+            runJavaMain(DEFRUNNER_CLASS, args);
+        } else {
+            String[] command = new String[] {
+                JAVA,
+                "-classpath",
+                getClassPath(),
+                DEFRUNNER_CLASS
+            };
+            runExecutable(command, args, 0, args.length);
+        }
     }
 	    
     /**
@@ -633,6 +683,9 @@ public class MakeContext {
         }
         elements.addAll(Arrays.asList(findFiles(getProjectLib(), ".jar", false)));
         elements.addAll(Arrays.asList(get3rdPartyJars()));
+        if (haveJDKTools()) {
+            elements.add(getJDKToolsJar());
+        }
         return (File[]) elements.toArray(new File[elements.size()]);
     }
 
