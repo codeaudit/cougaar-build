@@ -1179,7 +1179,7 @@ sub add_md5 {
 
 sub sign_report {
   my ($count) = $#signed + 1;
-  if ($verbose>1) {
+  if ($verbose>2) {
     if ($#signed_jars>=0) {
       print "Signed the following jars: \n";
       foreach $j (@signed_jars) {
