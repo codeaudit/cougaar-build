@@ -1324,6 +1324,7 @@ sub javadoc {
 
   if ($#pmapkeys < 0) {
     print STDERR "Skipping javadoc $mod\n" if ($verbose);
+    return;
   }
 
   chdir $src;
