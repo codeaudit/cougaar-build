@@ -1,11 +1,9 @@
 # ALP 7.2.x build configuration
 
-javadoc = /usr/local/java/jdk1.2/bin/javadoc -J-Xmx128m -J-Xms128m
-
+compiler=jikes
+javadoc = /usr/local/java/jdk1.3/bin/javadoc -J-Xmx128m -J-Xms128m
 java = /usr/local/java/jdk1.2/bin/java
-javac = jikes -g
-#javac = javac -J-Xmx128m -J-Xms128m -g
-repository.base = :ext:mthome@eiger.alpine.bbn.com:/cvs/alp/
+
 repository.default=cougaar
 tag.default=V7_2
 product.name=alp

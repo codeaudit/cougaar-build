@@ -76,11 +76,12 @@ sys.lib=/home/cougaar/build.jars
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,glmtrans,delta,uiframework,blackjack,\
+	vishnu,tops,glmtrans,datagrabber,\
+	delta,uiframework,blackjack,\
 	base,\
 	tutorial,\
 	csmart,\
-	qos, datagrabber
+	qos
 
 # leave out Marine for now - it is broken
 
