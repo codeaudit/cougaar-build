@@ -168,21 +168,26 @@ public abstract class Fix {
         if (clusters.size() == 0) {
             addOrgs(clusters, ships, options[0].clusters);
         }
-        Collection needed = new HashSet();
-        for (Iterator i = clusters.iterator(); i.hasNext(); ) {
-            Relationships.Org org = (Relationships.Org) i.next();
-            needed.addAll(ships.getClosure(org, Relationships.SUPERIOR));
-            for (int j = 0; j < roles.length; j++) {
-                needed.addAll(ships.getClosure(org, roles[j]));
+        boolean done = false;
+        while (!done) {
+            done = true;
+            Collection needed = new HashSet();
+            for (Iterator i = clusters.iterator(); i.hasNext(); ) {
+                Relationships.Org org = (Relationships.Org) i.next();
+                needed.addAll(ships.getClosure(org, Relationships.SUPERIOR));
+                for (int j = 0; j < roles.length; j++) {
+                    needed.addAll(ships.getClosure(org, roles[j]));
+                }
             }
-        }
-        needed.removeAll(clusters);
-        if (needed.size() > 0) {
-            System.err.println("Additional clusters needed:");
-            for (Iterator j = needed.iterator(); j.hasNext(); ) {
-                System.err.println("   " + j.next());
+            needed.removeAll(clusters);
+            done = needed.size() == 0;
+            if (!done) {
+                System.err.println("Additional clusters needed:");
+                for (Iterator j = needed.iterator(); j.hasNext(); ) {
+                    System.err.println("   " + j.next());
+                }
+                clusters.addAll(needed);
             }
-            clusters.addAll(needed);
         }
         String[] clusterNames = new String[clusters.size()];
         int j = 0;
