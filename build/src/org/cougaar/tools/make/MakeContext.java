@@ -43,6 +43,7 @@ public class MakeContext {
     public static final String PROP_OMIT             = PROP_PREFIX + "omit.module.";
 
     public static final String DEFAULT_TARGET = "compileDir";
+    public static final String COLON = " -- "; // Redefine COLON to avoid emacs error match
 
     private String theModuleName;
     private File theCurrentDirectory;
@@ -58,7 +59,7 @@ public class MakeContext {
     private File the3rdPartyDirectory;
     private File theJDKToolsJar;
     private File[] theModuleRoots;
-    private Targets theTargets;
+    private Targets theTargets = new Targets(this);
     private final String JAVA = "java";
     private final String JAVAC = "javac";
     private final String JIKES = "jikes";
@@ -150,7 +151,7 @@ public class MakeContext {
      **/
     private void forAllModules(String target) throws MakeException {
         File[] moduleRoots = getAllModuleRoots();
-        System.out.println("all." + target + ": " + moduleRoots.length + " modules");
+        System.out.println("all." + target + COLON + moduleRoots.length + " modules");
         for (int i = 0; i < moduleRoots.length; i++) {
             String moduleName = moduleRoots[i].getName();
             if (moduleName.equals("build")) continue;
@@ -168,7 +169,7 @@ public class MakeContext {
      **/
     public void makeTarget(String targetName) throws MakeException {
         if (debug) {
-            System.out.println("makeTarget: " + targetName);
+            System.out.println("makeTarget" + COLON + targetName);
         }
         int dotPos = targetName.indexOf('.');
         String newModuleName = null;
@@ -186,7 +187,26 @@ public class MakeContext {
             targetName = targetName.substring(dotPos + 1);
         }
         if (newModuleName != null && newModuleName.equals("all")) {
-            forAllModules(targetName);
+            try {
+                String allTargetName = "all_" + targetName;
+                Method targetMethod =
+                    Targets.class.getMethod(allTargetName, targetMethodParameterTypes);
+                if (debug) {
+                    System.out.println("Target" + COLON + allTargetName);
+                }
+                targetMethod.invoke(theTargets, targetMethodParameters);
+            } catch (NoSuchMethodException nsme) {
+                forAllModules(targetName);
+            } catch (InvocationTargetException ite) {
+                Throwable targetException = ite.getTargetException();
+                if (targetException instanceof MakeException) {
+                    throw (MakeException) targetException;
+                }
+                throw new MakeException(targetException.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new MakeException("makeTarget exception: " + e);
+            }
             return;
         }
         String key = newModuleName + "." + targetName;
@@ -197,7 +217,7 @@ public class MakeContext {
         String savedModuleName = null;
         if (newModuleName != null && !newModuleName.equals(theModuleName)) {
             if (debug) {
-                System.out.println("setModule: " + newModuleName);
+                System.out.println("setModule" + COLON + newModuleName);
             }
             savedModuleName = theModuleName;
             setModule(newModuleName);
@@ -206,7 +226,7 @@ public class MakeContext {
             Method targetMethod =
                 Targets.class.getMethod(targetName, targetMethodParameterTypes);
             if (debug) {
-                System.out.println("Target: " + targetName);
+                System.out.println("Target" + COLON + targetName);
             }
             targetMethod.invoke(theTargets, targetMethodParameters);
         } catch (NoSuchMethodException nsme) {
@@ -223,7 +243,7 @@ public class MakeContext {
         } finally {
             if (savedModuleName != null) {
                 if (debug) {
-                    System.out.println("restoreModule: " + savedModuleName);
+                    System.out.println("restoreModule" + COLON + savedModuleName);
                 }
                 setModule(savedModuleName);
             }
@@ -243,13 +263,12 @@ public class MakeContext {
             theClassesRoot = getClassesRoot(theModuleRoot);
             theGenCodeRoot = getGenCodeRoot(theModuleRoot);
             if (debug) {
-                System.out.println("Module Name: " + theModuleName);
-                System.out.println("Module Root: " + theModuleRoot);
-                System.out.println("Source Root: " + theSourceRoot);
-                System.out.println("Module Temp: " + theModuleTemp);
-                System.out.println("Classes Root: " + theClassesRoot);
+                System.out.println("Module Name" + COLON + theModuleName);
+                System.out.println("Module Root" + COLON + theModuleRoot);
+                System.out.println("Source Root" + COLON + theSourceRoot);
+                System.out.println("Module Temp" + COLON + theModuleTemp);
+                System.out.println("Classes Root" + COLON + theClassesRoot);
             }
-            theTargets = new Targets(this);
         } catch (IOException ioe) {
             throw new MakeException(ioe.toString());
         }
@@ -394,13 +413,20 @@ public class MakeContext {
      * Get prerequisite modules for a given module.
      **/
     public String[] getPrerequisites(String aModuleName) {
+        Set closure = new HashSet();
+        getPrerequisites(aModuleName, closure);
+        return (String[]) closure.toArray(new String[closure.size()]);
+    }
+
+    private void getPrerequisites(String aModuleName, Set closure) {
         StringTokenizer tokens =
             new StringTokenizer(theProperties.getProperty(PROP_PREFIX + aModuleName + ".prerequisites", ""));
-        String[] result = new String[tokens.countTokens()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = tokens.nextToken();
+        while (tokens.hasMoreTokens()) {
+            String token = tokens.nextToken();
+            if (closure.add(token)) {
+                getPrerequisites(token, closure);
+            }
         }
-        return result;
     }
 
     /**
@@ -610,11 +636,11 @@ public class MakeContext {
         for (int i = 0; i < files.length; i++) {
 	    if (files[i].delete()) {
 		if (debug) {
-		    System.out.println("Delete: " + files[i] + " ok");
+		    System.out.println("Delete" + COLON + files[i] + " ok");
 		}
 	    } else {
 		if (debug) {
-		    System.out.println("Delete: " + files[i] + " failed");
+		    System.out.println("Delete" + COLON + files[i] + " failed");
 		}
 	    }
 	}
@@ -758,7 +784,7 @@ public class MakeContext {
 		    if (tgt.exists()) {
 			System.out.println("Outdated "
                                            + tgt
-                                           + ": "
+                                           + COLON
                                            + new Date(tgt.lastModified())
                                            + "<"
                                            + new Date(src.lastModified()));
@@ -826,9 +852,8 @@ public class MakeContext {
         }
         String[] prerequisiteModules = getPrerequisites(getModuleName());
         for (int i = 0; i < prerequisiteModules.length; i++) {
-            File root =
-                getClassesRoot(getModuleRoot(prerequisiteModules[i]));
-            elements.add(root);
+            elements.add(getSourceRoot(getModuleRoot(prerequisiteModules[i])));
+            elements.add(getClassesRoot(getModuleRoot(prerequisiteModules[i])));
         }
         elements.addAll(Arrays.asList(findFiles(getProjectLib(), ".jar", false, false)));
         elements.addAll(Arrays.asList(get3rdPartyJars()));
@@ -847,7 +872,7 @@ public class MakeContext {
 	    throw new MakeException("mkdirs failed: " + dir);
 	}
 	if (debug) {
-	    System.out.println("mkdir: " + dir);
+	    System.out.println("mkdir" + COLON + dir);
 	}
     }
 

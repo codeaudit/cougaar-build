@@ -61,6 +61,11 @@ public class Targets {
     public void compile() throws MakeException {
         compileSome(theContext.getSourceRoot(), true);
     }
+    public void all_recompile() throws MakeException {
+        theContext.makeTarget("all.cleanGenCode");
+        theContext.makeTarget("all.cleanClassFiles");
+        theContext.makeTarget("all.compile");
+    }
     public void recompile() throws MakeException {
         theContext.makeTarget("cleanGenCode");
         theContext.makeTarget("cleanClassFiles");
@@ -93,7 +98,12 @@ public class Targets {
 				  ".class");
 	File[] needed = theContext.getOutdatedTargets(targets, sources);
         if (needed.length == 0) return;
-        System.out.println(theContext.getModuleName() + ".javac: Compiling " + needed.length + " files");
+        System.out.println(theContext.getModuleName()
+                           + ".javac"
+                           + MakeContext.COLON
+                           + "Compiling "
+                           + needed.length
+                           + " files");
 	theContext.javac(needed);
     }
     private void cleanDirectory(File dir, String suffix, boolean recurse, boolean includeDirectories)
@@ -104,7 +114,7 @@ public class Targets {
             System.out.println(theContext.getModuleName()
 			       + ".delete "
 			       + dir
-			       + ": "
+			       + MakeContext.COLON
 			       + targets.length
 			       + " files");
             theContext.delete(targets);
@@ -148,7 +158,7 @@ public class Targets {
                 File defFile = sources[i];
                 File genFile = theContext.reroot(defFile, theContext.getSourceRoot(), theContext.getGenCodeRoot(), ".gen");
                 if (!(genFile.exists() && genFile.lastModified() >= defFile.lastModified())) {
-                    System.out.println(theContext.getModuleName() + ".generateCode: " + defFile);
+                    System.out.println(theContext.getModuleName() + ".generateCode" + MakeContext.COLON + defFile);
                     theContext.generateCode(defFile, genFile);
                 }
             }
@@ -185,7 +195,7 @@ public class Targets {
             System.out.println(theContext.getModuleName() + ".jar is up to date");
             return;
         }
-        System.out.println(theContext.getModuleName() + ".jar: " + fileCount + " files");
+        System.out.println(theContext.getModuleName() + ".jar" + MakeContext.COLON + fileCount + " files");
         theContext.jar(jarFile, null, jarSets);
     }
 
@@ -211,7 +221,11 @@ public class Targets {
         long maxTime = Math.max(getMaxModificationTime(srcSources),
                                 getMaxModificationTime(genSources));
         if (maxTime > tagsFile.lastModified()) {
-            System.out.println(theContext.getModuleName() + ".tags: " + (srcSources.length + genSources.length) + " files");
+            System.out.println(theContext.getModuleName()
+                               + ".tags"
+                               + MakeContext.COLON
+                               + (srcSources.length + genSources.length)
+                               + " files");
             theContext.etags(tagsFile, srcSources, null, false);
             theContext.etags(tagsFile, genSources, null, true);
         } else {
