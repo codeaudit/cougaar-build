@@ -72,6 +72,7 @@ public class FixFood extends Fix {
         String pi1 = "plugin = org.cougaar.domain.mlm.plugin.organization.GLSExpanderPlugIn";
         String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
         String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
+        String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SubsistenceInventoryPlugIn";
         return new Fixer[] {
             new Fix.PlugIn("plugin = org.cougaar.domain.css."),
             new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
@@ -94,7 +95,7 @@ public class FixFood extends Fix {
             new Fix.DeleteParameter(pi2, "+ConsumableInventory"),
             new Fix.DeleteParameter(pi2, "+FuelsSourcingAllocator"),
             new Fix.DeleteParameter(pi2, "+PackagedPOLTransport"),
-            new Fix.DeleteParameter(pi2, "+ClassISubsistenceTransport"),
+            new Fix.DeleteParameter(pi4, "+ClassISubsistenceTransport"),
             new Fix.DeleteParameter(pi2, "+BulkPOLTransport"),
             new Fix.DeleteParameter(pi3, "BulkPOL"),
             new Fix.DeleteParameter(pi3, "PackagedPOL"),
