@@ -29,7 +29,6 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
 <target name="init">
 </target>
 
-
 <target name="dist" depends="init">
   <mkdir dir="${distdir}"/>
   <mkdir dir="${distdir}/lib"/>
@@ -82,6 +81,7 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
   <copy todir="${distdir}/bin">
     <fileset dir="${distdir}/glm/bin" />
   </copy>
+  <chmod file="${distdir}/bin/Node" perm="a+x"/>
 
   <mkdir dir="${distdir}/configs"/>
   <copy todir="${distdir}/configs">
