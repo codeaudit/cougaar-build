@@ -163,7 +163,7 @@ planserver.jars = xerces
 
 # glm
 glm.deps = core,planserver,toolkit,bootstrap,util
-glm.jars = xerces,fesi-111,jcchart451K,servlet
+glm.jars = xerces,fesi-111,jcchart,servlet
 glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
 
 # scalability testing kit
@@ -210,7 +210,7 @@ deltaeport.private=1
 
 # blackjack
 blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework,util
-blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
+blackjack.jars = xerces,jcchart,servlet,silk,jpython,ejb,jdbc2_0-stdext
 blackjack.repository = internal
 blackjack.private=1
 
@@ -230,7 +230,7 @@ tutorial.jars = xerces
 
 # csmart
 csmart.deps = core,server,glm,scalability,bootstrap,util
-csmart.jars = xerces,jcchart451K,grappa1_2,servlet
+csmart.jars = xerces,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3,log4j
 csmart.repository = internal
