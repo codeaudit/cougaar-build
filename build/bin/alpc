@@ -188,7 +188,7 @@ sub rundef {
     print STDERR "Running $class\n" if $verbose;
     $args = join " ", @words[1..$#words];
     chdir($dirpath);
-    $rc = mysystem("java $class $args");
+    $rc = mysystem("java $class $args $path");
   }
   close(DEF);
   return $rc;
