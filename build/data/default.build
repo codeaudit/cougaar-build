@@ -98,7 +98,8 @@ modules=\
 	manager,\
 	webserver, webtomcat,\
 	community, bol,\
-	albbn, alsra, stoplight
+	albbn, alsra, stoplight,\
+	servicediscovery
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
@@ -306,6 +307,15 @@ datagrabber.jars = xerces,chart,openmap,servlet
 stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 stoplight.deps = core,planning,glm,toolkit,planserver,util,albbn,aggagent,uiframework
 stoplight.jars = xerces,servlet
+
+#
+# ServiceDiscovery
+#
+# contract
+servicediscovery.deps = core, util, glm, planning
+servicediscovery.jars = xerces,jena,interprolog,wasp,uddiclient,soap,servlet,uddi4j
+servicediscovery.extras = activation,mail,icu4j
+#servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
 
 #
 # distribution settings
