@@ -57,6 +57,12 @@ public class Targets {
     public void compile() throws MakeException {
         compileSome(theContext.getSourceRoot(), true);
     }
+    public void recompile() throws MakeException {
+        theContext.makeTarget("cleanGenCode");
+        theContext.makeTarget("cleanClassFiles");
+        theContext.makeTarget("compile");
+    }
+
     private void compileSome(File srcDirectory, boolean recurse) throws MakeException {
 	theContext.makeTarget("projectLib");
 	theContext.makeTarget("moduleClasses");
@@ -106,19 +112,27 @@ public class Targets {
     }
         
     public void cleanDir() throws MakeException {
-        cleanClassFiles(false);
+        cleanDirClassFiles(false);
     }
 
     public void cleanAll() throws MakeException {
-        cleanClassFiles(true);
+        cleanDirClassFiles(true);
     }
 
-    private void cleanClassFiles(boolean recurse) throws MakeException {
+    private void cleanDirClassFiles(boolean recurse) throws MakeException {
         String[] tails =
             theContext.getTails(theContext.getSourceRoot(),
                                 new File[] {theContext.getCurrentDirectory()});
         File targetDir = new File(theContext.getClassesRoot(), tails[0]);
         cleanDirectory(targetDir, null, recurse, false);
+    }
+
+    public void cleanClassFiles() throws MakeException {
+        cleanDirectory(theContext.getClassesRoot(), null, true, true);
+    }
+
+    public void cleanGenCode() throws MakeException {
+        cleanDirectory(theContext.getGenCodeRoot(), null, true, true);
     }
 
     public void generateCode() throws MakeException {
