@@ -103,6 +103,9 @@ modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggage
 #core.compiler.pedantic = 1
 #core.compiler.deprecation = 1
 
+#Don't generate javadoc for the jdk patches
+javaiopatch.javadoc = 0
+
 # module deps
 #bogon
 server.deps = core
