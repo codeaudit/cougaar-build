@@ -1764,6 +1764,7 @@ sub find_errors {
 	  $mn = "($mn)";
 	  $tf++;
 	}
+	$wc = $wc - opt("$mn.warnings"); # only "unexpected" warnings
 	$report .= sprintf "%15s %10d %10d %10d\n", $mn, $ec, $wc, $rc ; # if ($ec || $wc);
 	$te = $te+$ec;
 	$tw = $tw+$wc;
