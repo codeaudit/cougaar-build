@@ -228,18 +228,17 @@ dbms.repository = dbms
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
 # from the "standard" locations to avoid duplication/confusion.
-core.runtime = doc
-base.runtime = bin,configs
+base.runtime = doc,bin,configs
 
 # for each module, copy these files directly to the dist directory.
 # This is really intended to be a one-shot for pointers to the 
 # release notes and installation instructions.
 # Leading directories disappear... e.g. so the following:
-#   core.dist = doc/README.txt
+#   base.dist = doc/README.txt
 # would copy README.txt from the doc subdirectory of core to 
 # the top level dist.  If the last file is actually a directory, then
 # the whole directory is copied.. e.g. :
-#   core.dist = doc
+#   base.dist = doc
 # would copy the whole doc subdirectory into to top level dist as a
 # new doc subdirectory.
 base.dist = README
