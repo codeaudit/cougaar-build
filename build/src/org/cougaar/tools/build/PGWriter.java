@@ -196,14 +196,14 @@ public class PGWriter extends WriterBase {
     /** return TimePhased specification of context, looking at local
      *  context, then global, then default (false).
      **/
-    boolean hasTimePhased(String context) {
+    boolean isTimePhased(String context) {
       return p.getValueFlag(context, PGParser.TIMEPHASED, true, false);
     }
 
     /** return Local specification of context, looking at local
      *  context, then global, then default (false).
      **/
-    boolean hasLocal(String context) {
+    boolean isLocal(String context) {
       return p.getValueFlag(context, PGParser.LOCAL, true, false);
     }
 
@@ -222,8 +222,8 @@ public class PGWriter extends WriterBase {
 
       { 
         String dq = (hasDQ(context)?", org.cougaar.domain.planning.ldm.dq.HasDataQuality":"");
-        String local = (hasLocal(context)?", LocalPG":"");
-        String timePhased = (hasTimePhased(context)?"TimePhased":"");
+        String local = (isLocal(context)?", LocalPG":"");
+        String timePhased = (isTimePhased(context)?"TimePhased":"");
 
         println(out,"public interface "+className+" extends "+timePhased+"PropertyGroup"+dq+local+" {");
       }
@@ -409,7 +409,7 @@ public class PGWriter extends WriterBase {
 
 
       // TimePhased getters
-      if (hasTimePhased(context)) {
+      if (isTimePhased(context)) {
         println(out,"  public long getStartTime() { throw new UndefinedValueException(); }");
         println(out,"  public long getEndTime() { throw new UndefinedValueException(); }");
       }
@@ -523,7 +523,7 @@ public class PGWriter extends WriterBase {
 
 
       // TimePhased getters
-      if (hasTimePhased(context)) {
+      if (isTimePhased(context)) {
         println(out,"  public long getStartTime() {\n" + 
                     "    waitForFinalize();\n"+
                     "    return _real.getStartTime();\n"+
@@ -602,7 +602,7 @@ public class PGWriter extends WriterBase {
       String newclassName = "New"+className;
 
       // figure out what we're supposed to extend
-      String timePhased = (hasTimePhased(context)?"TimePhased":"");
+      String timePhased = (isTimePhased(context)?"TimePhased":"");
       String dq = (hasDQ(context)?", org.cougaar.domain.planning.ldm.dq.HasDataQuality":"");
       String hasRelationships = (hasRelationships(context)?", HasRelationships":"");
       String extendstring = "extends "+className+ ", New"+timePhased+"PropertyGroup"+dq+hasRelationships;
@@ -800,7 +800,7 @@ public class PGWriter extends WriterBase {
       println(out,"  };");
       println(out);
       
-      boolean timephased = hasTimePhased(context);
+      boolean timephased = isTimePhased(context);
       if (timephased) {
         //handle time phased support separately because getters != setters
         println(out,NewTimeSpanText);
@@ -989,6 +989,13 @@ public class PGWriter extends WriterBase {
       // copy constructor
       println(out);
       println(out,"  public "+implclassName+"("+className+" original) {");
+      
+      if (timephased) {
+        // copy TimeSpan info
+        println(out, "    setTimeSpan(original.getStartTime(), original.getEndTime());");
+      }
+
+      // Copy slot info
       se = slotspecs.elements();
       while (se.hasMoreElements()) {
         String slotspec = ((String)se.nextElement()).trim();
@@ -1343,7 +1350,7 @@ public class PGWriter extends WriterBase {
       Vector slotspecs = getAllSlotSpecs(context);
 
       // Add in time phased slots
-      if (hasTimePhased(context)) {
+      if (isTimePhased(context)) {
         slotspecs.addElement("long start_time");
         slotspecs.addElement("long end_time");
       }
@@ -1508,6 +1515,7 @@ public class PGWriter extends WriterBase {
       while ( contexts.hasMoreElements()) {
         String context = (String) contexts.nextElement();
         if (! context.equals("global") && 
+            isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
           String newclassName = "New"+context;
           String icn = context+"Impl";
@@ -1516,7 +1524,7 @@ public class PGWriter extends WriterBase {
           println(out,"    return new "+icn+"();");
           println(out,"  }");
           
-          boolean timephased = hasTimePhased(context);
+          boolean timephased = isTimePhased(context);
           if (timephased) {
             println(out,"  // brand-new instance factory");
             println(out,"  public static PropertyGroupSchedule new"+context+
@@ -1551,11 +1559,12 @@ public class PGWriter extends WriterBase {
       while ( contexts.hasMoreElements()) {
         String context = (String) contexts.nextElement();
         if (! context.equals("global") && 
+            isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
           String newclassName = "New"+context;
           String pkg = findPackage(context);
           print(out,"    {\""+pkg+"."+context+"\", \"new"+context+"\"}");
-          if (hasTimePhased(context)) {
+          if (isTimePhased(context)) {
             print(out,",");
             println(out);
             print(out,"    {\""+pkg+".PropertyGroupSchedule\", \"new"+context+"Schedule\"}");
@@ -1816,7 +1825,8 @@ public class PGWriter extends WriterBase {
       Enumeration contexts = p.getContexts();
       while ( contexts.hasMoreElements()) {
         String context = (String) contexts.nextElement();
-        if (! context.equals("global") && 
+        if (!context.equals("global") &&
+            isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
           println(out,"  /** Search additional properties for a "+
                       context+
@@ -1824,7 +1834,7 @@ public class PGWriter extends WriterBase {
           println(out,"   * @return instance of "+context+" or null.");
           println(out,"   **/");
           
-          boolean timephased = hasTimePhased(context);
+          boolean timephased = isTimePhased(context);
           String timeVar = "";
 
           if (timephased) {
@@ -1972,7 +1982,8 @@ public class PGWriter extends WriterBase {
       while ( contexts.hasMoreElements()) {
         String context = (String) contexts.nextElement();
         if (! context.equals("global") &&
-            (p.get(context, "abstract") == null)) {
+            (p.get(context, "abstract") == null) &&
+            (isPrimary(context))) {
           writePropertyGroup(context);
         }
       }
@@ -1981,6 +1992,11 @@ public class PGWriter extends WriterBase {
       writeAsset();
       
       writeIndex();
+    }
+
+    protected boolean isPrimary(String context) {
+      String source = p.get(context, PGParser.PG_SOURCE);
+      return (source != null) && (source.equals(PGParser.PRIMARY));
     }
   }
 

@@ -30,9 +30,14 @@ class PGParser {
   public static final String TIMEPHASED = "timephased";
   public static final String HAS_RELATIONSHIPS = "hasrelationships";
   public static final String LOCAL = "local";
-  
 
-  private boolean isVerbose = false;
+  public static final String PG_SOURCE = "source";
+  public static final String PRIMARY = "primary";
+  public static final String INCLUDED = "included";
+
+  //private boolean isVerbose = false;
+  private boolean isVerbose = true;
+  
   private InputStream inputStream = null;
   
 
@@ -82,6 +87,10 @@ class PGParser {
   }
 
   public void parse(InputStream s) throws IOException {
+    parse(s, true);
+  }
+
+  public void parse(InputStream s, boolean top) throws IOException {
     InputStreamReader isr = new InputStreamReader(s);
     BufferedReader br = new BufferedReader(isr);
     String context = "global";
@@ -98,6 +107,18 @@ class PGParser {
           if (more == null) throw new IOException("Unexpected EOF");
           line = line.substring(0,line.length()-1)+more.trim();
         }
+        if (line.startsWith("includedefs")) {
+          i = line.indexOf("=");
+          if (i > 0) {
+            String fileName = line.substring(i + 1, line.length()).trim();
+            InputStream stream = getClass().getClassLoader().getResourceAsStream(fileName);
+            parse(stream, false);
+            stream.close();
+          } else {
+            debug("Bad line \""+line+"\"");
+          }
+        }
+
         if (line.startsWith("[") && line.endsWith("]")) { // new context
           context = line.substring(1,line.length()-1);
           debug("Parsing PropertyGroup \""+context+"\"");
@@ -105,11 +126,20 @@ class PGParser {
             System.err.println("Multiple definition of PropertyGroup "+context);
           }
           getContext(context);  // setup the new context
+          if (top) {
+            put(context, PG_SOURCE, PRIMARY);
+          } else {
+            put(context, PG_SOURCE, INCLUDED);
+          }
         }
         else if ( (i = line.indexOf("=")) >= 0) { // key/value pair
-          String key = line.substring(0, i);
-          String value = line.substring(i+1, line.length());
-          put(context, key, value);
+          //Don't include global values from included files.
+          if (top || !(context.equals("global"))) {
+            String key = line.substring(0, i);
+            String value = line.substring(i+1, line.length());
+
+            put(context, key, value);
+          }
         } 
         else {
           debug("Bad line \""+line+"\"");

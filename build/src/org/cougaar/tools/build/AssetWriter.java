@@ -484,7 +484,7 @@ public class AssetWriter extends WriterBase {
               println(out,"    if ("+vname+"!=null) _thing.set"+sname+"("+vv+");");
             } else {
               vname = vname+"Schedule";
-              println(out,"    if (_thing."+vname+"!=null) _thing."+vname+".lockPGs();");
+              println(out,"    if ("+vname+"!=null) _thing.set"+sname+"Schedule((PropertyGroupSchedule) "+vname+".clone());");
             }
           }
           println(out,"    return _thing;\n"+
@@ -660,7 +660,7 @@ public class AssetWriter extends WriterBase {
               arg = "arg_"+name+"Schedule";
               // non-exact slots have setters which just take PropertyGroup
               println(out,"  public void set"+sname+"Schedule(PropertyGroupSchedule "+arg+") {");
-              println(out,"    if (!("+arg+".getPGClass() != "+stype+".class))\n"+
+              println(out,"    if (!("+stype+".class.equals("+arg+".getPGClass())))\n"+
                           "      throw new IllegalArgumentException(\"set"+
                           sname+"Schedule requires a PropertyGroupSchedule of"+sname+"s.\");");
               println(out);
@@ -737,6 +737,24 @@ public class AssetWriter extends WriterBase {
             }
           }
           println(out,"      super.setLocalPG(c,pg);");
+          println(out,"  }");
+          println(out); 
+
+          println(out,"  public void setLocalPGSchedule(PropertyGroupSchedule pgSchedule) {");
+          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
+            SlotD sd = (SlotD) sls.nextElement();
+            if ((!sd.getExact()) && (sd.getTimePhased())) {
+              String sname = sd.getName();
+              // for time phased, want snameSchedule
+              String var = "my"+sname+"Schedule";
+              println(out,"    if ("+sname+".class.equals(pgSchedule.getPGClass())) {");
+              println(out,"      "+var+"=pgSchedule;");
+              println(out,"    } else");
+            }
+          }
+
+            
+          println(out,"      super.setLocalPGSchedule(pgSchedule);");
           println(out,"  }");
           println(out); 
 
@@ -845,7 +863,8 @@ public class AssetWriter extends WriterBase {
             
             if (sd.getTimePhased()) {
               println(out,"      properties["+i+"] = new PropertyDescriptor(\""+
-                          sname+"Schedule\", PropertyGroupSchedule.class, "+
+                          sname+"Schedule\", "+
+                          name+".class, "+
                           "\"get"+sname+"Schedule\", "+
                           "null);");
             } else {
@@ -971,6 +990,7 @@ public class AssetWriter extends WriterBase {
           }
           stream = new FileInputStream(pf);
         } else {
+          System.out.println("using class loader: " + filename);
           debug("Using ClassLoader to read \""+filename+"\".");
           stream = getClass().getClassLoader().getResourceAsStream(filename);
         }
