@@ -543,8 +543,7 @@ sub checkout_module {
   my $cvsmod = opt("$mod.module","$mod");
   my $modpointP = $pointP;
 
-  my $tag = opt("$mod.tag");
-  $tag = $rtag if (!$tag);
+  my $tag = resolveTag($mod);
   if ( $tag =~ /^\@(.*)/) {
     $tag = $1;
     $modpointP = true;
@@ -1943,9 +1942,9 @@ sub tag {
 
   foreach $mod (@mods) {
     my $rep = getCVSROOT($mod);
-    my $tag = opt("$mod.tag");
-    $tag = $rtag if (!$tag);
+    my $tag = resolveTag($mod);
     my $cvsmod = opt("$mod.module","$mod");
+    my $modnewtag = resolveTag($mod, $newtag);
 
     my $arg = "";
     $arg = "-Q" if ($verbose<=1);
@@ -1958,11 +1957,11 @@ sub tag {
       chdir("$tmpdir");
       mysystem("cvs $arg -d '$rep' co $rarg -D '$rdate' -d $mod $cvsmod");
       chdir("$tmpdir/$mod");
-      mysystem("cvs $arg -d '$rep' tag $barg $Farg $newtag .");
+      mysystem("cvs $arg -d '$rep' tag $barg $Farg $modnewtag .");
       chdir("$tmpdir");
       mysystem("rm -rf $tmpdir/$mod");
     } else {
-      mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $cvsmod");
+      mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $modnewtag $cvsmod");
     }
   }
   if ($hairyP) {
@@ -2409,4 +2408,38 @@ sub joinopt {
     push @prod, "$prefix.$dep";
   }
   return join(",", @prod);
+}
+
+# figure out what tag to use for a module.
+# expands "FOO_*" to "FOO_$rtag".
+# $mod = the module under discussion
+# $newbase = basic tag name being created built/made.  If not specified, defaults to $rtag
+sub resolveTag {
+  my ($mod, $newbase)=@_;
+
+  my $base;			# base is how we'll expand "*" patterns
+  if (defined $newbase) {
+    $base = $newbase;
+  } else {
+    $base = $rtag;
+    my $modtrunk = gopt($mod,"forcetag");
+    if ($modtrunk) {
+      return $modtrunk;
+    }
+  }
+
+  my $modtag = opt("$mod.tag");	# modtag is the per-module tag
+
+  my $tag = $modtag;
+
+  if ($tag) {
+    # replace a "*" character with the base (if it is there)
+    $tag =~ s/\*/$base/;
+    if ($newbase && ($tag eq $modtag)) {
+      $tag = $newbase;
+    }
+    return $tag;
+  } else {
+    return $base;
+  }
 }
