@@ -695,8 +695,9 @@ sub build_module_main {
       {
 	my $myreg = &compute_path($mypath, "regress", $pext);
 	if (-d $myreg) {
-	  print "Compiling $jname regression tests:\n" if $verbose;
+	  print "Starting unit testing of $jname\n";
 	  &build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+	  print "Finished unit testing of $jname\n";
 	}
       }
 
@@ -1595,20 +1596,24 @@ sub find_errors {
 
   open(LOG, "<$errout");
   open(ERR, ">$distdir/errors.out");
-  my ($report)=sprintf "%15s %7s %7s\n", "module", "errors", "warnings";
+  my ($report)=sprintf "%15s %10s %10s %10s\n", "module", "errors", "warnings", "regress";
   my ($te)=0;			# total errors
   my ($tw)=0;			# total warnings
+  my ($tr)=0;			# total regression failures
   my ($mn);			# which module are we parsing?
   my ($ec) = 0;			# current module errors detected
   my ($wc) = 0;			# current module warnings detected
+  my ($rc) = 0;			# current module regression failures
   my ($l) = 0;			# which line are we on?
   my ($cl) = -1;		# up to which line should we report on?
   my ($tf) = 0;
+  my ($mode) = "?";		# mode = "?","compile", "unit"
   while (<LOG>) {
     chomp;
     if (/Building module (\w*)/) {
       $mn = $1;
-      $ec = 0; $wc = 0;
+      $ec = 0; $wc = 0; $rc=0;
+      $mode = "compile";
     }
     if (/Done building (\w+)/) {
       if ($mn eq $1) {
@@ -1616,11 +1621,20 @@ sub find_errors {
 	  $mn = "($mn)";
 	  $tf++;
 	}
-	$report .= sprintf "%15s %7d %7d\n", $mn, $ec, $wc ; # if ($ec || $wc);
+	$report .= sprintf "%15s %10d %10d %10d\n", $mn, $ec, $wc, $rc ; # if ($ec || $wc);
 	$te = $te+$ec;
 	$tw = $tw+$wc;
+	$tr = $tr+$rc;
 	$mn = "";
+	$mode= "?";
       }
+    }
+
+    if (/Starting unit testing of (\w*)/) {
+      $mode = "unit";
+    }
+    if (/Finished unit testing of (\w*)/) {
+      $mode = "compile";
     }
 
     my $nl = 0;
@@ -1632,16 +1646,28 @@ sub find_errors {
 
     # search for jikes warnings
     if (/Issued (\d+) semantic warning/) {
-      $wc += $1;		# incr warning count
+      if ($mode eq "compile") {
+	$wc += $1;		# incr warning count
+      } else {
+	$rc += $1;
+      }
       $nl = max($nl,(5 * $1));	# 5 lines per warning
     }
     # search for jikes errors
     if (/Found (\d+) semantic error/) {
-      $ec += $1;		# incr warning count
+      if ($mode eq "compile") {
+	$ec += $1;		# incr warning count
+      } else {
+	$rc += $1;
+      }
       $nl = max($nl,(5 * $1));	# 5 lines per warning
     }
     if (/Found (\d+) syntax error/) {
-      $ec += $1;		# incr warning count
+      if ($mode eq "compile") {
+	$ec += $1;		# incr warning count
+      } else {
+	$rc += $1;
+      }
       $nl = max($nl,(8 * $1));	# 8 lines per warning
     }
 
@@ -1650,7 +1676,11 @@ sub find_errors {
       if (/warning/) {
 	$wc++;
       } else {
-	$ec++;
+	if ($mode eq "compile") {
+	  $ec++;
+	} else {
+	  $rc++;
+	}
       }
       $nl = max($nl,5);
     }
@@ -1666,19 +1696,27 @@ sub find_errors {
 
     # catch junit errors
     if (/^There was (\d+) error/) {
-      $ec++;
+      $rc++;
       $nl = max($nl,4);
     }
 
     # search for build errors/warnings
     if (/^Warning:/) {
-      $wc++;
+      if ($mode eq "compile") {
+	$wc++;
+      } else {
+	$rc++;
+      }
       $nl = max($nl,1);
     }
 
     # search for build errors/warnings
     if (/^Error:/) {
-      $ec++;
+      if ($mode eq "compile") {
+	$ec++;
+      } else {
+	$rc++;
+      }
       $nl = max($nl,1);
     }
 
@@ -1692,9 +1730,9 @@ sub find_errors {
   }
   close(LOG);
 
-  $report .= sprintf "%15s %7d %7d\n", "total", $te, $tw;
+  $report .= sprintf "%15s %10d %10d %10d\n", "total", $te, $tw, $tr;
   if ($tf>0) {
-    $report .= sprintf "%15s %7d\n", "Failed", $tf;
+    $report .= sprintf "%15s %10d\n", "Failed", $tf;
   }
   print ERR $report if ($te>0 || $tw>0);
   print STDERR $report;
