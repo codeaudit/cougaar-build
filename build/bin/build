@@ -2003,6 +2003,8 @@ sub compile_dir {
     my @rmicfl;
     if ($cok) {
       my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
+      my(@morefiles)=sysPipe("find . -name '*.java' -exec grep -l 'RMIC GENERATION REQUIRED' {} \\;");
+      push @rmicfiles, @morefiles;
       if ($#rmicfiles>=0) {
 	foreach $rf (@rmicfiles) {
 	  chomp $rf;
