@@ -49,10 +49,12 @@ public class Make {
 	List targets = new ArrayList();
 	String home = System.getProperty(USER_HOME);
 	File dir = new File(System.getProperty("user.dir"));
+        File projectProperties = null;
 	while (dir != null) {
 	    File propFile = new File(dir, "make.properties");
 	    if (propFile.exists()) {
 		addProperties(propFile, true);
+                projectProperties = propFile;
 		break;
 	    }
 	    dir = dir.getParentFile();
@@ -94,6 +96,9 @@ public class Make {
 	    }
 	    targets.add(arg);
 	}
+        if (!properties.contains(MakeContext.PROP_BASEDIR)) {
+            addProperty(MakeContext.PROP_BASEDIR, projectProperties.getParent());
+        }
 	try {
 	    MakeContext context = new MakeContext(properties);
             if (targets.size() == 0) {
