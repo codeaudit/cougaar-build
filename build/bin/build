@@ -116,6 +116,9 @@ For signing of jar files to work, the following parameters should be set:
   default.keystore.alias (defaults to privileged)
 Per-module overrides are allowed (e.g. instead of default, list the module name).
 Third-party jars are signed with the "sys" module information.
+Keystore information (especially passwords) should be passed as "-o" options,
+in a non-published build driver file or as values in HOME/.cougaar-build-system-specific
+file.
 
 Examples:
 Standard verbose build of the HEAD:
