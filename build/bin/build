@@ -564,10 +564,10 @@ sub checkout_module {
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $cvsmod");
   } else {
-    if ($opt_D) {
-      $rarg .= " -D '$opt_D'";
-    } else { 
-      if (!$modpointP) {
+    if (!$modpointP) {
+      if ($opt_D) {
+	$rarg .= " -D '$opt_D'";
+      } else { 
 	$rarg .= " -D '$rdate'"
       }
     }
