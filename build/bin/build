@@ -73,7 +73,12 @@ sub usage {
 
 %opts;
 parse_args();
+print "parsing $opt_file\n";
 parse_config($opt_file);
+if ( -e "$ENV{HOME}/.cougaar-build-system-specific" )  {
+  print "parsing $ENV{HOME}/.cougaar-build-system-specific\n";
+  parse_config("$ENV{HOME}/.cougaar-build-system-specific");
+}
 
 #$javac_command = "jikes -g";
 $javac_command = "javac -J-Xmx128m -J-Xms128m -g";
@@ -917,6 +922,9 @@ sub parseopt {
   if (/\s*(\S+)\s*=\s*(.+)\s*$/) {
     my $key = $1;
     my $val = $2;
+    if ( exists $opts{$key} ) {
+       print "build::parseopt() warning: Overwriting existing Key:Value pair: $key:$opts{$key} with $key:$val\n";
+    }
     $opts{$key}=$val;
     return 1;
   } else {
