@@ -11,6 +11,13 @@ build.root=/tmp/V7_2
 
 modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine
 
+# modules which are public - that is, fully released
+modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
+	glm,scalability,server,aggagent,uiframework,base,tutorial
+
+# modules which contribute to unified api (javadoc)
+modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
+
 ##
 ## module-specific flags
 ##
@@ -21,14 +28,6 @@ delta.repository = internal
 blackjack.repository = internal
 vishnu.repository = internal
 Marine.repository = internal
-
-# don't supply sources/docs/etc for some modules
-tops.internal = true
-delta.internal = true
-blackjack.internal = true
-vishnu.internal = true
-Marine.internal = true
-ULLS.internal = true
 
 # module deps
 contract.deps = core
