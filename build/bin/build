@@ -1139,9 +1139,11 @@ sub javadoc {
 
   my $javadoc_arguments = gopt($mod, "javadoc.arguments");
   $lineargs .= " $javadoc_arguments" if $javadoc_arguments;
+  my ($time0) = time;
   mysystem("$javadoc_command $lineargs \@$argf");
-
-  #unlink($argf);
+  my ($time1) = time;
+  addtime("javadoc",$time1-$time0);
+  unlink($argf);
   undef $ENV{CLASSPATH};
 }
 
@@ -1739,7 +1741,7 @@ sub javac {
   undef $ENV{CLASSPATH};
   undef $ENV{JIKESPATH};
   my ($time1) = time;
-  addtime("javac",$time1-$time0);
+  addtime("compile",$time1-$time0);
 }
 sub java {
   my ($cp, $args) = @_;
@@ -1751,7 +1753,7 @@ sub java {
   mysystem("$j $args");
   undef $ENV{CLASSPATH};
   my ($time1) = time;
-  addtime("java",$time1-$time0);
+  addtime("codegen",$time1-$time0);
 }
 
 sub rmic {
