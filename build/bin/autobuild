@@ -301,7 +301,7 @@ sub cleanRemote {
   my $lfail;
 
   # scan, oldest first
-  foreach $dir (reverse @alldirs) {
+  foreach $dir (@alldirs) {
     chomp $dir;
     my $status = checkRemoteStatus($dir);
     $status{$dir} = $status;
@@ -313,7 +313,7 @@ sub cleanRemote {
   if ($lsucc || $lfail) {
     my $sc = 0;
     my $fc = 0;
-    foreach $dir (@alldirs) {
+    foreach $dir (reverse @alldirs) {
       chomp $dir;
       my $status = $status{$dir};
       if ($status eq "SUCCEEDED") {
@@ -324,7 +324,7 @@ sub cleanRemote {
 	  ssh("$host cd $auto \\; rm -f latest_success \\; ln -s $dir latest_success");
 	}
 	if ($sc > 2) {
-	  rmm($dir);
+	  rrm($dir);
 	}
       }
       if ($status eq "FAILED") {
@@ -333,7 +333,7 @@ sub cleanRemote {
 	  ssh("$host cd $auto \\; rm -f latest_failure \\; ln -s $dir latest_failure");
 	}
 	if ($fc > $keep) {
-	  rmm($dir);
+	  rrm($dir);
 	}
       }
     }
