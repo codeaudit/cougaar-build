@@ -126,7 +126,7 @@ public class VersionWriter extends WriterBase {
         println(out, "    System.out.println(\"repository time="+
             ((rtime > 0) ?
              ("\"+new java.util.Date(repositoryTime));") :
-             ("\""+rdate+"\");")));
+             ("\\\""+rdate+"\\\");")));
       }
       println(out,"  }\n"+
                   "}");
