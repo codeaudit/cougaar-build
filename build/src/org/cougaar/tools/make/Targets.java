@@ -82,18 +82,35 @@ public class Targets {
         System.out.println(theContext.getModuleName() + ".javac: Compiling " + needed.length + " files");
 	theContext.javac(needed);
     }
-    private void cleanRoot(File root, String suffix, boolean recurse) throws MakeException {
+    private void cleanSome(File root, String suffix, boolean recurse) throws MakeException {
         if (root.isDirectory()) {
             File[] targets = theContext.findFiles(root, suffix, recurse);
             System.out.println(theContext.getModuleName() + ".delete " + root + ": " + targets.length + " files");
             theContext.delete(targets);
         }
     }
+
     public void clean() throws MakeException {
-        cleanRoot(theContext.getClassesRoot(), null, true);
-        cleanRoot(theContext.getGenCodeRoot(), null, true);
+        cleanSome(theContext.getClassesRoot(), null, true);
+        cleanSome(theContext.getGenCodeRoot(), null, true);
     }
         
+    public void cleanDir() throws MakeException {
+        cleanClassFiles(false);
+    }
+
+    public void cleanAll() throws MakeException {
+        cleanClassFiles(true);
+    }
+
+    private void cleanClassFiles(boolean recurse) throws MakeException {
+        String[] tails =
+            theContext.getTails(theContext.getSourceRoot(),
+                                new File[] {theContext.getCurrentDirectory()});
+        File targetDir = new File(theContext.getClassesRoot(), tails[0]);
+        cleanSome(targetDir, null, recurse);
+    }
+
     public void generateCode() throws MakeException {
         compilePrerequisites();
 	File[] sources = theContext.findFiles(theContext.getSourceRoot(), ".def", true);
@@ -151,7 +168,7 @@ public class Targets {
             }
             modules[i] = t;
         }
-        theContext.etags(tagsFile, modules, false);
+        theContext.etags(tagsFile, null, modules, false);
     }
 
     public void tags() throws MakeException {
@@ -163,8 +180,8 @@ public class Targets {
                                 getMaxModificationTime(genSources));
         if (maxTime > tagsFile.lastModified()) {
             System.out.println(theContext.getModuleName() + ".tags: " + (srcSources.length + genSources.length) + " files");
-            theContext.etags(tagsFile, srcSources, false);
-            theContext.etags(tagsFile, genSources, true);
+            theContext.etags(tagsFile, srcSources, null, false);
+            theContext.etags(tagsFile, genSources, null, true);
         } else {
             System.out.println(theContext.getModuleName() + ".tags is up to date");
         }

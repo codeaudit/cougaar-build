@@ -573,39 +573,53 @@ public class MakeContext {
 	}
     }
 
-    public void etags(File tagsFile, File[] sources, boolean append) throws MakeException {
+    public void etags(File tagsFile, File[] sources, File[] tagFiles, boolean append) throws MakeException {
         int offset = 0;
         MakeException e = null;
-        while (offset < sources.length) {
-            int nfiles = Math.min(sources.length - offset, 20);
-            String[] command;
-            if (append || offset > 0) {
-                command = new String[] {
-                    ETAGS,
-                    "-o",
-                    tagsFile.getPath(),
-                    "-a"
-                };
-            } else {
-                command = new String[] {
-                    ETAGS,
-                    "-o",
-                    tagsFile.getPath()
-                };
-            }
-            List args = new ArrayList();
-            for (int i = 0; i < nfiles; i++) {
-                if (sources[i + offset].isDirectory()) {
-                    args.add("-i");
+        String[] command1 = new String[] {
+            ETAGS,
+            "-o",
+            tagsFile.getPath()
+        };
+        String[] command2 = new String[] {
+            ETAGS,
+            "-o",
+            tagsFile.getPath(),
+            "-a"
+        };
+        if (sources != null) {
+            while (offset < sources.length) {
+                int nfiles = Math.min(sources.length - offset, 20);
+                String[] command;
+                if (append) {
+                    command = command1;
+                } else {
+                    command = command2;
                 }
-                args.add(sources[i + offset]);
+                List args = new ArrayList();
+                for (int i = 0; i < nfiles; i++) {
+                    args.add(sources[i + offset]);
+                }
+                try {
+                    runExecutable(command, args.toArray(), 0, args.size());
+                } catch (MakeException me) {
+                    e = me;
+                }
+                offset += nfiles;
+                append = true;
+            }
+        }
+        if (tagFiles != null) {
+            String[] tagArgs = new String[tagFiles.length * 2];
+            for (int i = 0; i < tagFiles.length; i++) {
+                tagArgs[2*i+0] = "-i";
+                tagArgs[2*i+1] = tagFiles[i].getPath();
             }
             try {
-                runExecutable(command, args.toArray(), 0, args.size());
+                runExecutable(append ? command2 : command1, tagArgs, 0, tagArgs.length);
             } catch (MakeException me) {
                 e = me;
             }
-            offset += nfiles;
         }
         if (e != null) throw e;
     }
