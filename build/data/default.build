@@ -135,6 +135,7 @@ bootstrap.jars = xerces, log4j
 bootstrap.keystore.alias = bootstrapper
 
 # util
+util.deps = bootstrap
 util.jars = xerces, log4j, servlet
 
 # core
