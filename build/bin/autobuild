@@ -42,28 +42,26 @@ $SIG{INT} = 'sighandler';
 $SIG{QUIT} = 'sighandler';
 
 # bootstrap the build process
-$tmpdir = "/tmp/hourly-build.$$";
+$tmpdir = "/tmp/auto-build.$$";
 mysystem("rm -rf $tmpdir");
 mkd($tmpdir);
 mysystem("cd $tmpdir ; cvs -Q export -D now build/bin build/data");
 $basedir = "$tmpdir/build";
 
 # this is where build will build into
-$builddir = "/tmp/hourly";
+$builddir = "/tmp/auto";
 
 
 $buildscript = "$basedir/bin/build";
 $builddata = "$basedir/data/default.build";
 $keep = 4;
 
-
-
 # clean up any waxy yellow buildup
 mysystem("rm -rf $builddir");
 mkdir($builddir);
 
 # start a fresh build
-mysystem("$buildscript -v -obuild.root=$builddir $builddata >/tmp/hourly.out");
+mysystem("$buildscript -v -obuild.root=$builddir $builddata >/tmp/auto.out");
 
 # what did we build?
 opendir D, $builddir;
@@ -72,12 +70,12 @@ closedir D;
 $built = $allfiles[0];
 
 # copy whatever is there to eiger
-mysystem("ssh eiger mkdir -p hourly/$built");
-mysystem("scp $builddir/$built/dist/* eiger:hourly/$built");
-mysystem("ssh eiger cd hourly \\; rm -f latest \\; ln -s $built latest");
+mysystem("ssh eiger mkdir -p auto/$built");
+mysystem("scp $builddir/$built/dist/* eiger:auto/$built");
+mysystem("ssh eiger cd auto \\; rm -f latest \\; ln -s $built latest");
 
 # leave only last n builds
-open(B, "ssh eiger ls hourly|");
+open(B, "ssh eiger ls auto|");
 @alldirs = <B>;
 close(B);
 
@@ -92,7 +90,7 @@ while ($i < $keep && ($_= pop @alldirs)) {
 
 while ( ($_ = pop @alldirs)) {
   chomp;
-  mysystem("ssh eiger rm -rf hourly/$_");
+  mysystem("ssh eiger rm -rf auto/$_");
 }
 
 exit 0;
