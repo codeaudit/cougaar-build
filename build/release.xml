@@ -6,12 +6,25 @@ parameters:
 Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
 
 -->
-<property name="module.xml" value="${basedir}/build/module.xml"/>
 
-<property name="project.classlib" value="${basedir}/dist/lib"/>
+<!--
+	The following are cougaar ANT extensions which require that antex
+	be compiled and installed into the ant lib directory as cougaar.jar
+-->
+<taskdef name="pathproperty" classname="org.cougaar.tools.ant.PathProperty"/>
+<taskdef name="trycall" classname="org.cougaar.tools.ant.TryCall"/>
+<taskdef name="foreach" classname="org.cougaar.tools.ant.Foreach"/>
+
+<!-- set global properties from user's .ant.properties file -->
+<property file="${user.home}/.ant.properties"/>
+
+<property name="module.xml" value="${basedir}/build/buildm.xml"/>
 
 <property name="tmpdir" value="${basedir}/tmpdir"/>
-<property name="distdir" value="${basedir}/dist"/>
+<property name="distdir" value="${tmpdir}/dist"/>
+
+<property name="project.classlib" value="${distdir}/lib"/>
+
 
 <target name="init">
 </target>
@@ -36,23 +49,27 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
   </antcall>
 
   <antcall target="dist.module">
-    <param name="module" value="utility"/>
+    <param name="module" value="toolkit"/>
   </antcall>
-
   <antcall target="dist.module">
-    <param name="module" value="alpine"/>
+    <param name="module" value="planserver"/>
   </antcall>
-
   <antcall target="dist.module">
-    <param name="module" value="tools"/>
+    <param name="module" value="glm"/>
   </antcall>
-
   <antcall target="dist.module">
-    <param name="module" value="tutorial"/>
+    <param name="module" value="contract"/>
+  </antcall>
+  <antcall target="dist.module">
+    <param name="module" value="scalability"/>
   </antcall>
 
   <antcall target="dist.module">
     <param name="module" value="server"/>
+  </antcall>
+
+  <antcall target="dist.module">
+    <param name="module" value="tutorial"/>
   </antcall>
 
   <antcall target="dist.module">
@@ -63,12 +80,12 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
 
   <mkdir dir="${distdir}/bin"/>
   <copy todir="${distdir}/bin">
-    <fileset dir="${distdir}/alpine/bin" />
+    <fileset dir="${distdir}/glm/bin" />
   </copy>
 
   <mkdir dir="${distdir}/configs"/>
   <copy todir="${distdir}/configs">
-    <fileset dir="${distdir}/alpine/configs" />
+    <fileset dir="${distdir}/glm/configs" />
   </copy>
 
 </target>
@@ -81,13 +98,13 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
   </ant>
   
   <copy todir="${distdir}">
-    <fileset dir="${basedir}/${module}/dist"/>
+    <fileset dir="${basedir}/${module}/tmpdir/dist"/>
   </copy>
 </target>
 
 <target name="clean">
   <!-- Delete the ${tmpdir} and ${dist} directory trees -->
-  <delete dir="${distdir}" />
+  <delete dir="${tmpdir}" />
 </target>
 
 
