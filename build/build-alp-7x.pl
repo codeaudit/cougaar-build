@@ -466,6 +466,8 @@ sub building_plugin()
          ($BUILD_PREFIX eq 'scalability')   || 
          ($BUILD_PREFIX eq 'server')        || 
          ($BUILD_PREFIX eq 'tutorial')      || 
+         ($BUILD_PREFIX eq 'aggagent')      || 
+         ($BUILD_PREFIX eq 'uiframework')   || 
          ($BUILD_PREFIX eq 'configgen') 
        ) {
 	return 'FALSE';
