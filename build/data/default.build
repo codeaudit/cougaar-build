@@ -228,7 +228,7 @@ quo.jars = quoSumo, jacorb, xerces
 webserver.deps = core
 webserver.jars = servlet
 webtomcat.deps = webserver
-webtomcat.jars = servlet, tomcat_33
+webtomcat.jars = servlet, tomcat_40
 
 # dbms module
 dbms.repository = dbms
