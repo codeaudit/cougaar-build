@@ -470,7 +470,7 @@ public class MeasureWriter extends WriterBase {
         println(out,"  public static final int "+unitName+" = "+i+";");
         i++;
       }
-      println(out,"  static final int MAXUNIT = "+(i-1)+";");
+      println(out,"  public static final int MAXUNIT = "+(i-1)+";");
       println(out);
       println(out,"  // Index Typed factory methods");
       println(out,"  public static final "+className+" new"+className+"(double v, int unit) {");
