@@ -93,7 +93,7 @@ modules=\
 	server,\
 	manager,\
 	webserver, webtomcat,\
-	bol, mic
+	mic
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
