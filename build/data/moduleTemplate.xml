@@ -9,7 +9,7 @@
  -->
 
 <!-- %{BEGIN} Everything after this line will be included in the generated module build.xml files -->
-<!-- Autobuild-generated ANT script for building the Cougaar module "%{Name}". -->
+<!-- Autobuild-generated ANT v1.5 script for building the Cougaar module "%{Name}". -->
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
 <!-- autobuild might execute this with something like:
@@ -409,20 +409,26 @@
       </copy>
     </target>
 
-    <target name="jar.build" depends="compile" if="has.src">
+    <!-- FIXME: Should the if be has.build? -->
+    <!-- Build the jar only for use in runtime zip -->
+    <!-- Compare to the dist-module target -->
+    <target name="jar.build" depends="compile, clean-tests, clean-examples" if="has.src">
       <!-- create the jarfile -->
       <jar jarfile="${module.jar}" basedir="${module.classes}" />
     </target>
       
 
+    <!-- Do the basic installation - called by base product Ant script -->
     <target name="install" depends="install.jar, install.lib">
     </target>
 
+    <!-- Install the Jar file in the target lib directory -->
     <target name="install.jar" depends="jar.build" if="has.build">
       <mkdir dir="${target.lib}"/>
       <copy file="${module.jar}" todir="${target.lib}"/>
     </target>
 
+    <!-- If there are any extra included jar files, install them -->
     <target name="install.lib" if="has.lib">
       <mkdir dir="${target.sys}"/>
       <copy  todir="${target.sys}">
