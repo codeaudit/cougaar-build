@@ -5,27 +5,8 @@
 # any copyright notices it finds which conform to a standard format:
 
 # <copyright>
-#  
 #  Copyright 1969-2004 BBNT Solutions, LLC
-#  under sponsorship of the Defense Advanced Research Projects
-#  Agency (DARPA).
-# 
-#  You can redistribute this software and/or modify it under the
-#  terms of the Cougaar Open Source License as published on the
-#  Cougaar Open Source Website (www.cougaar.org).
-# 
-#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-#  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-#  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-#  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-#  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-#  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-#  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-#  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-#  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-#  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#  
+#  ...
 # </copyright>
 
 # Default behavior is to update a "standard" format copyright notice
@@ -36,31 +17,36 @@
 #
 # takes a list of files to check/update
 
+# find . -type f -print | grep -v CVS | ~/updatecr > /tmp/ucr.txt
+
 # {RANGE} is replaced by the actual year or year range.
 # {COMPANY} is replaced by the company found or default_company;
 
 $stdcr = <<EOF;
+ 
  Copyright {RANGE} {COMPANY}
- under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+ under sponsorship of the Defense Advanced Research Projects
+ Agency (DARPA).
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the Cougaar Open Source License as published by
- DARPA on the Cougaar Open Source Website (www.cougaar.org).
+ You can redistribute this software and/or modify it under the
+ terms of the Cougaar Open Source License as published on the
+ Cougaar Open Source Website (www.cougaar.org).
 
- THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
- PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
- IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
- ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
- HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
- DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
- TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- PERFORMANCE OF THE COUGAAR SOFTWARE.
-
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
 EOF
 
 @stdlines = split(/\n/,$stdcr);
-
 
 $tag0 = "<copyright>";
 $tag1 = "</copyright>";
@@ -86,12 +72,18 @@ $added = 0;
 ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 $yyyy = $year+1900;
 
-select STDERR; $| - 1;
+#select STDERR; $| - 1;
+#select STDOUT;
 
-open(STANDARD, ">/tmp/cr-standard");
-open(NONSTANDARD, ">/tmp/cr-nonstandard");
-open(MISSING, ">/tmp/cr-missing");
-open(FIXED, ">/tmp/cr-added");
+# keys
+$pretty{"STD"} = "Standard format notice";
+$pretty{"NON"} = "Nonstandard notice";
+$pretty{"MIS"} = "No recognizable notice";
+
+foreach $k (keys %pretty) {
+  $acc{$k} = 0;			# how many (total) in this category?
+  $mod{$k} = 0;			# how many in this category did we modify/update?
+}
 
 unlink "/tmp/cr.patch" if ($dopatch);
 
@@ -120,39 +112,27 @@ while (<>) {
   }
   $total++;
 
-  $state = &process($file);
-  if ($state eq "standard") {
-    print STANDARD "$file\n";
-    $std++;
-  } elsif ($state eq "nonstandard") {
-    print NONSTANDARD "$file\n";
-    $nonstd++;
-  } elsif ($state eq "fixed") {
-    print FIXED "$file\n";
-    $fixed++;
-  } else {
-    print MISSING "$file\n";
-    $missing++;
-  }
+  process($file);
 }
 
-print "Examined $total files\n";
-print "\tStandard\t$std\n";
-print "\tNonstandard\t$nonstd\n";
-print "\tAdded\t$fixed\n";
-print "\tMissing\t$missing\n";
+print STDERR "Examined $total files\n";
+print STDERR "\ttotal\tignored\tdescription\n";
+foreach $k (sort keys %acc) {
+  my ($t) = $acc{$k};
+  my ($ig) = $t-$mod{$k};
+  my ($p) = $pretty{$k};
+  print STDERR "\t$t\t$ig\t$k: $p\n";
+}
 
-close(STANDARD);
-close(NONSTANDARD);
-close(MISSING);
-close(FIXED);
 exit(0);
 
 sub process {
   local($file) = @_;
-  $spin = ($spin+1)&3;
-  my $c = substr '-/|\\',$spin,1;
-  print STDERR "$c\010";
+  my $state = "UNK";		# unknown
+
+#  $spin = ($spin+1)&3;
+#  my $c = substr '-/|\\',$spin,1;
+#  print STDERR "$c\010";
   local($found)=0;		# if != 0, copy the file back
 
   local($parsing)=0;		# if != 0, reading a CR notice
@@ -238,7 +218,6 @@ sub process {
   if ($missing) {
     if (addCR($file, $tmp)) {
       $found = 1;
-      $fixed = 1;
     }
   }
 
@@ -257,14 +236,24 @@ sub process {
       close(OUT);
       close(IN);
     }
+    $fixed = 1;
   }
 
   #unlink($tmp);
 
-  return "standard" if $std;
-  return "nonstandard" if $nonstd;
-  return "fixed" if $fixed;
-  return "missing";
+  my $state;
+  if ($std) {
+    $state = "STD";
+  } elsif ($nonstd) {
+    $state = "NON";
+  } else {
+    $state = "MIS";
+  }
+
+  my $m = $fixed;
+  $mod{$state}++ if $m;
+  print "$state $m\t$file\n";
+  $acc{$state}++;
 }
 
 
@@ -398,7 +387,8 @@ sub parse_oldcr {
 # shift from Alpine to BBN ownership under Ultra*Log
   my ($r0, $r1) = (0,0);
   my ($company);
-  if ($ocr=~/Copyright\s*([0-9]{4})(\s*-\s*([0-9]{4}))?\s*([^.]*)\s*\./i) {
+  # (?:\s*\([cC]\))
+  if ($ocr=~/copyright\s*([0-9]{4})(\s*-\s*([0-9]{4}))?\s*([^.]*)\s*\./i) {
     if ($1) {
       $r0 = $1;
       $r1 = $3 if ($3);
@@ -406,7 +396,7 @@ sub parse_oldcr {
     if ($4) {
       $company = $4;
     }
-  } elsif ($ocr=~/Copyright\s*([0-9]{4})(\s*-\s*([0-9]{4}))?/i) {
+  } elsif ($ocr=~/copyright\s*([0-9]{4})(\s*-\s*([0-9]{4}))?/i) {
     if ($1) {
       $r0 = $1;
       $r1 = $3 if ($3);
