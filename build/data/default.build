@@ -93,7 +93,7 @@ modules=\
 	server,\
 	manager,\
 	webserver, webtomcat,\
-	bol
+	bol, mic
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
@@ -247,6 +247,11 @@ bol.repository = external
 # Lesson2.jars = servlet,hsql,jess50
 bol.deps = core,glm,planserver
 bol.jars = servlet,hsql,jess50
+
+# mic
+mic.repository = external
+mic.deps = core,glm,planserver
+mic.jars = log4j,xerces
 
 # dbms module
 dbms.repository = dbms
