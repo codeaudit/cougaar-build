@@ -1131,13 +1131,30 @@ sub find_errors {
 
   open(LOG, "<$errout");
   open(ERR, ">$distdir/errors.out");
-  my ($ec) = 0;			# errors detected
-  my ($wc) = 0;			# warnings detected
+  my ($report)="module\terrors\twarnings\n";
+  my ($te)=0;			# total errors
+  my ($tw)=0;			# total warnings
+  my ($mn);			# which module are we parsing?
+  my ($ec) = 0;			# current module errors detected
+  my ($wc) = 0;			# current module warnings detected
   my ($l) = 0;			# which line are we on?
   my ($cl) = -1;		# up to which line should we report on?
   while (<LOG>) {
     chomp;
-    $nl = 0;
+    if (/Building module (\w*)/) {
+      $mn = $1;
+      $ec = 0; $wc = 0;
+    }
+    if (/Done building (\w+)/) {
+      if ($mn eq $1) {
+	$report .= sprintf "%15s %7d %7d\n", $mn, $ec, $wc ; # if ($ec || $wc);
+	$te = $te+$ec;
+	$tw = $tw+$wc;
+	$mn = "";
+      }
+    }
+
+    my $nl = 0;
     # search for jikes warnings
     if (/Issued (\d+) semantic warning/) {
       $wc += $1;		# incr warning count
@@ -1179,10 +1196,10 @@ sub find_errors {
   }
   close(LOG);
 
-  print ERR "\nTotal $ec errors and $wc warnings\n" if ($ec>0 || $wc>0);
+  $report .= sprintf "%15s %7d %7d\n", "total", $te, $tw;
+  print ERR $report if ($te>0 || $tw>0);
+  print STDERR $report;
   close(ERR);
-
-  print STDERR "\nTotal $ec errors and $wc warnings\n" if ($ec>0 || $wc>0);
 }
 
 sub max {
