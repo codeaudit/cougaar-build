@@ -159,7 +159,7 @@ bootstrap.repository = :ext:cougaar.org:/cvsroot/util
 
 # util
 util.deps = bootstrap
-util.jars = log4j, xerces
+util.jars = log4j, xercesImpl
 # 4 implementations of deprecated jdbc methods
 util.warnings = 4
 # Moved to Cougaarforge
@@ -188,38 +188,38 @@ yp.repository = :ext:cougaar.org:/cvsroot/yp
 
 # planning
 planning.deps = util, core
-planning.jars = xerces, servlet
+planning.jars = xercesImpl, servlet
 # Moved to Cougaarforge
 planning.repository = :ext:cougaar.org:/cvsroot/planning
 
 # contract
 contract.deps = util
-contract.jars = xerces
+contract.jars = xercesImpl
 # Moved to Cougaarforge
 contract.repository = :ext:cougaar.org:/cvsroot/util
 
 # toolkit
 toolkit.deps = core, planning, util
-toolkit.jars = xerces
+toolkit.jars = xercesImpl
 # Moved to Cougaarforge
 toolkit.repository = :ext:cougaar.org:/cvsroot/glm
 
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
-glm.jars = xerces,fesi-111,jcchart,servlet
+glm.jars = xercesImpl,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
 # Moved to Cougaarforge
 glm.repository = :ext:cougaar.org:/cvsroot/glm
 
 # aggregation agent
 aggagent.deps = core,planning,glm,util
-aggagent.jars = xerces,jpython,silk,servlet
+aggagent.jars = xercesImpl,jpython,silk,servlet
 # Moved to Cougaarforge
 aggagent.repository = :ext:cougaar.org:/cvsroot/aggagent
 
 # vishnu scheduler
 vishnu.deps = core,planning,toolkit,glm,util
-vishnu.jars = xerces,vishnuServer
+vishnu.jars = xercesImpl,vishnuServer
 #vishnu.repository = internal
 # Moved to Cougaarforge
 vishnu.module = vishnuClient
@@ -228,17 +228,17 @@ vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
 # uiframework
 uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
 uiframework.deps = core,planning,glm,util
-uiframework.jars = xerces,openmap,vgj
+uiframework.jars = xercesImpl,openmap,vgj
 uiframework.extras = mm-mysql-2
 
 # tutorials
 tutorial.deps = core,planning,glm,util
-tutorial.jars = xerces
+tutorial.jars = xercesImpl
 tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
-csmart.jars = xerces,jcchart,grappa1_2,servlet
+csmart.jars = xercesImpl,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = mm-mysql-2, log4j
 #csmart.repository = internal
@@ -254,7 +254,7 @@ qos.jars = quoSumo
 qos.repository = :ext:cougaar.org:/cvsroot/qos
 
 quo.deps = core,planning,qos,util
-quo.jars = quoSumo, xerces
+quo.jars = quoSumo, xercesImpl
 # Moved to Cougaarforge
 quo.repository = :ext:cougaar.org:/cvsroot/qos
 
@@ -273,7 +273,7 @@ webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
 
 # community
 community.deps = util,core,planning,glm,webserver
-community.jars = log4j,xerces,servlet,concurrent
+community.jars = log4j,xercesImpl,servlet,concurrent
 # Moved to Cougaarforge
 community.repository = :ext:cougaar.org:/cvsroot/community
 
@@ -288,7 +288,7 @@ albbn.module = bbn
 albbn.tag = HEAD
 #albbn.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
-albbn.jars = xerces,openmap,fesi-111,jcchart,servlet,vishnuServer
+albbn.jars = xercesImpl,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.runtime = bin,configs
 
 # AL datagrabber
@@ -297,7 +297,7 @@ datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 datagrabber.tag = HEAD
 #datagrabber.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 datagrabber.deps = core,planning,glm,toolkit,util,albbn
-datagrabber.jars = xerces,chart,openmap,servlet
+datagrabber.jars = xercesImpl,chart,openmap,servlet
 
 # AL stoplight
 stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
@@ -305,14 +305,14 @@ stoplight.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 stoplight.tag = HEAD
 #stoplight.repository = :ext:eiger.alpine.bbn.com:/cvs/tic
 stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent,uiframework
-stoplight.jars = xerces,servlet
+stoplight.jars = xercesImpl,servlet
 
 #
 # ServiceDiscovery
 #
 # contract
 servicediscovery.deps = core, util, glm, planning, yp
-servicediscovery.jars = xerces,jena,servlet,uddi4j
+servicediscovery.jars = xercesImpl,jena,servlet,uddi4j
 servicediscovery.extras = icu4j
 #servicediscovery.repository = :ext:cvs.ultralog.net:/cvs/commons/servicediscovery
 # Moved to Cougaarforge
