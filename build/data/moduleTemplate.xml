@@ -112,7 +112,7 @@
     <!-- Include extra debug info in compilations -->
     <property name="build.compiler.debug" value="on"/>
     <!-- Do not include deprecation warnings -->
-    <property name="build.compiler.deprecation" value="off"/>
+    <property name="build.compiler.deprecation" value="on"/>
     <!-- Don't exclude basic debug info -->
     <property name="build.compiler.optimize" value="off"/>
 
