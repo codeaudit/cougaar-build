@@ -762,7 +762,6 @@ sub build_module {
       if (/$java_home/) {
 	  s/$java_home/\$\{java.home\}/;
 	  push @apccp, $_;
-	  next;
       }
       s/$libdir/\$\{target.lib\}/;
       s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
@@ -786,7 +785,6 @@ sub build_module {
       if (/$java_home/) {
 	  s/$java_home/\$\{java.home\}/;
 	  push @apccp, $_;
-	  next;
       }
       s/$libdir/\$\{target.lib\}/;
       s/$srcdir\/$mod\/lib/\$\{local.lib\}/;
