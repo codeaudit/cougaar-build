@@ -160,6 +160,11 @@ public class PGWriter extends WriterBase {
       doImports(out, "global");
       if (!context.equals("global")) 
         doImports(out, context);
+
+      if (hasRelationships(context)) {
+        println(out,"import org.cougaar.domain.planning.ldm.plan.HasRelationships;");
+        println(out,"import org.cougaar.domain.planning.ldm.plan.RelationshipSchedule;");
+      }
     }
     void doImports(PrintWriter out, String context) {
       String importstr=(String)p.get(context,"import");
@@ -178,15 +183,28 @@ public class PGWriter extends WriterBase {
      * then global, then default (true).
      **/
     boolean hasDQ(String context) {
-      String s = (String)p.get(context,"hasDataQuality");
-      if (s == null) {
-        s = (String)p.get("global","hasDataQuality");
-      }
-      if (s == null) {
-        return true;            // default is true
-      } else {
-        return Boolean.valueOf(s).booleanValue();
-      }
+      return p.getValueFlag(context, "hasDataQuality", true, true);
+    }
+
+    /** return HasRelationships specification of context, looking at local
+     *  context, then global, then default (false).
+     **/
+    boolean hasRelationships(String context) {
+      return p.getValueFlag(context, PGParser.HAS_RELATIONSHIPS, true, false);
+    }
+
+    /** return TimePhased specification of context, looking at local
+     *  context, then global, then default (false).
+     **/
+    boolean hasTimePhased(String context) {
+      return p.getValueFlag(context, PGParser.TIMEPHASED, true, false);
+    }
+
+    /** return Local specification of context, looking at local
+     *  context, then global, then default (false).
+     **/
+    boolean hasLocal(String context) {
+      return p.getValueFlag(context, PGParser.LOCAL, true, false);
     }
 
     void writeGetterIfc(PrintWriter out, String context, String className) {
@@ -204,13 +222,10 @@ public class PGWriter extends WriterBase {
 
       { 
         String dq = (hasDQ(context)?", org.cougaar.domain.planning.ldm.dq.HasDataQuality":"");
+        String local = (hasLocal(context)?", LocalPG":"");
+        String timePhased = (hasTimePhased(context)?"TimePhased":"");
 
-        if (p.get(context, PGParser.TIMEPHASED) == null) {
-          println(out,"public interface "+className+" extends PropertyGroup"+dq+" {");
-        } else {
-          println(out,"public interface "+className+" extends TimePhasedPropertyGroup"+
-                      dq+" {");
-        }
+        println(out,"public interface "+className+" extends "+timePhased+"PropertyGroup"+dq+local+" {");
       }
 
       // declare the slots
@@ -394,7 +409,7 @@ public class PGWriter extends WriterBase {
 
 
       // TimePhased getters
-      if (p.get(context, PGParser.TIMEPHASED) != null) {
+      if (hasTimePhased(context)) {
         println(out,"  public long getStartTime() { throw new UndefinedValueException(); }");
         println(out,"  public long getEndTime() { throw new UndefinedValueException(); }");
       }
@@ -508,7 +523,7 @@ public class PGWriter extends WriterBase {
 
 
       // TimePhased getters
-      if (p.get(context, PGParser.TIMEPHASED) != null) {
+      if (hasTimePhased(context)) {
         println(out,"  public long getStartTime() {\n" + 
                     "    waitForFinalize();\n"+
                     "    return _real.getStartTime();\n"+
@@ -587,18 +602,13 @@ public class PGWriter extends WriterBase {
       String newclassName = "New"+className;
 
       // figure out what we're supposed to extend
-      String extendstring;
-      if (p.get(context, PGParser.TIMEPHASED) == null) {
-        extendstring = "extends "+className+ ", NewPropertyGroup";
-      } else {
-        extendstring = "extends "+className+ ", NewTimePhasedPropertyGroup";
-      }
+      String timePhased = (hasTimePhased(context)?"TimePhased":"");
+      String dq = (hasDQ(context)?", org.cougaar.domain.planning.ldm.dq.HasDataQuality":"");
+      String hasRelationships = (hasRelationships(context)?", HasRelationships":"");
+      String extendstring = "extends "+className+ ", New"+timePhased+"PropertyGroup"+dq+hasRelationships;
       
-      if (hasDQ(context)) {     // if the class has it, we need to implement the getter
-        extendstring = extendstring+ ", org.cougaar.domain.planning.ldm.dq.HasDataQuality";
-      }
-
       println(out,"public interface "+newclassName+" "+extendstring+" {");
+
       // declare the slots
       Vector slotspecs = getAllSlotSpecs(context);
       Enumeration se = slotspecs.elements();
@@ -790,7 +800,7 @@ public class PGWriter extends WriterBase {
       println(out,"  };");
       println(out);
       
-      boolean timephased = (p.get(context, PGParser.TIMEPHASED) != null);
+      boolean timephased = hasTimePhased(context);
       if (timephased) {
         //handle time phased support separately because getters != setters
         println(out,NewTimeSpanText);
@@ -1333,7 +1343,7 @@ public class PGWriter extends WriterBase {
       Vector slotspecs = getAllSlotSpecs(context);
 
       // Add in time phased slots
-      if (p.get(context, PGParser.TIMEPHASED) != null) {
+      if (hasTimePhased(context)) {
         slotspecs.addElement("long start_time");
         slotspecs.addElement("long end_time");
       }
@@ -1506,7 +1516,7 @@ public class PGWriter extends WriterBase {
           println(out,"    return new "+icn+"();");
           println(out,"  }");
           
-          boolean timephased = (p.get(context, PGParser.TIMEPHASED) != null);
+          boolean timephased = hasTimePhased(context);
           if (timephased) {
             println(out,"  // brand-new instance factory");
             println(out,"  public static PropertyGroupSchedule new"+context+
@@ -1545,7 +1555,7 @@ public class PGWriter extends WriterBase {
           String newclassName = "New"+context;
           String pkg = findPackage(context);
           print(out,"    {\""+pkg+"."+context+"\", \"new"+context+"\"}");
-          if (p.get(context, PGParser.TIMEPHASED) != null) {
+          if (hasTimePhased(context)) {
             print(out,",");
             println(out);
             print(out,"    {\""+pkg+".PropertyGroupSchedule\", \"new"+context+"Schedule\"}");
@@ -1814,7 +1824,7 @@ public class PGWriter extends WriterBase {
           println(out,"   * @return instance of "+context+" or null.");
           println(out,"   **/");
           
-          boolean timephased = (p.get(context, PGParser.TIMEPHASED) != null);
+          boolean timephased = hasTimePhased(context);
           String timeVar = "";
 
           if (timephased) {

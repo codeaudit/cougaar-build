@@ -28,6 +28,9 @@ class PGParser {
 
   public static final String DEFAULT_FILENAME = "properties.def";
   public static final String TIMEPHASED = "timephased";
+  public static final String HAS_RELATIONSHIPS = "hasrelationships";
+  public static final String LOCAL = "local";
+  
 
   private boolean isVerbose = false;
   private InputStream inputStream = null;
@@ -118,6 +121,31 @@ class PGParser {
   public void debug(String s) {
     if (isVerbose)
       System.err.println(s);
+  }
+
+  public Object getValue(String context, String key, boolean lookGlobal, 
+                         Object defaultValue) {
+    Object value = get(context, key);
+    if ((value == null) && (lookGlobal)) {
+      value = get("global", key);
+    }
+    if (value == null) {
+      return defaultValue;
+    } else {
+      return value;
+    }
+  }
+
+  public boolean getValueFlag(String context, String key, boolean lookGlobal, 
+                              boolean defaultValue) {
+    Object value = getValue(context, key, lookGlobal, 
+                            new Boolean(defaultValue));
+    
+    if (value instanceof Boolean) {
+      return ((Boolean) value).booleanValue();
+    } else {
+      return Boolean.valueOf((String) value).booleanValue();
+    }
   }
 
 }

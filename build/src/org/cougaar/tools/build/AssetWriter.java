@@ -33,6 +33,7 @@ public class AssetWriter extends WriterBase {
     String name;
     String doc;
     String base;
+    boolean hasRelationships = false;
     Vector slotds = new Vector();
     public ClassD(String name) {
       this.name = name;
@@ -57,9 +58,23 @@ public class AssetWriter extends WriterBase {
 
       SlotD sd = new SlotD(t, v);
 
-      sd.setTimePhased(pgParser.get(v, PGParser.TIMEPHASED) != null);
-      
+      sd.setTimePhased(pgParser.getValueFlag(v, PGParser.TIMEPHASED, true, false));
+
+
+      if (pgParser.getValueFlag(v, PGParser.HAS_RELATIONSHIPS, true, false)) {
+        if (!hasRelationships) {
+          hasRelationships = true;
+          sd.setHasRelationships(true);
+        } else {
+          System.err.println("AssetWriter.parseSlot(): " + name + 
+                             " has multiple PGs which implement HasRelationships");
+          sd.setHasRelationships(false);
+        }
+      } else {
+        sd.setHasRelationships(false);
+      }      
       addSlotD(sd);
+
     }
 
     public void setSlots(String s) {
@@ -114,6 +129,7 @@ public class AssetWriter extends WriterBase {
     public void addImport(String imp) {
       imports.addElement(imp);
     }
+    public boolean getHasRelationships() { return hasRelationships; }
   }
 
   class SlotD {
@@ -124,6 +140,8 @@ public class AssetWriter extends WriterBase {
     boolean trans = false;
     boolean exact = false;
     boolean timephased = false;
+    boolean hasRelationships = false;
+
     public SlotD(String type, String name) {
       this.type = type;
       this.name = name;
@@ -145,6 +163,9 @@ public class AssetWriter extends WriterBase {
     public void setTimePhased(boolean tp) {
       timephased = tp;
     }
+    public void setHasRelationships(boolean hr) {
+      hasRelationships = hr;
+    }
     public String getType() { return type; }
     public String getName() { return name; }
     public boolean hasInit() { return (init != null); }
@@ -163,6 +184,7 @@ public class AssetWriter extends WriterBase {
     public boolean getTrans() { return trans; }
     public boolean getExact() { return exact; }
     public boolean getTimePhased() {return timephased; }
+    public boolean getHasRelationships() {return hasRelationships; }
     public String toString() { return "SlotD "+name; }
   }
 
@@ -371,6 +393,12 @@ public class AssetWriter extends WriterBase {
             println(out,"import "+imps.nextElement()+";");
           }
 
+          if (cd.getHasRelationships()) {
+            println(out,"import org.cougaar.domain.planning.ldm.plan.HasRelationships;");
+            println(out,"import org.cougaar.domain.planning.ldm.plan.RelationshipSchedule;");
+            println(out,"import org.cougaar.domain.planning.ldm.plan.RelationshipScheduleImpl;");
+          }
+
           String doc = cd.getDoc();
           if (doc != null) {
             println(out,"/** "+doc+" **/");
@@ -383,6 +411,9 @@ public class AssetWriter extends WriterBase {
           String ext = cd.getBase();
           if (ext != null && ! ext.equals("")) {
             print(out," extends "+ext);
+          }
+          if (cd.getHasRelationships()) {
+            print(out, " implements HasRelationships");
           }
           println(out," {");
           println(out);
@@ -527,6 +558,23 @@ public class AssetWriter extends WriterBase {
               argName = "time";
               argStr = argType+" "+argName;
             }
+
+            if (sd.getHasRelationships()) {
+              println(out,"  public RelationshipSchedule getRelationshipSchedule() {");
+              println(out,"    return get" + sname + 
+                      "().getRelationshipSchedule();");
+              println(out,"  }");
+
+              String arg = "_arg" + sname;
+              println(out,"  public void setRelationshipSchedule(RelationshipSchedule schedule) {");
+              println(out,"    New" + sname + " " + arg + " = (New" + 
+                      sname + ") get" + sname + "().copy();");
+              println(out,"    " + arg + ".setRelationshipSchedule(schedule);");
+              println(out,"    set" + sname + "(" + arg + ");");
+              println(out,"  }");
+              
+              println(out, "");
+            }
               
             println(out,"  public "+stype+" get"+sname+"("+argStr+") {");
             if (exact) {
@@ -545,6 +593,7 @@ public class AssetWriter extends WriterBase {
               println(out,"    return (_tmp == "+sname+".nullPG)?null:_tmp;");
             }
             println(out,"  }");
+
 
             if (stimephased) {
               String fname = "get"+sname+"Schedule";
@@ -577,6 +626,11 @@ public class AssetWriter extends WriterBase {
             }
 
             String arg = "arg_"+sname;
+
+            // ADD methods
+            if (sd.getHasRelationships()) {
+            }
+
 
             if (exact) {
               // exact slots aren't PropertyGroups
