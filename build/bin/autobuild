@@ -58,7 +58,7 @@ $ssh = "ssh -n";
 $scp = "scp -B";
 $extraargs="";
 
-&Getopts('va:t:d:hkT:H:po:n:');
+&Getopts('va:t:d:hkT:H:po:n:j:');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
   print STDERR "\t-v\tVerbose mode\n";
@@ -72,6 +72,7 @@ if ($opt_h) {
   print STDERR "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
   print STDERR "\t-o string\tPass string as extra arguments to build\n";
   print STDERR "\t-n N\tKeep the last N builds online (default is $keep).\n";
+  print STDERR "\t-j path\tSet java.home to path.\n";
   exit(-1);
 }
 
@@ -79,6 +80,7 @@ $host = $opt_H if $opt_H;
 $cleanup=0 if $opt_k;
 $tag = $opt_t if ($opt_t);
 $extraargs = $opt_o if ($opt_o);
+$javahome = $opt_j if ($opt_j);
 
 if ($opt_T) {
   $tmp = $opt_T;
@@ -177,6 +179,9 @@ mysystem("rm -rf $builddir");
 # start a fresh build
 $rarg = "";
 $rarg = "-r $tag" if (! ($tag eq "HEAD"));
+if ($javahome) {
+  $extaargs = "$extraargs -ojava.home=$javahome";
+}
 system("$buildscript -v $rarg $extraargs -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$auto.out");
 
 # what did we build?
