@@ -55,15 +55,25 @@ $host = "eiger";
 $ssh = "ssh -n";
 $scp = "scp -B";
 
-&Getopts('va:t:d:h');
+&Getopts('va:t:d:hkT:');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
   print STDERR "\t-v\tVerbose mode\n";
   print STDERR "\t-a name\tDirectory name instead of 'auto'\n";
   print STDERR "\t-t tag\tTag to use instead of 'HEAD'\n";
   print STDERR "\t-d file\tData file to use instead of 'default.build'\n";
+  print STDERR "\t-k\tclean up afterwards (delete any leftovers)\n";
+  print STDERR "\t-T dir\tPut temporary files in dir instead of /tmp\n";
   print STDERR "\t-h\tThis usage commend\n";
   exit(-1);
+}
+
+$cleanup++ if $opt_k;
+
+if ($opt_T) {
+  $tmp = $opt_T;
+} else {
+  $tmp = "/tmp";
 }
 
 $verbose++ if $opt_v;
@@ -85,14 +95,14 @@ $SIG{INT} = 'sighandler';
 $SIG{QUIT} = 'sighandler';
 
 # bootstrap the build process
-$tmpdir = "/tmp/$auto-build.$$";
+$tmpdir = "$tmp/$auto-build.$$";
 mysystem("rm -rf $tmpdir");
 mkd($tmpdir);
 mysystem("cd $tmpdir ; cvs -Q export -D now build/bin build/data");
 $basedir = "$tmpdir/build";
 
 # this is where build will build into
-$builddir = "/tmp/$auto";
+$builddir = "$tmp/$auto";
 
 
 $buildscript = "$basedir/bin/build";
@@ -107,12 +117,12 @@ $keep = 4;
 
 # clean up any waxy yellow buildup
 mysystem("rm -rf $builddir");
-mkdir($builddir);
+&mkd($builddir);
 
 # start a fresh build
 $rarg = "";
 $rarg = "-r $tag" if (! ($tar eq "HEAD"));
-mysystem("$buildscript -v $rarg -obuild.root=$builddir $builddata >/tmp/$auto.out");
+mysystem("$buildscript -v $rarg -obuild.root=$builddir -otmp=$tmp $builddata >$tmp/$auto.out");
 
 # what did we build?
 opendir D, $builddir;
@@ -145,6 +155,8 @@ while ( ($_ = pop @alldirs)) {
 }
 
 mysystem("rm -rf $tmpdir");
+
+mysystem("rm -rf $builddir") if $cleanup;
 
 exit 0;
 
