@@ -36,6 +36,7 @@ $opt_file = "default.build";
 $verbose = 1;
 $pointP = 0;
 $isSigning = 1;
+$enableUnified = 0;
 
 sub parse_args {
   while ($#ARGV>=0) {
@@ -70,6 +71,8 @@ sub parse_args {
 	  $skip = 1;
 	} elsif ($c eq "c") {
 	  $checkoutP = 1;
+	} elsif ($c eq "u") {
+	  $enableUnified = 1;
 	} elsif ($c eq "U") {
 	  $isUpdating = 1;
 	  $skip = 1;
@@ -113,6 +116,7 @@ Usage: build [options] [ReleaseDescriptionFile]
 	        will figure out the right order and all dependencies.
         -p      Assume building from a point-tag rather than a branch (avoid use of -D)
 	-k	Dont sign any jars
+	-u	enable unified javadoc and src (also, e.g. "-ounified.enable=true")
 	-R DIR	alias for -obuild.root=DIR
 
 The default ReleaseDescriptionFile is "default.build".  If the file is not
@@ -291,6 +295,10 @@ $rmic_arguments = opt("rmic.arguments", "-g -v1.2");
 
 $jarsigner_command = jdkCommand(opt("jarsigner.command", "jarsigner"));
 $jarsigner_arguments = opt("jarsigner.arguments");
+
+if (opt("unified.enable") ne "") {
+  $enableUnified = ((opt("unified.enable")=="true")?1:0);
+}
 
 if ($opt_m) {
   @modules = compute_modules($opt_m);
@@ -1734,6 +1742,7 @@ sub isPublic {
 
 sub isUnified {
   my ($mod) = @_;
+  return 0 if (!$enableUnified); # if unified is disabled, nothing is unified
   # backward compatability
   return 1 if (opt("$mod.unified"));
 
@@ -1908,7 +1917,7 @@ sub find_errors {
 
   my ($rstr)=sprintf "%20s %10s %10s %10s %10s\n", "MODULE", "ERRORS", "WARNINGS", "REGRESS", "JAVADOC";
   my ($tcerr,$tcwar,$treg,$tdoc);
-  foreach $m (@mods) {
+  foreach $m (sort @mods) {
     my($n)= $m;
     if ($report{$m,"failed"}) { $n = "($n)"; }
     my ($mcerr)=$report{$m,"cerr"}+0;

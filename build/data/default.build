@@ -109,12 +109,26 @@ default.public=1
 # modules which are public - that is, fully released
 
 # modules which contribute to unified api (javadoc & moby src)
-## turning off unified for a while
-#modules.unified = build,bootstrap,util,core,planning,\
-#	contract,toolkit,\
-#	glm,aggagent,\
-#	uiframework, server, community,\
-#	webserver,server,datagrabber
+modules.unified =\
+	build,\
+	bootstrap,\
+	util,\
+	core,\
+        planning,\
+	contract,\
+	toolkit,\
+	yp,\
+	glm,\
+	aggagent,\
+	uiframework,\
+	base,\
+	server,\
+	webserver,webtomcat
+# not: javaiopatch, implementations of basic services, AL
+
+# note that unified support defaults to off.  To enable, either pass
+# "-u" to build script or uncomment the following line:
+#unified.enable = true;
 
 ##
 ## module-specific flags
