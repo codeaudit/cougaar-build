@@ -252,7 +252,7 @@ qos.jars = quoSumo
 # Moved to Cougaarforge
 qos.repository = :ext:cougaar.org:/cvsroot/qos
 
-quo.deps = core,planning,qos,util
+quo.deps = core,planning,qos,util,mtsstd
 quo.jars = quoSumo
 # Moved to Cougaarforge
 quo.repository = :ext:cougaar.org:/cvsroot/qos
