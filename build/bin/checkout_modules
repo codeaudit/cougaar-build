@@ -219,7 +219,7 @@ sub do_checkouts {
       my %old_mods=();
       foreach (sort keys %$mods_ref) {
         my $mod_name=$_;
-        if (-d "$rep_name/$mod_name") {
+        if (-d "$host$rep_name/$mod_name") {
           $old_mods{$mod_name}=1;
         } else {
           $new_mods{$mod_name}=1;
