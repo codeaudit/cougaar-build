@@ -186,11 +186,6 @@ vishnu.repository = internal
 #tops.extras = mm-mysql-2
 #tops.repository = internal
 
-# datagrabber
-datagrabber.deps = core,glm,toolkit,planserver,util
-datagrabber.jars = xerces,chart,openmap,servlet
-datagrabber.repository = internal
-
 # delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
 delta.deps = core,glm,toolkit,planserver,javaiopatch,util
 delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
@@ -286,6 +281,11 @@ alsra.jars = xerces,openmap,fesi-111,jcchart,servlet
 alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
 alsra.module = sra
 alsra.runtime = configs
+
+# AL datagrabber
+datagrabber.deps = core,glm,toolkit,planserver,util,albbn
+datagrabber.jars = xerces,chart,openmap,servlet
+datagrabber.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 
 #
 # distribution settings
