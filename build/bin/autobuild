@@ -56,7 +56,7 @@ $cleanup = 1;
 $ssh = "ssh -n";
 $scp = "scp -B";
 
-&Getopts('va:t:d:hkT:H:');
+&Getopts('va:t:d:hkT:H:p');
 if ($opt_h) {
   print STDERR "Usage: autobuild [args]\n";
   print STDERR "\t-v\tVerbose mode\n";
@@ -67,6 +67,7 @@ if ($opt_h) {
   print STDERR "\t-T dir\tPut temporary files in dir/tag instead of /tmp/tag\n";
   print STDERR "\t-H host\tPublish to host instead of \"$host\"\n";
   print STDERR "\t-h\tThis usage commend\n";
+  print STDERR "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
   exit(-1);
 }
 

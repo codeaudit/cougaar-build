@@ -31,6 +31,7 @@ $opt_file = "default.build";
 @opt_overrides;
 
 $verbose = 1;
+$pointP = 0;
 
 sub parse_args {
   while ($#ARGV>=0) {
@@ -66,6 +67,8 @@ sub parse_args {
 	  $branchP = 1;
 	} elsif ($c eq "F") {
 	  $forceP = 1;
+	} elsif ($c eq "p") {
+	  $pointP = 1;
 	} else {
 	  usage();
 	}
@@ -95,6 +98,7 @@ Usage: build [options] [ReleaseDescriptionFile]
 	-F	When tagging, Force the tag (move the tag if it previously existed)
 	-m mod[,...]	Specify a module or modules to build instead of all.  The script
 	        will figure out the right order and all dependencies.
+        -p      Assume building from a point-tag rather than a branch (avoid use of -D)
 
 The default ReleaseDescriptionFile is "default.build".  If the file is not
 found as specified, it will try to check from cvs using the current CVSROOT from
@@ -448,11 +452,12 @@ sub checkout_module {
   $rarg = "-r $tag" if (! ($tag eq "HEAD"));
   if ($checkoutP) {
     # hack to allow us to checkout a branch at a specific time
-    $rarg .= " -D '$opt_D'" if ($opt_D);
+    $rarg .= " -D '$opt_D'" if ($opt_D && !pointP);
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $mod");
   } else {
-    mysystem ("cvs $arg -d '$rep' export $rarg -D '$rdate' -d $mod $mod");
+    $rarg .= " -D '$rdate'" if (!pointP);
+    mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $mod");
   }
 }
 
@@ -1364,39 +1369,6 @@ sub tag {
     mysystem("rm -rf $tmpdir");
   }
 }
-
-sub tagx {
-  my($newtag) = @_;		# name to use for tagging
-  my ($barg)="";
-  $barg = "-b" if($branchP);
-
-  my (@mods);
-  @mods = @modules;
-  push @modules, "build" if (! member("build",@modules));
-
-  {
-    $syslib = opt("sys.lib");
-    if ($syslib =~ /^module:(.+)/) {
-      my($mod) = $1;
-      push @mods, $mod;
-    }
-  }
-
-  foreach $mod (@mods) {
-    my $rep = getCVSROOT($mod);
-    my $tag = opt("$mod.tag");
-    $tag = $rtag if (!$tag);
-
-    my $arg = "";
-    $arg = "-Q" if ($verbose<=1);
-    my $rarg="";
-    # special case for HEAD - bogon.
-    $rarg = "-r $tag" if (! ($tag eq "HEAD"));
-    my $Farg = $forceP?"-F":"";
-    mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $mod");
-  }
-}
-
 
 sub junit {
   my ($mod, $classdir, $extrajars) = @_;
