@@ -10,6 +10,11 @@
 
 <!-- %{BEGIN} Everything after this line will be included in the generated module build.xml files -->
 <!-- Autobuild-generated ANT v1.5 script for building the Cougaar module "%{Name}". -->
+
+<!--                                                 -->
+<!-- THIS IS A MACHINE GENERATED FILE - DO NOT EDIT! -->
+<!--                                                 -->
+
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
 <!-- autobuild might execute this with something like:
