@@ -99,7 +99,6 @@ modules=\
 	quo, qos,\
 	dbms,\
 	server,\
-	manager,\
 	webserver, webtomcat,\
 	community, \
 	albbn, stoplight, datagrabber,\
@@ -113,7 +112,7 @@ default.public=1
 modules.unified = build,bootstrap,util,core,planning,\
 	contract,toolkit,\
 	glm,scalability,aggagent,\
-	uiframework, server, manager, community,\
+	uiframework, server, community,\
 	webserver,server,datagrabber
 
 ##
@@ -171,10 +170,6 @@ planning.deps = util, core
 planning.jars = xerces, servlet
 
 # app server, no dependencies
-
-# society manager
-#  (glm is used for examples - oplan)
-manager.deps = core, planning, server, util, glm
 
 # contract
 contract.deps = util
