@@ -384,7 +384,7 @@ sub build_module {
     chdir "$srcdir/$mod";
     # bin,data,configs are now shipped as runtime parts.
     #my @shipped_subdirs = ("bin", "doc", "examples", "src", "data", "configs");
-    my @shipped_subdirs = ("doc", "examples", "src");
+    my @shipped_subdirs = ("examples", "src");
     my @subdirs = ();
     foreach $sub (@shipped_subdirs) {
       if (-d "$srcdir/$mod/$sub") {
@@ -595,7 +595,7 @@ sub build_runtime {
 	mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
       }
     }
-    my @runtime_subdirs = ("bin", "data", "configs");
+    my @runtime_subdirs = ("bin", "data", "configs", "doc");
     foreach $rs (@runtime_subdirs) {
       # copy data dir
       if (-e "$moddir/$rs") {
