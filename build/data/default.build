@@ -102,7 +102,7 @@ default.public=1
 # modules which are public - that is, fully released
 
 # modules which contribute to unified api (javadoc)
-modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
+modules.unified = build,core,server,contract,toolkit,planserver,glm,scalability,aggagent,webserver
 
 ##
 ## module-specific flags
