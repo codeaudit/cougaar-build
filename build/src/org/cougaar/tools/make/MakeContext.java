@@ -114,7 +114,7 @@ public class MakeContext {
 	jikesClassPath = theProperties.getProperty(PROP_JIKES_CLASS_PATH);
 	String third = theProperties.getProperty(PROP_3RD_PARTY_JARS);
 	if (third == null) {
-	    the3rdPartyDirectory = new File(theProjectRoot, "jars");
+	    the3rdPartyDirectory = new File(theProjectRoot, "sys");
 	} else {
 	    the3rdPartyDirectory = new File(third).getCanonicalFile();
 	}
@@ -677,7 +677,7 @@ public class MakeContext {
         appendCmd.add("-a");
         if (sources != null) {
             while (offset < sources.length) {
-                int nfiles = Math.min(sources.length - offset, 20);
+                int nfiles = Math.min(sources.length - offset, 10);
                 List args = new ArrayList();
                 for (int i = 0; i < nfiles; i++) {
                     args.add(sources[i + offset]);
