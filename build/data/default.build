@@ -90,10 +90,9 @@ modules=\
 
 # leave out Marine for now - it is broken
 
+# default publicness to true - disable with mod.private=1
+default.public=1
 # modules which are public - that is, fully released
-modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
-	glm,scalability,server,aggagent,uiframework,base,tutorial,\
-	tops,datagrabber,glmtrans,vishnu,csmart,quo,qos,dbms
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -172,14 +171,18 @@ glmtrans.repository = internal
 delta.deps = core,glm,toolkit,planserver
 delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
 delta.repository = internal
+delta.private=1
+
 deltaeport.deps = core,glm,toolkit,planserver,delta
 deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
 deltaeport.repository = internal
+deltaeport.private=1
 
 # blackjack
 blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
 blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
 blackjack.repository = internal
+blackjack.private=1
 
 # Marines
 Marine.deps = core,glm
@@ -205,6 +208,7 @@ csmart.repository = internal
 # quo/qos
 qos.deps = core
 qos.jars = quoSumo
+
 quo.deps = core, qos
 quo.jars = quoSumo, jacorb, xerces
 

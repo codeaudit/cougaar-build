@@ -1197,7 +1197,12 @@ sub isPublic {
   # backward compatability
   return 0 if (opt("$mod.internal")); # it is non-public if defined as internal.
 
-  return member($mod,opt("modules.public"));
+  return 1 if (opt("$mod.public"));
+  return 0 if (opt("$mod.private"));
+  return 1 if (member($mod,opt("modules.public")));
+  return 0 if (member($mod,opt("modules.private")));
+  # default value
+  return opt("default.public","1");
 }
 
 sub isUnified {
