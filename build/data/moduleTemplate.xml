@@ -148,6 +148,8 @@
     <property name="compile.jarlist" value="%{compile.jarlist}"/>
     <!-- javadoc package spec for building javadocs -->
     <property name="javadoc.packages" value="%{javadoc.packages}"/>
+    <!-- Extra jars needed at run / unit-test time. -->
+    <property name="run.jarlist" value="%{run.jarlist}"/>
     
     <!-- ================ Classpaths ================ -->
 
@@ -160,9 +162,9 @@
     <path id="junit.classpath">
       <path location="${build}" />
       <path location="${testbuild}" />
-      <path refid="compile.classpath"/>
-      <pathelement path="${java.class.path}"/>
-      <pathelement path="${jikes.class.path}"/>
+      <filelist dir="${target.lib}" files="${run.jarlist}"/>
+      <!-- junit.jar always comes from sys directory -->
+      <path location="${target.sys}/junit.jar"/>
     </path> 
 
     <!-- Define paths for doing codegen stuff -->
