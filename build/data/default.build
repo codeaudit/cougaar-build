@@ -31,10 +31,11 @@ sys.lib=/home/cougaar/build.jars
 modules=\
 	build,javaiopatch,core,contract,toolkit,planserver, \
 	glm,scalability,server,aggagent,\
-	vishnu,tops,delta,blackjack,uiframework,Marine,\
+	vishnu,tops,delta,blackjack,uiframework,\
 	base,\
 	tutorial
 
+# leave out Marine for now - it is broken
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\

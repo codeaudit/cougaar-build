@@ -12,11 +12,11 @@ product.name=alp
 sys.lib=/home/mthome/.lib/build.jars
 build.root=/tmp/V7_2
 
-modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine
+modules=build,javaiopatch,core,contract,toolkit,planserver,glm,scalability,server,aggagent,vishnu,tops,delta,blackjack,uiframework,Marine,continuous
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
-	glm,scalability,server,aggagent,uiframework,base,tutorial
+	glm,scalability,server,aggagent,uiframework,base,tutorial,continuous
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -45,6 +45,7 @@ delta.deps = core,glm,toolkit,planserver
 blackjack.deps = core,glm,planserver,toolkit,vishnu
 Marine.deps = core,glm
 uiframework.deps = core,glm,planserver,aggagent,tops
+continuous.deps = core,glm,scalability
 
 # module libs (in addition to module deps)
 core.jars = xml4j_2_0_11
@@ -65,6 +66,7 @@ Marine.jars = xml4j_2_0_11
 glm.extras = oracle12
 tops.extras = mm-mysql-2
 uiframework.extras = mm-mysql-2
+continuous.extras = oracle12
 
 # runtime specs. Runtime always gets built libs, too.
 core.runtime = doc
