@@ -471,6 +471,7 @@ sign_report();
 
 # get end time and report on elapsed time
 {
+  reporttimes() if $verbose;
   $end_time = time;
   $delta = $end_time - $start_time;
   $min = int ($delta/60);
@@ -1703,6 +1704,7 @@ sub compile_dir {
 
 sub javac {
   my ($mod, $cp, $args) = @_;
+  my ($time0) = time;
   my $jc = compiler_command($mod);
   $cp = &cpWrap($cp);
   $ENV{CLASSPATH}="$cp";
@@ -1711,24 +1713,32 @@ sub javac {
   mysystem("$jc $args");
   undef $ENV{CLASSPATH};
   undef $ENV{JIKESPATH};
+  my ($time1) = time;
+  addtime("javac",$time1-$time0);
 }
 sub java {
   my ($cp, $args) = @_;
+  my ($time0) = time;
   $cp = &cpWrap($cp);
   my ($j) = jdkCommand($java_command);
   $ENV{CLASSPATH}="$cp";
   print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
   mysystem("$j $args");
   undef $ENV{CLASSPATH};
+  my ($time1) = time;
+  addtime("java",$time1-$time0);
 }
 
 sub rmic {
   my ($mod, $cp, $args) = @_;
+  my ($time0) = time;
   $cp = &cpWrap($cp);
   $ENV{CLASSPATH}="$cp";
   print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
   mysystem("$rmic_command $rmi_arguments $args");
   undef $ENV{CLASSPATH};
+  my ($time1) = time;
+  addtime("rmic",$time1-$time0);
 }
 
 
@@ -1796,5 +1806,22 @@ sub warnonce {
   if (! $once{$k}) {
     $once{$k}=1;
     print STDERR "Warning: $w\n";
+  }
+}
+
+sub addtime {
+  my ($k, $sec) = @_;
+  $timers{$k} += $sec;
+}
+
+sub gettime {
+  my ($k) = @_;
+  $timers{$k};
+}
+
+sub reporttimes {
+  print "Aggregate pass times (in seconds):\n";
+  foreach $key (sort keys %timers) {
+    print "\t$key\t$timers{$key}\n";
   }
 }
