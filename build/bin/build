@@ -485,7 +485,7 @@ if (! $opt_m || $nodoc) {
 # add any dist extras
 &add_dist;
 
-# find and report on errors/warnings
+# find and report on errors
 &find_errors();
 
 add_md5("$build_dir/dist");
@@ -1781,7 +1781,7 @@ sub find_errors {
       } else {
 	$rc += $1;
       }
-      $nl = max($nl,(5 * $1));	# 5 lines per warning
+      #$nl = max($nl,(5 * $1));	# 5 lines per warning
     }
     # search for jikes errors
     if (/Found (\d+) semantic error/) {
@@ -1808,11 +1808,11 @@ sub find_errors {
       } else {
 	if ($mode eq "compile") {
 	  $ec++;
+	  $nl = max($nl,5);
 	} else {
 	  $rc++;
 	}
       }
-      $nl = max($nl,5);
     }
     if (/^Note: /) {		# dep warnings
       if (/Recompile with / ||
@@ -1820,14 +1820,14 @@ sub find_errors {
 	#ignore - not really specific enough to count
       } else {
 	$wc++;
-	$nl = max($nl,1);
+	#$nl = max($nl,1);
       }
     }
 
     # catch junit errors
     if (/^There was (\d+) error/) {
       $rc++;
-      $nl = max($nl,4);
+      #$nl = max($nl,4);
     }
 
     # search for build errors/warnings
@@ -1837,17 +1837,17 @@ sub find_errors {
       } else {
 	$rc++;
       }
-      $nl = max($nl,1);
+      #$nl = max($nl,1);
     }
 
     # search for build errors/warnings
     if (/^Error:/) {
       if ($mode eq "compile") {
 	$ec++;
+	$nl = max($nl,1);
       } else {
 	$rc++;
       }
-      $nl = max($nl,1);
     }
 
     # do we need to advance the context pointer?
