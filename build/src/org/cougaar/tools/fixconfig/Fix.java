@@ -53,9 +53,9 @@ public class Fix {
         boolean matches(String line);
     }
 
-    public static class MatchPlugIn implements Matcher {
+    public static class MatchPlugin implements Matcher {
         private String pattern;
-        public MatchPlugIn(String pattern) {
+        public MatchPlugin(String pattern) {
             this.pattern = pattern;
         }
 
@@ -64,9 +64,9 @@ public class Fix {
         }
     }
 
-    public static class PlugIn implements Fixer {
+    public static class Plugin implements Fixer {
         String pattern;
-        public PlugIn(String pattern) {
+        public Plugin(String pattern) {
             this.pattern = pattern;
         }
         public String fix(String line) {
@@ -128,15 +128,15 @@ public class Fix {
     public static class DeleteParameter implements Fixer {
         String pluginPattern;
         String parameterPattern;
-        boolean keepPlugInIfNone;
+        boolean keepPluginIfNone;
         public DeleteParameter(String pluginPattern, String parameterPattern) {
             this(pluginPattern, parameterPattern, false);
         }
 
-        public DeleteParameter(String pluginPattern, String parameterPattern, boolean keepPlugInIfNone) {
+        public DeleteParameter(String pluginPattern, String parameterPattern, boolean keepPluginIfNone) {
             this.pluginPattern = pluginPattern;
             this.parameterPattern = parameterPattern;
-            this.keepPlugInIfNone = keepPlugInIfNone;
+            this.keepPluginIfNone = keepPluginIfNone;
         }
 
         public String fix(String line) {
@@ -165,7 +165,7 @@ public class Fix {
                         }
                         buf.append(')');
                         if (first) {
-                            if (keepPlugInIfNone) {
+                            if (keepPluginIfNone) {
                                 return head + tail;
                             } else {
                                 return null;

@@ -52,21 +52,21 @@ public class FixAmmo extends Fix {
     };
 
     protected Fixer[] getFixes() {
-        String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugIn";
-        String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
-        String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
+        String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugin";
+        String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugin";
+        String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugin";
         return new Fixer[] {
-            new Fix.PlugIn("plugin = org.cougaar.css."),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
-            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
-            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.MedicalInventoryPlugIn"),
-            new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.LimitResourcesPolicyPlugIn"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Transport"),
-            new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Subsistence"),
-            new Fix.PlugIn("plugin = org.cougaar.mlm.construction.DT"),
+            new Fix.Plugin("plugin = org.cougaar.css."),
+            new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
+            new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
+            new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
+            new Fix.Plugin("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugin(TREAT_PATIENT)"),
+            new Fix.Plugin("plugin = org.cougaar.mlm.plugin.sample.MedicalInventoryPlugin"),
+            new Fix.Plugin("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugin"),
+            new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.LimitResourcesPolicyPlugin"),
+            new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Transport"),
+            new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Subsistence"),
+            new Fix.Plugin("plugin = org.cougaar.mlm.construction.DT"),
             new Fix.DeleteParameter(pi1, "StrategicTransportation", true),
             new Fix.DeleteParameter(pi1, "Consumable", true),
             new Fix.DeleteParameter(pi1, "BulkPOL", true),

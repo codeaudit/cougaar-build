@@ -27,10 +27,10 @@ import java.util.Map;
  * This class defines sets of Fixers for removing various aspects of a society.
  **/
 public class Remove {
-    private static String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugIn";
-    private static String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugIn";
-    private static String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugIn";
-    private static String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SubsistenceInventoryPlugIn";
+    private static String pi1 = "plugin = org.cougaar.mlm.plugin.organization.GLSExpanderPlugin";
+    private static String pi2 = "plugin = mil.darpa.log.alpine.blackjack.plugins.AntsInventoryPlugin";
+    private static String pi3 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SupplyProjectionPlugin";
+    private static String pi4 = "plugin = mil.darpa.log.alpine.blackjack.plugins.SubsistenceInventoryPlugin";
 
     public static Fix.Fixer[] ammo = {
         new Fix.DeleteParameter(pi1, "Ammunition", true),
@@ -39,12 +39,12 @@ public class Remove {
     };
 
     public static Fix.Fixer[] construction = {
-        new Fix.PlugIn("plugin = org.cougaar.mlm.construction.DT"),
+        new Fix.Plugin("plugin = org.cougaar.mlm.construction.DT"),
         new Fix.DeleteParameter(pi1, "Construction", true),
     };
 
     public static Fix.Fixer[] food = {
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Subsistence"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Subsistence"),
         new Fix.DeleteParameter(pi1, "ClassISubsistence", true),
     };
 
@@ -67,23 +67,23 @@ public class Remove {
     };
 
     public static Fix.Fixer[] medical = {
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
-        new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugIn(TREAT_PATIENT)"),
-        new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.MedicalInventoryPlugIn"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Medical"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Patient"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.Treatment"),
+        new Fix.Plugin("plugin = org.cougaar.mlm.plugin.sample.UniversalAllocatorPlugin(TREAT_PATIENT)"),
+        new Fix.Plugin("plugin = org.cougaar.mlm.plugin.sample.MedicalInventoryPlugin"),
         new Fix.DeleteParameter(pi1, "ClassVIIIMedical", true),
     };
 
     public static Fix.Fixer[] sra = {
-        new Fix.PlugIn("plugin = org.cougaar.css."),
+        new Fix.Plugin("plugin = org.cougaar.css."),
     };
 
     public static Fix.Fixer[] transport = {
-        new Fix.PlugIn("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugIn"),
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportExpanderPlugIn"),
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAggregatorPlugIn"),
-        new Fix.PlugIn("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAllocatorPlugIn"),
+        new Fix.Plugin("plugin = org.cougaar.mlm.plugin.sample.StrategicTransportProjectorPlugin"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportExpanderPlugin"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAggregatorPlugin"),
+        new Fix.Plugin("plugin = mil.darpa.log.alpine.blackjack.plugins.TransportAllocatorPlugin"),
         new Fix.DeleteParameter(pi1, "StrategicTransportation", true),
         new Fix.DeleteParameter(pi2, "+PackagedPOLTransport"),
         new Fix.DeleteParameter(pi4, "+ClassISubsistenceTransport"),

@@ -137,7 +137,7 @@ sub notify {
            print SENDMAIL "<a href=\"https://www.alpine.bbn.com/alpine/build-logs/$BUILDNAME.log-error\">Error log</a> <br> \n";
            print SENDMAIL "<a href=\"https://www.alpine.bbn.com/alpine/build-logs/$BUILDNAME.log-brief\">Brief log</a> <br> \n";
 	   print SENDMAIL "<br> \n";
-           print SENDMAIL "<a href=\"https://www.alpine.bbn.com/cgi-bin2/PlugInDevelopers/build_results.pl\">All Build Results</a> <br> \n";
+           print SENDMAIL "<a href=\"https://www.alpine.bbn.com/cgi-bin2/PluginDevelopers/build_results.pl\">All Build Results</a> <br> \n";
 	   print SENDMAIL "<br>\n";
 	   print SENDMAIL "</html>\n";
 	   close SENDMAIL;
