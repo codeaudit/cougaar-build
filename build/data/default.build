@@ -81,7 +81,7 @@ sys.lib=module:jars
 # build.root=/tmp/head
 
 modules=\
-	build,javaiopatch,core,contract,toolkit,planserver, \
+	build,javaiopatch,bootstrap,util,core,contract,toolkit,planserver, \
 	glm,scalability,aggagent,\
 	vishnu,glmtrans,datagrabber,\
 	uiframework,blackjack,\
@@ -90,7 +90,8 @@ modules=\
 	csmart,\
 	quo, qos,\
 	dbms,\
-	server, manager,\
+	server,\
+	manager,\
 	webserver, webtomcat,\
 	bol
 
@@ -123,110 +124,117 @@ build.jars = tools
 # build/release
 build.extras = junit
 
+# bootstrap
+bootstrap.jars = xerces, log4j
+
+# util
+util.jars = xerces, log4j, servlet
+
 # core
+core.deps = bootstrap, util
 core.jars = xerces, log4j, servlet
 
 # app server
-server.deps = core
+server.deps = core, util, bootstrap
 
 # society manager
-manager.deps = core, server
+manager.deps = core, server, util
 
 # contract
-contract.deps = core
+contract.deps = core, util
 contract.jars = xerces
 
 # toolkit
-toolkit.deps = core
+toolkit.deps = core, util
 toolkit.jars = xerces
 
 # (old) psp server
-planserver.deps = core
+planserver.deps = core, util
 planserver.jars = xerces
 
 # glm
-glm.deps = core,planserver,toolkit
+glm.deps = core,planserver,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart451K,servlet
 glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
 
 # scalability testing kit
-scalability.deps = core,glm
+scalability.deps = core,glm,util
 scalability.jars = xerces
 
 # aggregation agent
-aggagent.deps = core,planserver,glm
+aggagent.deps = core,planserver,glm,util
 aggagent.jars = xerces,jpython,silk,servlet
 
 # vishnu scheduler
-vishnu.deps = core,toolkit,glm
+vishnu.deps = core,toolkit,glm,util
 vishnu.jars = xerces
 vishnu.repository = internal
 
 # tops
-#tops.deps = core,glm,toolkit,planserver,vishnu
+#tops.deps = core,glm,toolkit,planserver,vishnu,util
 #tops.jars = xerces,topsga,openmap,chart
 #tops.extras = mm-mysql-2
 #tops.repository = internal
 
 # datagrabber
-datagrabber.deps = core,glm,toolkit,planserver
+datagrabber.deps = core,glm,toolkit,planserver,util
 datagrabber.jars = xerces,chart,openmap,servlet
 datagrabber.repository = internal
 
 # glm transportation 
-glmtrans.deps = core,glm,toolkit,vishnu
+glmtrans.deps = core,glm,toolkit,vishnu,util
 glmtrans.jars = xerces,servlet
 glmtrans.repository = internal
 
 
 # delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
-delta.deps = core,glm,toolkit,planserver,javaiopatch
+delta.deps = core,glm,toolkit,planserver,javaiopatch,util
 delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 delta.repository = internal
 delta.private=1
 
-deltaeport.deps = core,glm,toolkit,planserver,javaiopatch
+deltaeport.deps = core,glm,toolkit,planserver,javaiopatch,util
 deltaeport.jars = NetComponents,activation,jbcl,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 deltaeport.repository = internal
 deltaeport.private=1
 
 
 # blackjack
-blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework
+blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework,util
 blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
 blackjack.repository = internal
 blackjack.private=1
 
 # Marines
-Marine.deps = core,glm
+Marine.deps = core,glm,util
 Marine.jars = xerces
 Marine.repository = internal
 
 # uiframework
-uiframework.deps = core,glm,planserver,aggagent,datagrabber
+uiframework.deps = core,glm,planserver,aggagent,datagrabber,util
 uiframework.jars = xerces,openmap,vgj,xerces
 uiframework.extras = mm-mysql-2
 
 # tutorials
-tutorial.deps = core,glm
+tutorial.deps = core,glm,util
 tutorial.jars = xerces
 
 # csmart
-csmart.deps = core,server,glm,scalability
+csmart.deps = core,server,glm,scalability,bootstrap,util
 csmart.jars = xerces,jcchart451K,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3,log4j
 csmart.repository = internal
 
 # quo/qos
-qos.deps = core
+qos.deps = core,util
 qos.jars = quoSumo
 
-quo.deps = core, qos
+quo.deps = core, qos,util
 quo.jars = quoSumo, jacorb, xerces
 
 # new PSP/web server
-webserver.deps = core
+webserver.deps = core,util
 webserver.jars = servlet
 webtomcat.deps = webserver
 webtomcat.jars = servlet, tomcat_40
