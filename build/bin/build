@@ -1645,7 +1645,7 @@ sub parse_config {
 
 sub parseopt {
   local ($_) = @_;
-  if (/\s*(\S+)\s*=\s*(.+)\s*$/) {
+  if (/\s*(\S+)\s*=\s*(.*)\s*$/) {
     my $key = $1;
     my $val = $2;
     if ( exists $opts{$key} ) {
