@@ -174,9 +174,6 @@ if ($data =~ /\//) {
 }
 $keep = $opt_n if $opt_n;	# reset the keep value if we need to
 
-cleanRemote();
-exit(0);
-
 # clean up any waxy yellow buildup
 mysystem("rm -rf $builddir");
 &mkd($builddir);
