@@ -199,6 +199,7 @@ uiframework.extras = mm-mysql-2
 # tutorials
 tutorial.deps = core,planning,glm,util
 tutorial.jars = xerces
+tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorial
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
