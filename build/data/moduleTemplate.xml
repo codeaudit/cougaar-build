@@ -14,7 +14,7 @@
 
 <!-- autobuild might execute this with something like:
   ant -DTARGETBASE=/tmp/target -DMODSOURCE=/tmp/cougaar/latest/src/%{Name} 
-      -DTMP=/tmp/tmpdir               -->
+      -DTMP=/tmp/tmpdir                                           -->
 
 <!-- Instructions for individual users:
 
@@ -47,16 +47,15 @@
      COUGAAR_DEV_PATH.
 
      Other typical targets:
-     'clean' -- remove old module jar files (from TARGETBASE/lib ie
+     'clean' - remove old module jar files (from TARGETBASE/lib ie
      usually COUGAAR_INSTALL_PATH/lib), plus class files
 
-     'dist-module' -- generate a new jar file TARGETBASE/lib/%{Name}-date.jar
-         (ie typically COUGAAR_INSTALL_PATH/lib/%{Name}-date.jar)
-     -->
+     'dist-module' - generate a new jar file TARGETBASE/lib/%{Name}-date.jar
+         (ie typically COUGAAR_INSTALL_PATH/lib/%{Name}-date.jar)     -->
 
-     <!-- Note use of JAVA_HOME, java.class.path, jikes.class.path -->
+<!-- Note use of JAVA_HOME, java.class.path, jikes.class.path -->
 
-  <!-- -----------------------------------------------------------   -->
+<!-- ================================================================   -->
 <project name="%{Name}" default="compile">
     <property name="module" value="%{Name}"/>
     <property name="moduleUp" value="%{PrettyName}"/>
@@ -318,15 +317,17 @@
     <target name="compile" depends="prepare, defrunner, really-compile, rmic-source"
 	    description="Compile the source Code"> </target>
 
-    <!-- see if the jarfile needs recompiling -->
-    <target name="check-sources" depends="prepare,defrunner" if="has.src">
-      <uptodate property="jarfile.uptodate" targetfile="foo.jar">
+    <!-- See if the jarfile needs recompiling -->
+    <!-- Note that module-date.jar is not checked, just module.jar -->
+    <!-- Also the property set here is _not_ currently used. -->
+    <target name="check-sources" depends="prepare, defrunner" if="has.src">
+      <uptodate property="jarfile.uptodate" targetfile="${module}.jar">
 	<srcfiles dir="${src}" includes="**/*.java"/>
       </uptodate>
     </target>
 
     <!-- This really does the compilation. The above just calls this -->
-    <target name="really-compile" depends="prepare, defrunner,check-sources" if="has.src">
+    <target name="really-compile" depends="prepare, defrunner, check-sources" if="has.src">
       <mkdir dir="${build}" />
       <available property="has.build" file="${build}"/>
       <!-- source=1.4 required for asserts -->
@@ -556,4 +557,4 @@
 	<fileset dir="${doc}" />
       </copy>
     </target>
-  </project>
+</project>
