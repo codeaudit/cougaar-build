@@ -948,10 +948,11 @@ public class PGWriter extends WriterBase {
             } else {
               println(out,"  public void set"+toClassName(name)+"("+type+" "+name+") {");
               // special handling for string setters
-              String isUnique = p.get(context, name+".unique");
-              if (type.equals("String") &&
-                  (isUnique == null || isUnique.equals("false"))){
-                println(out,"    if ("+name+"!=null) "+name+"="+name+".intern();");
+              if (type.equals("String")) {
+                String isInternable = p.get(context, name+".intern");
+                if (isInternable != null && isInternable.equals("true")) {
+                  println(out,"    if ("+name+"!=null) "+name+"="+name+".intern();");
+                }
               }
               println(out,"    "+var+"="+name+";");
               println(out,"  }");
@@ -1164,11 +1165,12 @@ public class PGWriter extends WriterBase {
           etype = ct.etype;
         }
 
-        String isUnique = p.get(context, name+".unique");
-        if (type.equals("String") &&
-            (isUnique == null || isUnique.equals("false"))){
-          needSerialization = true;
-          break;
+        if (type.equals("String")) {
+          String isInternable = p.get(context, name+".intern");
+          if (isInternable != null && isInternable.equals("true")) {
+            needSerialization = true;
+            break;
+          }
         }
       }
 
@@ -1200,10 +1202,11 @@ public class PGWriter extends WriterBase {
           if (var == null) { var = "the"+toClassName(name); } // set the default
           if (var.equals("")) { var = null; } // unset if specified as empty
           if (var != null) {
-            String isUnique = p.get(context, name+".unique");
-            if (type.equals("String") &&
-                (isUnique == null || isUnique.equals("false"))){
-              println(out,"    if ("+var+"!= null) "+var+"="+var+".intern();");
+            if (type.equals("String")) {
+              String isInternable = p.get(context, name+".intern");
+              if (isInternable != null && isInternable.equals("true")) {
+                println(out,"    if ("+var+"!= null) "+var+"="+var+".intern();");
+              }
             }
           }
         }
