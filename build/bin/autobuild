@@ -1,0 +1,146 @@
+#!/usr/bin/perl
+# -*- Perl -*-
+
+# <copyright>
+#  Copyright 2001 Defense Advanced Research Projects
+#  Agency (DARPA) and ALPINE (a BBN Technologies (BBN) and
+#  Raytheon Systems Company (RSC) Consortium).
+#  This software to be used only in accordance with the
+#  COUGAAR licence agreement.
+# </copyright>
+
+#
+# build script driver - used to run the build script hands-off 
+# periodically (eg. hourly, daily, whatever).
+# This is the script which is actually used for nightlies and releases,
+# so it is tuned to BBNT's use - other potential users will have to make
+# the obvious changes.
+#
+
+# Note that the bootstrapping proceedure assumes that CVSROOT is already
+# properly set so that the build module can be checked out directly.
+#
+
+use Cwd;
+use File::Copy;
+use File::Path;
+use File::Find;
+
+require "getopts.pl";
+
+&Getopts('v');
+$verbose = 1;
+$verbose++ if $opt_v;
+
+# handle signals
+sub sighandler {
+  local ($sig) = @_;
+  print "Caught a SIG$sig -- exiting\n";
+  exit(0);
+}
+$SIG{INT} = 'sighandler';
+$SIG{QUIT} = 'sighandler';
+
+# bootstrap the build process
+$tmpdir = "/tmp/hourly-build.$$";
+mysystem("rm -rf $tmpdir");
+mkd($tmpdir);
+mysystem("cd $tmpdir ; cvs -Q export -D now build/bin build/data");
+$basedir = "$tmpdir/build";
+
+# this is where build will build into
+$builddir = "/tmp/hourly";
+
+
+$buildscript = "$basedir/bin/build";
+$builddata = "$basedir/data/hourly.build";
+$keep = 4;
+
+
+
+# clean up any waxy yellow buildup
+mysystem("rm -rf $builddir");
+mkdir($builddir);
+
+# start a fresh build
+mysystem("$buildscript -v $builddata >/tmp/hourly.out");
+
+# what did we build?
+opendir D, $builddir;
+@allfiles = grep !/^\./, readdir D;
+closedir D;
+$built = $allfiles[0];
+
+# copy whatever is there to eiger
+mysystem("ssh eiger mkdir -p hourly/$built");
+mysystem("scp $builddir/$built/dist/* eiger:hourly/$built");
+mysystem("ssh eiger cd hourly \\; rm -f latest \\; ln -s $built latest");
+
+# leave only last n builds
+open(B, "ssh eiger ls hourly|");
+@alldirs = <B>;
+close(B);
+
+@alldirs = grep /[0-9]*/, @alldirs;
+@alldirs = sort @alldirs;
+
+# skip over keepers
+$i=0;
+while ($i < $keep && ($_= pop @alldirs)) {
+  $i++;
+}
+
+while ( ($_ = pop @alldirs)) {
+  chomp;
+  mysystem("ssh eiger rm -rf hourly/$_");
+}
+
+exit 0;
+
+mysystem("rm -rf $tmpdir");
+
+
+sub mysystem {
+  local($command)= @_;
+
+  print STDERR "$command\n" if ($verbose>1);
+  if ($pretend) {
+    return 0;
+  }
+
+  if ($pid = fork ) {
+    # parent
+    waitpid $pid, 0;
+    local($rc)= $?;
+    # signal decoding from Perl5 manual
+    $rc &= 0xffff;
+    if ($rc != 0) {
+      $sawerror++;
+      if ($rc == 0xff00) {
+	print STDERR "Command failed: $!\n";
+      } elsif ($rc > 0x80) {
+	$rc >>= 8;
+	print STDERR "Completed with exit status of $rc\n";
+      } else {
+	print STDERR "Ran with ";
+	if ($rc &  0x80) {
+	  $rc &= 0x80;
+	  print STDERR "coredump from ";
+	}
+	print STDERR "signal $rc\n";
+      }
+    }
+  } elsif (defined $pid) {
+    # child
+    exec $command;
+    print STDERR "$command: $!\n";
+    exit(-1);
+  } else {
+    die "Couldn't run @_\n";
+  }
+}
+
+sub mkd {
+  my($p) = @_;
+  mkdir $p, 0777;
+}
