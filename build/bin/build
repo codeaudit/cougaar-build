@@ -373,8 +373,6 @@ if ($java_home) {
   }
 }
 
-
-
 # Check out everything from CVS
 &checkout if (!$skip);
 
@@ -1312,7 +1310,18 @@ sub tag {
   my ($barg)="";
   $barg = "-b" if($branchP);
 
-  foreach $mod (@modules) {
+  my (@mods);
+  @mods = @module;
+
+  {
+    $syslib = opt("sys.lib");
+    if ($syslib =~ /^module:(.+)/) {
+      my($mod) = $1;
+      push @mods, @mod;
+    }
+  }
+
+  foreach $mod (@mods) {
     my $rep = getCVSROOT($mod);
 
     my $tag = opt("$mod.tag");
