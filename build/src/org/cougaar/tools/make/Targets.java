@@ -30,16 +30,16 @@ public class Targets {
     }
 
     /**
-     * Compile the sources in the current directory that are
-     * out-of-date w.r.t. their class file.
+       Compile all the prerequisite modules
      **/
     private void compilePrerequisites() throws MakeException {
-        String[] prerequisiteModules = theContext.getPrerequisites(theContext.getModuleName());
+        String[] prerequisiteModules =
+            theContext.getPrerequisites(theContext.getModuleName());
         for (int i = 0; i < prerequisiteModules.length; i++) {
             String moduleName = prerequisiteModules[i];
             File moduleDirectory = theContext.getModuleRoot(moduleName);
             if (moduleDirectory.isDirectory()) {
-                String tgt = moduleName + ".jar";
+                String tgt = moduleName + ".compile";
                 if (theContext.isNoPrerequisites()) {
                     if (new File(theContext.getProjectLib(), tgt).exists()) continue;
                 }
@@ -48,6 +48,10 @@ public class Targets {
         }
     }
 
+    /**
+     * Compile the sources in the current directory that are
+     * out-of-date w.r.t. their class file.
+     **/
     public void compileDir() throws MakeException {
         compileSome(theContext.getCurrentDirectory(), false);
     }
