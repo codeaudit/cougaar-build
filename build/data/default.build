@@ -95,7 +95,8 @@ modules=\
 	server,\
 	manager,\
 	webserver, webtomcat,\
-	community, bol
+	community, bol,\
+	albbn, alsra
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
@@ -195,7 +196,6 @@ glmtrans.deps = core,glm,toolkit,vishnu,util
 glmtrans.jars = xerces,servlet,vishnuServer
 glmtrans.repository = internal
 
-
 # delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
 delta.deps = core,glm,toolkit,planserver,javaiopatch,util
 delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
@@ -273,6 +273,21 @@ community.jars = log4j,xerces,servlet
 
 # dbms module
 dbms.repository = dbms
+
+#
+# Adaptive Logistics jars
+#
+# AL BBN
+albbn.deps = core,planserver,util,toolkit,glm,glmtrans,vishnu
+albbn.jars = xerces,openmap,fesi-111,jcchart,servlet
+albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
+albbn.module = bbn
+
+# AL SRA
+alsra.deps = core,planserver,util,toolkit,glm,glmtrans,vishnu,albbn
+alsra.jars = xerces,openmap,fesi-111,jcchart,servlet
+alsra.repository = :ext:cvs.ultralog.net:/cvs/logistics/sra
+alsra.module = sra
 
 #
 # distribution settings
