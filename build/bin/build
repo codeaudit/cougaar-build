@@ -32,6 +32,7 @@ $opt_file = "default.build";
 
 $verbose = 1;
 $pointP = 0;
+$isSigning = 1;
 
 sub parse_args {
   while ($#ARGV>=0) {
@@ -59,6 +60,7 @@ sub parse_args {
 	  $verbose++;
 	} elsif ($c eq "Q") {
 	  $nodoc = 1;
+	  $isSigning = 0;
 	} elsif ($c eq "S") {
 	  $skip = 1;
 	} elsif ($c eq "c") {
@@ -69,6 +71,8 @@ sub parse_args {
 	  $forceP = 1;
 	} elsif ($c eq "p") {
 	  $pointP = 1;
+	} elsif ($c eq "k") {
+	  $isSigning = 0;
 	} else {
 	  usage();
 	}
@@ -99,10 +103,19 @@ Usage: build [options] [ReleaseDescriptionFile]
 	-m mod[,...]	Specify a module or modules to build instead of all.  The script
 	        will figure out the right order and all dependencies.
         -p      Assume building from a point-tag rather than a branch (avoid use of -D)
+	-k	Dont sign any jars (implied by -Q)
 
 The default ReleaseDescriptionFile is "default.build".  If the file is not
 found as specified, it will try to check from cvs using the current CVSROOT from
 build/data/<ReleaseDescriptionFile> and use that.
+
+For signing of jar files to work, the following parameters should be set:
+  default.keystore (defaults to sys.lib/signingCA.keystore)
+  default.keystore.storepass (required)
+  default.keystore.keypass (defaults to storepass)
+  default.keystore.alias (defaults to privileged)
+Per-module overrides are allowed (e.g. instead of default, list the module name).
+Third-party jars are signed with the "sys" module information.
 
 Examples:
 Standard verbose build of the HEAD:
@@ -211,6 +224,9 @@ $jar_command = jdkCommand(opt("jar.command", "jar"));
 }
 $rmic_command = jdkCommand(opt("rmic.command", "rmic"));
 $rmic_arguments = opt("rmic.arguments", "-g -v1.2");
+
+$jarsigner_command = jdkCommand(opt("jarsigner.command", "jarsigner"));
+$jarsigner_arguments = opt("jarsigner.arguments");
 
 if ($opt_m) {
   @modules = compute_modules($opt_m);
@@ -595,6 +611,8 @@ sub build_module {
     mysystem("rm -rf $tmpdir");
   }
 
+  sign_jar("$libdir/$mod.jar", $mod);
+
   print "Done building $mod\n" if $verbose;
   $moduleDone{$mod}=1;
   return 1;
@@ -853,9 +871,10 @@ sub build_3rdparty {
 	print STDERR "Warning: could not find $dep in $foo\n";
       }
       if ($jar && ! ($member{$jar})) {
-	  $member{$jar} = 1;
-	  cp($jar, $tl);
-	}
+	$member{$jar} = 1;
+	cp($jar, $tl);
+	sign_jar($jar, "sys");
+      }
     }
   }
 
@@ -990,6 +1009,23 @@ sub add_md5 {
   mysystem("md5sum $list > md5sums.txt");
 }
 
+sub sign_jar {
+  my($jar, $mod) = @_;
+  if ($isSigning) {
+    my($ks)= gopt($mod, "keystore", "$syslib/signingCA.keystore");
+    my($kssp) = gopt($mod, "keystore.storepass");
+    my($kskp) = gopt($mod, "keystore.keypass", $kssp);
+    my($alias) = gopt($mod, "keystore.alias", "privileged");
+    if ($ks && $kssp && $kskp && $alias) {
+      # use system so that we don't publish the passwords in the logs
+      print STDERR "Signing $jar ($mod)\n" if ($verbose);
+      system("$jarsigner_command $jarsigner_arguments -keystore $ks -storepass $kssp -keypass $kskp $jar $alias");
+    } else {
+      print STDERR "Warning: Not enough information to sign $jar of $mod\n";
+    }
+  }
+}
+
 #
 # here be utilities
 #
@@ -1052,7 +1088,7 @@ sub sub_for_findbypattern {
             push @stuff, $File::Find::name;
          }
       }
-} 
+}
 
 sub findbypattern {
   local($dir, $pat) = @_;
@@ -1178,6 +1214,20 @@ sub opt {
   my ($value) = $opts{$key};
   if ($value eq "") {
     $value = $default;
+  }
+  if (wantarray) {
+    return listify($value);
+  } else {
+    return $value;
+  }
+}
+
+# gopt first checks "$mod.$key" then "default.$key" for values
+sub gopt {
+  my ($mod, $key, $default) = @_;
+  my ($value) = $opts{"$mod.$key"};
+  if ($value eq "") {
+    $value = opt("default.$key", $default);
   }
   if (wantarray) {
     return listify($value);
