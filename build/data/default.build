@@ -134,6 +134,8 @@ modules.unified = build,bootstrap,util,core,planning,\
 #or you can specify a complete CVSROOT value:
 #albbn.repository = :ext:cvs.ultralog.net:/cvs/logistics/bbn
 
+jars.repository = :ext:cougaar.org:/cvsroot/core
+
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
 
