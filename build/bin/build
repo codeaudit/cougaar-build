@@ -880,7 +880,7 @@ sub build_3rdparty {
 	cp($jar, $tl);
 	if ($jar =~ /\/([^\/]+\.(zip|jar))$/) {
 	  my ($tail) = $1;
-	  sign_jar("$tl$tail", "sys");
+	  sign_jar("$tl/$tail", "sys");
 	}
       }
     }
