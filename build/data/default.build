@@ -93,7 +93,7 @@ modules=\
 	server,\
 	manager,\
 	webserver, webtomcat,\
-	mic, bol
+	community, bol
 
 #disable delta until functional in HEAD again
 #	delta, deltaeport
@@ -256,10 +256,12 @@ bol.standalone = 1
 # bol needs javac for now
 bol.compiler=javac
 
-# mic
-mic.repository = external
-mic.deps = util,core,glm,planserver
-mic.jars = log4j,xerces
+# community
+# (incorrectly) checked into cvs as "mic" for now
+community.module = mic
+community.repository = external
+community.deps = util,core,glm,planserver
+community.jars = log4j,xerces
 
 # dbms module
 dbms.repository = dbms
