@@ -92,9 +92,13 @@ public class VersionWriter extends WriterBase {
 		  "  public final static void main(String args[]) {\n"+
 		  "    System.out.println(\"version=\"+version);\n"+
 		  "    System.out.println(\"build time=\"+new java.util.Date(buildTime));");
-      println(out, "    System.out.println(\"repository tag="+rtag+
-	  (rmod?" (modified)":"")+"\");");
-      println(out, "    System.out.println(\"repository time="+rtim+"\");");
+      if (rtag != null) {
+        println(out, "    System.out.println(\"repository tag="+rtag+
+                (rmod?" (modified)":"")+"\");");
+      }
+      if (rtim != null) {
+        println(out, "    System.out.println(\"repository time="+rtim+"\");");
+      }
       println(out,"  }\n"+
                   "}");
       out.close();

@@ -1,3 +1,8 @@
+2001-09-05  Michael Thome  <mthome@bbn.com>
+
+	* VersionWriter
+	Be smarter about repository tag & date information.
+
 2001-04-16  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/tools/make/MakeContext.java:
