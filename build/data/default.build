@@ -79,14 +79,15 @@ modules=\
 	vishnu,tops,glmtrans,delta,uiframework,blackjack,\
 	base,\
 	tutorial,\
-	csmart
+	csmart,\
+	qos
 
 # leave out Marine for now - it is broken
 
 # modules which are public - that is, fully released
 modules.public=build,javaiopatch,core,contract,toolkit,planserver,\
 	glm,scalability,server,aggagent,uiframework,base,tutorial,\
-	tops,glmtrans,vishnu,csmart
+	tops,glmtrans,vishnu,csmart,qos
 
 # modules which contribute to unified api (javadoc)
 modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
@@ -118,6 +119,7 @@ Marine.deps = core,glm
 uiframework.deps = core,glm,planserver,aggagent,tops
 tutorial.deps = core,glm
 csmart.deps = core,server,glm,planserver,scalability
+qos.deps = core
 
 # module libs (in addition to module deps)
 core.jars = xerces, log4j
@@ -136,6 +138,7 @@ uiframework.jars = xerces,openmap,j2ee,vgj,xerces
 Marine.jars = xerces
 tutorial.jars = xerces
 csmart.jars = xerces,jcchart451K,grappa1_2_bbn
+qos.jars = QuoKernel
 
 #extra libs to include in distribution
 # for example jdbc drivers for use at runtime
