@@ -126,28 +126,31 @@
     <!-- Set paths for use in creating zip files -->
     <property name="zipbase" value="${TMP}/zip"/>
     
-    <!-- where oh where oh where is java? Used to find tools.jar and such -->
+    <!-- where oh where oh where is java? Can be used to find tools.jar -->
     <!-- Note that JAVA_HOME must have been set in a .properties file -->
-    <!-- Otherwise, the dynamically found version is used (usually OK). -->
-    <property name="java.home" value="${JAVA_HOME}"/>
+    <!-- Otherwise, the dynamically found version is used (usually finds the jre, ugh ). -->
+    <!-- Also note that we're now using a checked-in version of tools.jar -->
+    <property environment="env"/>
+    <property name="java.home" value="${env.JAVA_HOME}"/>
+    <property name="jdk.home" value="${env.JAVA_HOME}"/>
     
     <!-- ================ Parameters ================ -->
     <!-- These properties are filled out by the autobuilder -->
     
     <!-- jarfiles required by this module, relative to various other paths -->
     <!-- WARNING: Only relative paths work here. -->
-    <property name="compile.jarlist" value="DUMMYJAR"/>
+    <property name="compile.jarlist" value="${target.sys}/tools.jar"/>
     <!-- Put absolute paths on this list, in the form of a path. -->
-    <property name="compile.abs.jarlist" value="${java.home}/lib/tools.jar"/>
+    <property name="compile.abs.jarlist" value=""/>
 
     <!-- javadoc package spec for building javadocs -->
     <property name="javadoc.packages" value="org.cougaar.tools.build,org.cougaar.tools.fixconfig,org.cougaar.tools.javadoc,org.cougaar.tools.make"/>
 
     <!-- Extra jars needed at run / unit-test time. -->
     <!-- WARNING: Only relative paths work here. -->
-    <property name="run.jarlist" value="${target.sys}/junit.jar"/>
+    <property name="run.jarlist" value="${target.sys}/tools.jar,${target.sys}/junit.jar"/>
     <!-- Put absolute paths on this list, in the form of a path. -->
-    <property name="run.abs.jarlist" value="${java.home}/lib/tools.jar"/>
+    <property name="run.abs.jarlist" value=""/>
     
     <!-- ================ Classpaths ================ -->
 
@@ -303,6 +306,7 @@
       <available property="has.dev" file="${dev}"/>
       <available property="has.doc" file="${doc}"/>
       <available property="has.Regress" file="${regress}"/>
+      <available property="has.lib" file="${local.lib}"/>
       
       <!-- Create the timestamp -->
       <tstamp/>
@@ -385,6 +389,28 @@
 	</fileset>
       </copy>
     </target>
+
+    <target name="jar.build" depends="compile" if="has.src">
+      <!-- create the jarfile -->
+      <jar jarfile="${module}.jar" basedir="${build}" />
+    </target>
+      
+
+    <target name="install" depends="install.jar, install.lib">
+    </target>
+
+    <target name="install.jar" depends="jar.build" if="has.build">
+      <mkdir dir="${target.lib}"/>
+      <copy file="${module}.jar" todir="${target.lib}"/>
+    </target>
+
+    <target name="install.lib" if="has.lib">
+      <mkdir dir="${target.sys}"/>
+      <copy  todir="${target.sys}">
+	<fileset dir="${local.lib}" includes="*.jar"/>
+      </copy>
+    </target>
+
 
     <!-- ========================================================== -->
     <!-- Compile EVERYTHING			                -->

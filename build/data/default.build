@@ -85,6 +85,7 @@ sys.lib=module:jars
 modules=\
 	build,javaiopatch,bootstrap,util,core,\
         planning,contract,toolkit,planserver,\
+	yp,\
 	glm,scalability,aggagent,\
 	vishnu,datagrabber,\
 	uiframework,blackjack,\
@@ -143,6 +144,10 @@ util.jars = log4j, xerces
 core.deps = bootstrap, util
 core.jars = log4j, servlet
 
+# yellow pages
+yp.deps = util, core
+yp.jars = jaxr-api
+
 # planning
 planning.deps = util, core
 planning.jars = xerces, servlet
@@ -165,7 +170,7 @@ toolkit.jars = xerces
 planserver.deps = core, planning, util
 planserver.jars = xerces
 
-# glm
+# glm3
 glm.deps = core,planning,planserver,toolkit,bootstrap,util
 glm.jars = xerces,fesi-111,jcchart,servlet
 glm.extras = oracle12, mm-mysql-2, pgjdbc2

@@ -905,10 +905,11 @@ sub get_classpath {
   my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
 
   # add tools
+  # (we've checked tools.jar into jars, eliminating this particular problem)
   my @tooljars;
-  if (-e "$java_home/lib/tools.jar") {
-    @tooljars = ("$java_home/lib/tools.jar");
-  }
+  #if (-e "$java_home/lib/tools.jar") {
+  #  @tooljars = ("$java_home/lib/tools.jar");
+  #}
   #put them together - module jars never take precedence
   my @alljars = (@buildjars, @sysjars, @libjars, @tooljars);
 

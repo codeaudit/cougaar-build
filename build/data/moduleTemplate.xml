@@ -137,10 +137,13 @@
     <!-- Set paths for use in creating zip files -->
     <property name="zipbase" value="${TMP}/zip"/>
     
-    <!-- where oh where oh where is java? Used to find tools.jar and such -->
+    <!-- where oh where oh where is java? Can be used to find tools.jar -->
     <!-- Note that JAVA_HOME must have been set in a .properties file -->
-    <!-- Otherwise, the dynamically found version is used (usually OK). -->
-    <property name="java.home" value="${JAVA_HOME}"/>
+    <!-- Otherwise, the dynamically found version is used (usually finds the jre, ugh ). -->
+    <!-- Also note that we're now using a checked-in version of tools.jar -->
+    <property environment="env"/>
+    <property name="java.home" value="${env.JAVA_HOME}"/>
+    <property name="jdk.home" value="${env.JAVA_HOME}"/>
     
     <!-- ================ Parameters ================ -->
     <!-- These properties are filled out by the autobuilder -->
@@ -314,6 +317,7 @@
       <available property="has.dev" file="${dev}"/>
       <available property="has.doc" file="${doc}"/>
       <available property="has.Regress" file="${regress}"/>
+      <available property="has.lib" file="${local.lib}"/>
       
       <!-- Create the timestamp -->
       <tstamp/>
@@ -396,6 +400,28 @@
 	</fileset>
       </copy>
     </target>
+
+    <target name="jar.build" depends="compile" if="has.src">
+      <!-- create the jarfile -->
+      <jar jarfile="${module}.jar" basedir="${build}" />
+    </target>
+      
+
+    <target name="install" depends="install.jar, install.lib">
+    </target>
+
+    <target name="install.jar" depends="jar.build" if="has.build">
+      <mkdir dir="${target.lib}"/>
+      <copy file="${module}.jar" todir="${target.lib}"/>
+    </target>
+
+    <target name="install.lib" if="has.lib">
+      <mkdir dir="${target.sys}"/>
+      <copy  todir="${target.sys}">
+	<fileset dir="${local.lib}" includes="*.jar"/>
+      </copy>
+    </target>
+
 
     <!-- ========================================================== -->
     <!-- Compile EVERYTHING			                -->
