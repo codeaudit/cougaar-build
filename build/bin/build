@@ -155,8 +155,10 @@ EOF
 }
 
 @modules;			# list of modules to build.
-%moduleDone;			# has a given module been built?
 @depstack;			# stack of module dependencies being considered.
+
+%moduleDone;			# has a given module been built?
+%moduleFailed;			# map of modules which failed to build
 
 # signal handling
 sub sighandler {
@@ -552,6 +554,7 @@ sub build {
   print "Finished building modules\n" if $verbose;
 }
 
+# return a list of failed dep module or null
 sub checkDeps {
   my ($mod) = @_;
   return if ($moduleDone{$mod}); # don't bother to check
@@ -559,14 +562,20 @@ sub checkDeps {
   if (member($mod, @depstack)) {
     die "Fatal Error: detected dependency loop: $mod @depstack\n";
   }
+
   push @depstack, $mod;		# add the current mod to the stack
+
+  my @fdeps;
+
   # build the submodules
   foreach $dep (split /\s*,\s*/, opt("$mod.deps")) {
+    push @fdeps, $dep if ($moduleFailed{$dep}); # a dependency failed
     if (! $moduleDone{$dep}) {
       build_module($dep);
     }
   }
   pop @depstack;		# pop the current mod from the stack
+  return @fdeps;
 }
 
 sub build_module_src {
@@ -622,40 +631,44 @@ sub build_module_main {
 
   my $mysrc = &compute_path($mypath, "src", $pext);
   my $builtjar = &build_module_src($mod,$mysrc,$jname);
-  my $extrajars = "$libdir/$jname.jar";
+  if ($builtjar) {
+    my $extrajars = "$libdir/$jname.jar";
 
-  {
-    my $myex = &compute_path($mypath, "examples", $pext);
-    if ( -d "$myex/src") {
-      print "Compiling $jname examples src:\n" if $verbose;
-      &build_module_src($mod,"$myex/src","${jname}_examples",$extrajars,"examples");
-    } elsif ( -d $myex) {
-      print "Compiling $jname examples:\n" if $verbose;
-      &build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+    {
+      my $myex = &compute_path($mypath, "examples", $pext);
+      if ( -d "$myex/src") {
+	print "Compiling $jname examples src:\n" if $verbose;
+	&build_module_src($mod,"$myex/src","${jname}_examples",$extrajars,"examples");
+      } elsif ( -d $myex) {
+	print "Compiling $jname examples:\n" if $verbose;
+	&build_module_src($mod,$myex,"${jname}_examples",$extrajars,"examples");
+      }
     }
-  }
 
-  {
-    my $mytest = &compute_path($mypath, "test", $pext);
-    if ( -d "$mytest/src") {
-      print "Compiling $jname test src:\n" if $verbose;
-      &build_module_src($mod,"$mytest/src","${jname}_test",$extrajars,"test");
-    } elsif ( -d $mytest) {
-      print "Compiling $jname test:\n" if $verbose;
-      &build_module_src($mod,$mytest,"${jname}_test",$extrajars,"test");
+    {
+      my $mytest = &compute_path($mypath, "test", $pext);
+      if ( -d "$mytest/src") {
+	print "Compiling $jname test src:\n" if $verbose;
+	&build_module_src($mod,"$mytest/src","${jname}_test",$extrajars,"test");
+      } elsif ( -d $mytest) {
+	print "Compiling $jname test:\n" if $verbose;
+	&build_module_src($mod,$mytest,"${jname}_test",$extrajars,"test");
+      }
     }
-  }
 
-  {
-    my $myreg = &compute_path($mypath, "regress", $pext);
-    if (-d $myreg) {
-      print "Compiling $jname regression tests:\n" if $verbose;
-      &build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+    {
+      my $myreg = &compute_path($mypath, "regress", $pext);
+      if (-d $myreg) {
+	print "Compiling $jname regression tests:\n" if $verbose;
+	&build_module_src($mod,$myreg,"${jname}_regress",$extrajars,"junit");
+      }
     }
-  }
 
-  # sign only after doing examples and regress
-  sign_jar("$libdir/$jname.jar", $mod) if ($builtjar);
+    # sign only after doing examples and regress
+    sign_jar("$libdir/$jname.jar", $mod) if ($builtjar);
+  } else {
+    print "Error: Failed to compile $jname\n";
+  }
 
   return $builtjar;
 }
@@ -664,7 +677,16 @@ sub build_module {
   my ($mod) = @_;
   return if ($moduleDone{$mod});
 
-  checkDeps($mod);
+  my @fdeps = checkDeps($mod);
+  if ($#fdeps >= 0) {
+    # ugly repetition of messages, but it avoids mixing up the logic below...
+    print "\nBuilding module $mod\n";
+    print "Error: Cannot build module $mod because of failed dependency: @fdeps.\n";
+    $moduleDone{$mod} = 1;
+    $moduleFailed{$mod} = 1;
+    print "Done building $mod\n";
+    return 0;
+  }
 
   my $mymod = "$srcdir/$mod";
   print "\nBuilding module $mod\n";
@@ -680,12 +702,15 @@ sub build_module {
   my @splits = &opt("$mod.split");
   my $split_p = ($#splits >= 0);
   if ($split_p) {
+    $builtjar = 1;
     foreach $split (@splits) {
-      &build_module_main($mod, $mymod, $split);
+      $builtjar = ( &build_module_main($mod, $mymod, $split) && $builtjar);
     }
   } else {
     $builtjar = &build_module_main($mod,$mymod,"");
   }
+
+  $moduleFailed{$mod} = !$builtjar;
 
   # now create the product-module.zip file
   if (isPublic($mod)) {
@@ -879,12 +904,14 @@ sub generate_code {
   my ($src, $cp) = @_;
   my @defs = findbypattern($src, "\.def\$");
   my $n = $#defs+1;
+  my $rc = 1;
   for (@defs) {
-    rundef($_, $cp);
+    $rc = rundef($_, $cp) && $rc;
   }
+  return $rc;
 }
 
-# code generate a single .def file
+# code generate a single .def file, returns 1 on success
 sub rundef {
   my ($path, $cp)=@_;
   open(DEF, "<$path");
@@ -1270,9 +1297,11 @@ sub mysystem {
       $sawerror++;
       if ($rc == 0xff00) {
 	print STDERR "Command failed: $!\n";
+	return -1;
       } elsif ($rc > 0x80) {
 	$rc >>= 8;
 	print STDERR "Completed with exit status of $rc\n";
+	return $rc;
       } else {
 	print STDERR "Ran with ";
 	if ($rc &  0x80) {
@@ -1280,6 +1309,7 @@ sub mysystem {
 	  print STDERR "coredump from ";
 	}
 	print STDERR "signal $rc\n";
+	return -1;
       }
     }
   } elsif (defined $pid) {
@@ -1579,6 +1609,12 @@ sub find_errors {
       $nl = max($nl,1);
     }
 
+    # search for build errors/warnings
+    if (/^Error:/) {
+      $ec++;
+      $nl = max($nl,1);
+    }
+
     # do we need to advance the context pointer?
     my($x) = $l+$nl;
     $cl = $x if ($cl<$x);
@@ -1717,33 +1753,36 @@ sub compile_dir {
     }
 
     # run code generators
-    generate_code($from, $cp);
+    my $grc = generate_code($from, $cp);
     # compile sources
     chdir $from;
     my $tmpfile = "$tmp/build.$$";
     mysystem("find . -name '*.java' -print>$tmpfile");
+    my $cok = 1;
     if (-s $tmpfile) {
-      javac($mod, $cp, "-d $to \@$tmpfile");
+      $cok = javac($mod, $cp, "-d $to \@$tmpfile");
     } else {
       print "Error: Module $mod $from does not seem to actually have any sources to compile\n";
     }
     unlink($tmpfile);
 
     # search for files/classes to rmic
-    my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
-    if ($#rmicfiles>=0) {
-      foreach $rf (@rmicfiles) {
-	chomp $rf;
-	$rf =~ /\.\/(.*)\.java/;
-	$rf=$1;
-	$rf =~ s/\//\./g;
-	rmic($mod, "$to$cpsep$cp", "-d $to $rf");
+    if ($cok) {
+      my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
+      if ($#rmicfiles>=0) {
+	foreach $rf (@rmicfiles) {
+	  chomp $rf;
+	  $rf =~ /\.\/(.*)\.java/;
+	  $rf=$1;
+	  $rf =~ s/\//\./g;
+	  rmic($mod, "$to$cpsep$cp", "-d $to $rf");
+	}
       }
     }
 
     # copy non-java "sources" to tmplib
     add_module_files($from, $to);
-    return 1;
+    return $cok;
   } else {
     return 0;
   }
@@ -1757,11 +1796,12 @@ sub javac {
   $ENV{CLASSPATH}="$cp";
   $ENV{JIKESPATH}="$cp";
   print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
-  mysystem("$jc $args");
+  my ($result) = mysystem("$jc $args");
   undef $ENV{CLASSPATH};
   undef $ENV{JIKESPATH};
   my ($time1) = time;
   addtime("compile",$time1-$time0);
+  return ($result == 0);
 }
 sub java {
   my ($cp, $args) = @_;
@@ -1770,10 +1810,11 @@ sub java {
   my ($j) = jdkCommand($java_command);
   $ENV{CLASSPATH}="$cp";
   print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
-  mysystem("$j $args");
+  my ($result) = mysystem("$j $args");
   undef $ENV{CLASSPATH};
   my ($time1) = time;
   addtime("codegen",$time1-$time0);
+  return ($result == 0);
 }
 
 sub rmic {
@@ -1782,10 +1823,11 @@ sub rmic {
   $cp = &cpWrap($cp);
   $ENV{CLASSPATH}="$cp";
   print STDERR "CLASSPATH = $cp\n" if ($verbose>1);
-  mysystem("$rmic_command $rmi_arguments $args");
+  my ($result) = mysystem("$rmic_command $rmi_arguments $args");
   undef $ENV{CLASSPATH};
   my ($time1) = time;
   addtime("rmic",$time1-$time0);
+  return ($result == 0);
 }
 
 
