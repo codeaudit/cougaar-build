@@ -1589,6 +1589,7 @@ sub tag {
     my $rep = getCVSROOT($mod);
     my $tag = opt("$mod.tag");
     $tag = $rtag if (!$tag);
+    my $cvsmod = opt("$mod.module","$mod");
 
     my $arg = "";
     $arg = "-Q" if ($verbose<=1);
@@ -1599,13 +1600,13 @@ sub tag {
     if ($hairyP) {
       # sigh.  Have to do a checkout and then local tag
       chdir("$tmpdir");
-      mysystem("cvs $arg -d '$rep' co $rarg -D '$rdate' $mod");
+      mysystem("cvs $arg -d '$rep' co $rarg -D '$rdate' -d $mod $cvsmod");
       chdir("$tmpdir/$mod");
       mysystem("cvs $arg -d '$rep' tag $barg $Farg $newtag .");
       chdir("$tmpdir");
       mysystem("rm -rf $tmpdir/$mod");
     } else {
-      mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $mod");
+      mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $newtag $cvsmod");
     }
   }
   if ($hairyP) {
