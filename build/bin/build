@@ -668,6 +668,9 @@ sub build_module {
 
   my $mymod = "$srcdir/$mod";
   print "\nBuilding module $mod\n";
+  if (! (-d $mymod)) {
+    print STDERR "Warning: $mod is missing.\n";
+  }
 
   my $mysrc = "$mymod/src";
   my $tmplib = "$tmp/build-lib$$";
