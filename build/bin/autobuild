@@ -82,8 +82,6 @@ $tag;				# tag to use to pass to the build script (-t arg)
 $default_group = "AUTO";
 $group;
 $data = "default.build";
-#$host = "eiger.alpine.bbn.com";
-#$auto = "auto";		# where do the builds go on $host?
 $host = "build.cougaar.org";
 $auto = "/var/www/gforge-projects/build/auto"; # where do the builds go on $host?
 $cleanup = 1;
@@ -95,7 +93,7 @@ $extraargs="";
 
 chdir("/tmp");			# is it safe?
 
-&Getopts('vVm:a:t:d:hkT:H:po:n:j:Cg:S:E');
+&Getopts('vVm:a:t:d:hkT:H:po:n:j:Cg:S:ER:');
 if ($opt_h) {
   print STDOUT "Usage: autobuild [args]\n";
   print STDOUT "\t-v\tVerbose mode\n";
@@ -107,8 +105,9 @@ if ($opt_h) {
   print STDOUT "\t-C\tOnly clean\n";
   print STDOUT "\t-d file\tData file to use instead of 'default.build'\n";
   print STDOUT "\t-k\tDont clean up afterwards (leave leftovers)\n";
-  print STDOUT "\t-T dir\tPut temporary files in dir/group instead of /tmp/group\n";
+  print STDOUT "\t-T host:dir\tSpecify target location, an alias for specifying -H host and -a dir\n";
   print STDOUT "\t-H host\tPublish to host instead of \"$host\"\n";
+  print STDOUT "\t-T dir\tdirectory to use instead of /tmp\n";
   print STDOUT "\t-h\tThis usage commend\n";
   print STDOUT "\t-p\tTag is to be treated as a point-tag (avoid use of cvs export -D)\n";
   print STDOUT "\t-o string\tPass string as extra arguments to build\n";
@@ -158,12 +157,17 @@ if ($onlyclean) {
 #  $auto = $opt_t;
 #}
 
-if ($opt_T) {
-  $tmpbase = $opt_T;
-} else {
-  $tmpbase = "/tmp";
+if ($opt_R) {
+  if ($opt_R =~ /(.+):(.+)/) {
+    $host = $1;
+    $auto = $2;
+  } else {
+    logMessage("Target error '$opt_R'");
+    exit(-1);
+  }
 }
 
+$tmpbase = ($opt_T eq "")?"/tmp":$opt_T;
 &mkd($tmpbase);
 
 # bootstrap the build process
