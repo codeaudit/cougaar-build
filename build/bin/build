@@ -216,7 +216,7 @@ $compiler_touse = "javac";
 addopt("javac.command", "javac");
 addopt("jikes.command", "jikes");
 addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
-addopt("javadoc.memory", "-J-Xmx256m -J-Xms128m");
+addopt("default.javadoc.memory", "-J-Xmx256m -J-Xms128m");
 
 #Classpath separator set from property, defaults to Unix version
 $cpsep = opt("cp.sep", ":");
@@ -261,7 +261,6 @@ $jar_command = jdkCommand(opt("jar.command", "jar"));
     $javadoc_command = $foo;
   } else {
     $javadoc_command = jdkCommand(opt("javadoc.command", "javadoc"));
-    $javadoc_arguments = opt("javadoc.arguments");
   }
 }
 $rmic_command = jdkCommand(opt("rmic.command", "rmic"));
@@ -1101,6 +1100,7 @@ sub javadoc {
       $args .= join(" -taglet ", @jdtaglets);
     }
   }
+  my $javadoc_arguments = gopt($mod, "javadoc.arguments");
   mysystem("$javadoc_command $javadoc_arguments $args -d $dst -sourcepath . $pkgs");
 
   undef $ENV{CLASSPATH};
