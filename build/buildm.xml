@@ -136,10 +136,13 @@ or globally in your $HOME/.ant.properties.
 something like org.cougaar.tools.build.* (e.g. for the build module) -->
   <property file="${src}/build.properties"/>
   <javadoc
+	packagenames="${doc.packages}"
 	sourcepath="${src}"
 	destdir="${docdir}"
-	packagenames="${doc.packages}"
-	 />
+	classpathref="jars"
+	additionalparam="-J-Xmx128m"
+	>
+  </javadoc>
 </target>
 
 <target name="compile" depends="init">

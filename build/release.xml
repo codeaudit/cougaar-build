@@ -29,6 +29,21 @@ Usage: ant -buildfile build/release.xml -Dbasedir=$PWD dist
 <target name="init">
 </target>
 
+<!-- this is unsatisfyingly ugly -->
+<target name="zip">
+  <execon executable="zip"
+	dir="${distdir}"
+	>
+    <arg value="-r"/>
+    <arg value="${tmpdir}/cougaar.zip"/>
+    <fileset dir="${distdir}">
+	<patternset>
+	  <include name="**/*"/>
+	</patternset>
+    </fileset>
+  </execon>
+</target>
+
 <target name="dist" depends="init">
   <mkdir dir="${distdir}"/>
   <mkdir dir="${distdir}/lib"/>
