@@ -2018,8 +2018,12 @@ sub success_report {
 sub fixbats {
   my ($dir) = @_;
   my @bats = findbypattern($dir, "(?i)\.bat\$");
-  foreach $ding (@bats) {
-    fixbat($ding);
+  my ($nbats) = 1+$#bats;
+  if ($nbats>0) {
+    print "Fixing CRLFs in $nbats .bat files\n" if $verbose;
+    foreach $ding (@bats) {
+      fixbat($ding);
+    }
   }
 }
 
