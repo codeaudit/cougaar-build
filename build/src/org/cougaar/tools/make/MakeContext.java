@@ -745,7 +745,7 @@ public class MakeContext {
         if (recurse) {
             x = dir.listFiles(new FileFilter() {
                 public boolean accept(File f) {
-		    return f.isDirectory();
+		    return f.isDirectory() && !f.getName().startsWith(".");
                 }
             });
 	    for (int i = 0; i < x.length; i++) {
