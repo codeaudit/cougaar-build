@@ -19,12 +19,13 @@ java.home = /usr/local/java/jdk1.3
 # java.command may be used to figure out java.home if not otherwise
 java.command = java
 # old syntax (still grudginly accepted)
-# java = /usr/local/java/jdk1.3/bin/java
+# java = /usr/local/java/jdk1.4/bin/java
 
 # which compiler to use.  valid options are "javac" and "jikes" and
 # the actual command executed will depend on the $javac.command
 # options below
-compiler = jikes
+#compiler = jikes
+compiler = javac
 
 # these may be modified to have full path names, or they will be found
 # either via java.home or on the path.
@@ -45,13 +46,18 @@ compiler.debug = 1
 #compiler.optimize = 1
 
 # arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
-#javac.arguments = -J-Xmx128m -J-Xms128m
+javac.arguments = -source 1.4 -target 1.4 -J-Xmx128m -J-Xms128m
 #jikes.arguments =
 
 # javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
 # javadoc.command = javadoc
 # default memory settings are not enough to build the unified javadoc
-# javadoc.arguments = -J-Xmx128m -J-Xms128m
+# javadoc.memory = -J-Xmx256m -J-Xms128m
+# javadoc.arguments = 
+javadoc.options = -breakiterator -source 1.4 -quiet -splitIndex
+javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
+javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
+	org.cougaar.tools.javadoc.ToDoTaglet
 
 # repository.base defaults to CVSROOT without the trailing "cougaar"
 #repository.base=/cvs/alp/
@@ -75,7 +81,10 @@ sys.lib=module:jars
 # build.root=/tmp/head
 
 modules=\
-	delta,deltaeport
+	delta, deltaeport
+
+#disable delta until functional in HEAD again
+#	delta, deltaeport
 
 
 # default publicness to true - disable with mod.private=1
@@ -83,7 +92,7 @@ default.public=1
 # modules which are public - that is, fully released
 
 # modules which contribute to unified api (javadoc)
-modules.unified = core,toolkit,contract,planserver,glm,scalability,server,aggagent,build
+modules.unified = build,core,server,contract,toolkit,planserver,glm,scalability,aggagent,webserver
 
 ##
 ## module-specific flags
@@ -103,19 +112,147 @@ build.jars = tools
 # build/release
 build.extras = junit
 
+# bootstrap
+bootstrap.jars = xerces, log4j
 
-# delta
-delta.deps = core,glm,toolkit,planserver
-delta.jars = xerces,activation,jms,servlet,mail,qslink,jess50,fesi-111
+# util
+util.jars = xerces, log4j, servlet
+
+# core
+core.deps = bootstrap, util
+core.jars = xerces, log4j, servlet
+
+# app server
+server.deps = core, util, bootstrap
+
+# society manager
+#  (glm is used for examples - oplan)
+manager.deps = core, server, util, glm
+
+# contract
+contract.deps = core, util
+contract.jars = xerces
+
+# toolkit
+toolkit.deps = core, util
+toolkit.jars = xerces
+
+# (old) psp server
+planserver.deps = core, util
+planserver.jars = xerces
+
+# glm
+glm.deps = core,planserver,toolkit,bootstrap,util
+glm.jars = xerces,fesi-111,jcchart451K,servlet
+glm.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3
+
+# scalability testing kit
+scalability.deps = core,glm,util
+scalability.jars = xerces
+
+# aggregation agent
+aggagent.deps = core,planserver,glm,util
+aggagent.jars = xerces,jpython,silk,servlet
+
+# vishnu scheduler
+vishnu.deps = core,toolkit,glm,util
+vishnu.jars = xerces
+vishnu.repository = internal
+
+# tops
+#tops.deps = core,glm,toolkit,planserver,vishnu,util
+#tops.jars = xerces,topsga,openmap,chart
+#tops.extras = mm-mysql-2
+#tops.repository = internal
+
+# datagrabber
+datagrabber.deps = core,glm,toolkit,planserver,util
+datagrabber.jars = xerces,chart,openmap,servlet
+datagrabber.repository = internal
+
+# glm transportation 
+glmtrans.deps = core,glm,toolkit,vishnu,util
+glmtrans.jars = xerces,servlet
+glmtrans.repository = internal
+
+
+# delta and deltaeport HEAD against cougaar V9_0_0 dependencies 020408..md
+delta.deps = core,glm,toolkit,planserver,javaiopatch,util
+delta.jars = NetComponents,activation,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 delta.repository = internal
 delta.private=1
 
-deltaeport.deps = core,glm,toolkit,planserver,delta
-deltaeport.jars = servlet,jbcl,xmlparserv2,oracle12
+deltaeport.deps = core,glm,toolkit,planserver,javaiopatch,util
+deltaeport.jars = NetComponents,activation,jbcl,jess50,jms,mail,qslink,servlet,xerces,xmlparserv2
 deltaeport.repository = internal
 deltaeport.private=1
 
 
+# blackjack
+blackjack.deps = core,glm,planserver,toolkit,aggagent,vishnu,uiframework,util
+blackjack.jars = xerces,jcchart451K,servlet,silk,jpython,ejb,jdbc2_0-stdext
+blackjack.repository = internal
+blackjack.private=1
+
+# Marines
+Marine.deps = core,glm,util
+Marine.jars = xerces
+Marine.repository = internal
+
+# uiframework
+uiframework.deps = core,glm,planserver,aggagent,datagrabber,util
+uiframework.jars = xerces,openmap,vgj,xerces
+uiframework.extras = mm-mysql-2
+
+# tutorials
+tutorial.deps = core,glm,util
+tutorial.jars = xerces
+
+# csmart
+csmart.deps = core,server,glm,scalability,bootstrap,util
+csmart.jars = xerces,jcchart451K,grappa1_2,servlet
+# csmart wants DBMS for regression tests, too
+csmart.extras = oracle12, mm-mysql-2, bbn-postgresql7.1.3,log4j
+csmart.repository = internal
+
+# quo/qos
+qos.deps = core,util
+qos.jars = quoSumo
+
+quo.deps = core, qos,util
+quo.jars = quoSumo, jacorb, xerces
+
+# new PSP/web server
+webserver.deps = core,util
+webserver.jars = servlet
+webtomcat.deps = webserver
+webtomcat.jars = servlet, tomcat_40
+
+# bol module
+bol.repository = external
+bol.deps = util,core,glm,planserver
+bol.jars = servlet,hsql,jess50
+# Split bol packages into sub packages of src
+bol.split = lesson1,lesson2
+# bol is an add-on, don't make it part of the runtime
+bol.standalone = 1
+# might want to do the following at some point.
+#bol.lesson1.deps = core,glm,planserver
+#bol.lesson1.jars = servlet
+#bol.lesson2.deps = core,glm,planserver
+#bol.lesson2.jars = servlet,hsql,jess50
+# bol needs javac for now
+bol.compiler=javac
+
+# community
+# (incorrectly) checked into cvs as "mic" for now
+community.module = mic
+community.repository = external
+community.deps = util,core,glm,planserver
+community.jars = log4j,xerces
+
+# dbms module
+dbms.repository = dbms
 
 #
 # distribution settings
