@@ -27,12 +27,12 @@ import java.util.*;
 public class PGWriter extends WriterBase {
   private final static String NewTimeSpanText =
     "//NewTimeSpan implementation\n" +
-    "  private long theStartTime = org.cougaar.util.TimeSpan.MIN_VALUE;\n" +
+    "  private long theStartTime = TimeSpan.MIN_VALUE;\n" +
     "  public long getStartTime() {\n" +
     "    return theStartTime;\n" +
     "  }\n" +
     "\n" +
-    "  private long theEndTime = org.cougaar.util.TimeSpan.MAX_VALUE;\n" +
+    "  private long theEndTime = TimeSpan.MAX_VALUE;\n" +
     "  public long getEndTime() {\n" +
     "    return theEndTime;\n" +
     "  }\n" +
@@ -47,6 +47,10 @@ public class PGWriter extends WriterBase {
     "    } else {\n" +
     "      throw new IllegalArgumentException();\n" +
     "    }\n" +
+    "  }\n" +
+    "\n" +
+    "  public void setTimeSpan(TimeSpan timeSpan) {\n" +
+    "    setTimeSpan(timeSpan.getStartTime(), timeSpan.getEndTime());\n" +
     "  }\n";
 
   class Writer {
@@ -155,6 +159,9 @@ public class PGWriter extends WriterBase {
       println(out,"import org.cougaar.domain.planning.ldm.measure.*;");
       println(out,"import org.cougaar.domain.planning.ldm.asset.*;");
       println(out,"import org.cougaar.domain.planning.ldm.plan.*;");
+      if (isTimePhased(context)) {
+        println(out,"import org.cougaar.util.TimeSpan;");
+      }
       println(out,"import java.util.*;");
       println(out);
       doImports(out, "global");
