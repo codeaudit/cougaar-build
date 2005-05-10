@@ -1,4 +1,4 @@
-# COUGAAR release build driver for the HEAD (currently 11.4)
+# COUGAAR release build driver
 # 
 # !!! THIS IS ONLY AN EXAMPLE !!!
 #
@@ -44,7 +44,7 @@ compiler.deprecation = 1
 #compiler.optimize = 1
 
 # arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
-javac.arguments = -source 1.4 -target 1.4 -J-Xmx256m -J-Xms128m
+javac.arguments = -J-Xmx256m -J-Xms128m
 #jikes.arguments =
 
 # javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
@@ -52,7 +52,7 @@ javac.arguments = -source 1.4 -target 1.4 -J-Xmx256m -J-Xms128m
 # default memory settings are not enough to build the unified javadoc
 default.javadoc.memory = -J-Xmx512m -J-Xms128m
 # default.javadoc.arguments = 
-default.javadoc.options = -breakiterator -source 1.4 -quiet -splitIndex -tag beaninfo:X:BeanInfo
+default.javadoc.options = -breakiterator -quiet -splitIndex -tag beaninfo:X:BeanInfo
 default.javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
 default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
 	org.cougaar.tools.javadoc.ToDoTaglet,\
