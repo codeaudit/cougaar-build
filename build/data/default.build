@@ -44,7 +44,7 @@ compiler.deprecation = 1
 #compiler.optimize = 1
 
 # arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
-javac.arguments = -J-Xmx256m -J-Xms128m
+javac.arguments = -J-Xmx256m -J-Xms128m -Xlint:unchecked
 #jikes.arguments =
 
 # javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
