@@ -536,7 +536,7 @@
     <target name="clean" depends="clean-gencode, custom.clean" description="Delete compiled code">
       <delete dir="${module.classes}" />
       <delete>
-	<fileset dir="${target.dir}" includes="**/${module.jar}" />
+	<fileset dir="${target.dir}" includes="**/${module}.jar" />
       </delete>
     </target>
 
@@ -589,7 +589,7 @@
     <target name="dist-module" depends="compile, clean-tests, clean-examples" description="Jars the module" if="has.build">
       <jar jarfile="${target.lib}/${module}-${DSTAMP}.jar" basedir="${module.classes}" />
       <exec dir="${target.lib}" executable="ln" os="Linux">
-	<arg line=" -s ${module}-${DSTAMP}.jar ${module.jar}" />
+	<arg line=" -s ${module}-${DSTAMP}.jar ${module}.jar" />
       </exec>
     </target>
     
