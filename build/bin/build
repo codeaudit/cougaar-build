@@ -1011,7 +1011,7 @@ sub findjar {
 sub add_module_files {
   local ($mysrc, $tmplib) = @_;
   chdir $mysrc;
-  my $files = join(" ", findbypattern(".", "\.(def|gif|jpg|png|html|htm)\$"));
+  my $files = join(" ", findbypattern(".", "\.(def|gif|jpg|png|html|htm|xml|dtd)\$"));
   if (! $files eq "") {
     mysystem("tar cf - $files | (cd $tmplib ; tar xf -)");
   }
