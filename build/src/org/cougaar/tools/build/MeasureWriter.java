@@ -446,7 +446,7 @@ public class MeasureWriter extends WriterBase {
         if (!unit.equals(base)) {
           fexpr = toConstantName(base+"_PER_"+unit);
         }
-        println(out,"    ,"+fexpr);
+        println(out,"    "+fexpr+",");
       }
       println(out,"  };");
       println(out,"  // indexes into factor array");
