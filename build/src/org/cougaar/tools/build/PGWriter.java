@@ -34,13 +34,10 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
 
 
 public class PGWriter extends WriterBase {
@@ -57,7 +54,7 @@ public class PGWriter extends WriterBase {
     "  }\n" +
     "\n" +
     "  public void setTimeSpan(long startTime, long endTime) {\n" +
-
+    
     "    if ((startTime >= MIN_VALUE) && \n" +
     "        (endTime <= MAX_VALUE) &&\n" +
     "        (endTime >= startTime + EPSILON)) {\n" +
@@ -71,7 +68,7 @@ public class PGWriter extends WriterBase {
     "  public void setTimeSpan(TimeSpan timeSpan) {\n" +
     "    setTimeSpan(timeSpan.getStartTime(), timeSpan.getEndTime());\n" +
     "  }\n";
-
+  
   class Writer {
     PrintWriter filelist = null;
     PGParser p;
@@ -88,15 +85,15 @@ public class PGWriter extends WriterBase {
     public void done() {
       filelist.close();
     }
-
+    
     void grokGlobal() {
     }
-
+    
     /** convert a string like foo_bar_baz to FooBarBaz **/
     String toClassName(String s) {
       StringBuffer b = new StringBuffer();
       boolean isFirst = true;
-
+      
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
         if (c == '_') {
@@ -108,16 +105,16 @@ public class PGWriter extends WriterBase {
           b.append(c);
         }
       }
-
+      
       return b.toString();
     }
-
+    
     /** convert a string like foo_bar_baz to fooBarBaz **/
     String toVariableName(String s) {
       StringBuffer b = new StringBuffer();
       boolean isFirst = true;
       boolean isStart = true;
-
+      
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
         if (c == '_') {
@@ -129,40 +126,40 @@ public class PGWriter extends WriterBase {
           b.append(c);
         }
       }
-
+      
       return b.toString();
     }
-
+    
     /** convert a string like foo_bar_baz to FOO_BAR_BAZ **/
     String toConstantName(String s) {
       StringBuffer b = new StringBuffer();
-
+      
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
         if (Character.isLowerCase(c))
           c = Character.toUpperCase(c);
         b.append(c);
       }
-
+      
       return b.toString();
     }
-
-    Vector explode(String s) { return explode(s, ' '); }
-    Vector explode(String s, char x) {
-      Vector r = new Vector();
+    
+    List<String> explode(String s) { return explode(s, ' '); }
+    List<String> explode(String s, char x) {
+      List<String> r = new ArrayList<String>();
       int last = 0;
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
         if (c == x) {
           if (i>last)
-            r.addElement(s.substring(last,i));
+            r.add(s.substring(last,i));
           last = i+1;
         }
       }
-      if (s.length()>last) r.addElement(s.substring(last));
+      if (s.length()>last) r.add(s.substring(last));
       return r;
     }
-
+    
     String findPackage(String context) {
       String pkg = p.get(context, "package");
       if (pkg == null)
@@ -171,7 +168,7 @@ public class PGWriter extends WriterBase {
         pkg = "org.cougaar.planning.ldm.asset";
       return pkg;
     }
-
+    
     void doPackaging(PrintWriter out, String context) {
       println(out,"package "+findPackage(context)+";");
       println(out);
@@ -186,7 +183,7 @@ public class PGWriter extends WriterBase {
       doImports(out, "global");
       if (!context.equals("global")) 
         doImports(out, context);
-
+      
       if (hasRelationships(context)) {
         println(out,"import org.cougaar.planning.ldm.plan.HasRelationships;");
         println(out,"import org.cougaar.planning.ldm.plan.RelationshipSchedule;");
@@ -195,48 +192,45 @@ public class PGWriter extends WriterBase {
     void doImports(PrintWriter out, String context) {
       String importstr=(String)p.get(context,"import");
       if (importstr!=null) {
-        Vector v = explode(importstr, ',');
-        Enumeration ves = v.elements();
-        while (ves.hasMoreElements()) {
-          String ve=(String)ves.nextElement();
+        for (String ve : explode(importstr, ',')) {
           println(out,"import "+ve+";");
         }
       }      
       println(out);
     }
-
+    
     /** return DQ specification of context, first looking at local context,
      * then global, then default (true).
      **/
     boolean hasDQ(String context) {
       return p.getValueFlag(context, "hasDataQuality", true, true);
     }
-
+    
     /** return HasRelationships specification of context, looking at local
      *  context, then global, then default (false).
      **/
     boolean hasRelationships(String context) {
       return p.getValueFlag(context, PGParser.HAS_RELATIONSHIPS, true, false);
     }
-
+    
     /** return TimePhased specification of context, looking at local
      *  context, then global, then default (false).
      **/
     boolean isTimePhased(String context) {
       return p.getValueFlag(context, PGParser.TIMEPHASED, true, false);
     }
-
+    
     /** return Local specification of context, looking at local
      *  context, then global, then default (false).
      **/
     boolean isLocal(String context) {
       return p.getValueFlag(context, PGParser.LOCAL, true, false);
     }
-
+    
     String getExtraInterface(String context) {
       return (String) p.getValue(context, "interface", false, null);
     }
-
+    
     void writeGetterIfc(PrintWriter out, String context, String className) {
       println(out,"/** Primary client interface for "+className+".");
       String doc = (String)p.get(context,"doc");
@@ -247,9 +241,9 @@ public class PGWriter extends WriterBase {
       println(out," **/");
       println(out);
       doPackaging(out, context);
-
+      
       // figure out what we're supposed to extend
-
+      
       { 
         String dq = (hasDQ(context)?", org.cougaar.planning.ldm.dq.HasDataQuality":"");
         String local = (isLocal(context)?", LocalPG":"");
@@ -258,13 +252,9 @@ public class PGWriter extends WriterBase {
         String xifcs = (xifc==null)?"":(", "+xifc);
         println(out,"public interface "+className+" extends "+timePhased+"PropertyGroup"+dq+local+xifcs+" {");
       }
-
+      
       // declare the slots
-      Vector slotspecs = getAllSlotSpecs(context);
-
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : getAllSlotSpecs(context)) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -295,7 +285,7 @@ public class PGWriter extends WriterBase {
         } else {
           println(out,"  "+type+" get"+clname+"();");
         }
-
+        
         // extra collection type api
         if (etype != null) {
           println(out,"  /** test to see if an element is a member of the "+name+" Collection **/");
@@ -310,70 +300,60 @@ public class PGWriter extends WriterBase {
           println(out,"  "+etype+" getIndexed"+clname+"(int index);");
           println(out);
         }
-
+        
         if (as != null) {
           println(out,as.handlerClassDef());
         }
       }      
       println(out);
       
-
+      
       // delegation handling
-      Vector v = getAllDelegateSpecs(context);
-      if (v != null) {
-        for (int i =0; i<v.size(); i++) {
-          Argument dv = (Argument) v.elementAt(i);
-          Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
-          for (int j=0; j<dsv.size(); j++) {
-            DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
-
-            String slotdoc = (String)p.get(context, ds.name+".doc");
-            if (slotdoc!=null) 
-              println(out,"  /** "+slotdoc+" **/");
-
-            println(out,"  "+ds.type+" "+ds.name+
-                        "("+unparseArguments(ds.args,true)+");");
-          }
+      for (Argument dv : getAllDelegateSpecs(context)) {
+        for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
+          String slotdoc = (String)p.get(context, ds.name+".doc");
+          if (slotdoc!=null) 
+            println(out,"  /** "+slotdoc+" **/");
+          
+          println(out,"  "+ds.type+" "+ds.name+
+                  "("+unparseArguments(ds.args,true)+");");
         }
       }
-
+      
       println(out,"  // introspection and construction");
       println(out,"  /** the method of factoryClass that creates this type **/");
       println(out,"  String factoryMethod = \"new"+className+"\";");
       println(out,"  /** the (mutable) class type returned by factoryMethod **/");
       println(out,"  String mutableClass = \""+
-                  findPackage(context)+".New"+className+"\";");
+              findPackage(context)+".New"+className+"\";");
       println(out,"  /** the factory class **/");
       println(out,"  Class factoryClass = "+findPackage("global")+".PropertyGroupFactory.class;");
-
+      
       println(out,"  /** the (immutable) class type returned by domain factory **/");
       println(out,"   Class primaryClass = "+
-                  findPackage(context)+"."+className+".class;");
-
+              findPackage(context)+"."+className+".class;");
+      
       println(out,"  String assetSetter = \"set"+
-                  className+"\";");
+              className+"\";");
       println(out,"  String assetGetter = \"get"+
-                  className+"\";");
+              className+"\";");
       println(out,"  /** The Null instance for indicating that the PG definitely has no value **/");
       println(out,"  "+className+" nullPG = new Null_"+className+"();");
       writeNullClass(out, context, className);
       writeFutureClass(out, context, className);
       println(out,"}");
     }
-
+    
     void writeNullClass(PrintWriter out, String context, String className) {
       println(out);
       // null class implementation
       println(out,"/** Null_PG implementation for "+className+" **/");
       println(out,"final class Null_"+className+"\n"+
-                  "  implements "+className+", Null_PG\n"+
-                  "{");
-
+              "  implements "+className+", Null_PG\n"+
+      "{");
+      
       // declare the slots
-      Vector slotspecs = getAllSlotSpecs(context);
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : getAllSlotSpecs(context)) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -401,7 +381,7 @@ public class PGWriter extends WriterBase {
         } else {
           println(out,"  public "+type+" get"+clname+"() { throw new UndefinedValueException(); }");
         }
-
+        
         // extra collection type api
         if (etype != null) {
           println(out,"  public boolean in"+clname+"("+etype+" element) { return false; }");
@@ -409,47 +389,41 @@ public class PGWriter extends WriterBase {
           println(out,"  public "+etype+" getIndexed"+clname+"(int index) { throw new UndefinedValueException(); }");
         }
       }      
-
-      Vector v = getAllDelegateSpecs(context);
-      if (v != null) {
-        for (int i =0; i<v.size(); i++) {
-          Argument dv = (Argument) v.elementAt(i);
-
-          // define delegate getter and setter if non-automatic
-          String autop = (String)p.get(context, dv.name+".auto");
-          // if it isn't automatic, define the setter and getter
-          if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
-            println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"() {\n"+
-                        "    throw new UndefinedValueException();\n"+
-                        "  }");
-            println(out,"  public void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+") {\n"+
-                        "    throw new UndefinedValueException();\n"+
-                        "  }");
-          }
-
-          Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
-          for (int j=0; j<dsv.size(); j++) {
-            DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
-            println(out,"  public "+ds.type+" "+ds.name+
-                        "("+unparseArguments(ds.args,true)+") {"+
-                        " throw new UndefinedValueException(); "+
-                        "}");
-          }
+      
+      for (Argument dv : getAllDelegateSpecs(context)) {
+        // define delegate getter and setter if non-automatic
+        String autop = (String)p.get(context, dv.name+".auto");
+        // if it isn't automatic, define the setter and getter
+        if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
+          println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"() {\n"+
+                  "    throw new UndefinedValueException();\n"+
+          "  }");
+          println(out,"  public void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+") {\n"+
+                  "    throw new UndefinedValueException();\n"+
+          "  }");
+        }
+        
+        for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
+          println(out,"  public "+ds.type+" "+ds.name+
+                  "("+unparseArguments(ds.args,true)+") {"+
+                  " throw new UndefinedValueException(); "+
+          "}");
         }
       }
-
-
+      
+      
+      
       // TimePhased getters
       if (isTimePhased(context)) {
         println(out,"  public long getStartTime() { throw new UndefinedValueException(); }");
         println(out,"  public long getEndTime() { throw new UndefinedValueException(); }");
       }
-
+      
       println(out,"  public boolean equals(Object object) { throw new UndefinedValueException(); }");
-
+      
       println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
-                  "    throw new CloneNotSupportedException();\n"+
-                  "  }");
+              "    throw new CloneNotSupportedException();\n"+
+      "  }");
       println(out,"  public NewPropertyGroup unlock(Object key) { return null; }");
       println(out,"  public PropertyGroup lock(Object key) { return null; }");
       println(out,"  public PropertyGroup lock() { return null; }");
@@ -458,32 +432,29 @@ public class PGWriter extends WriterBase {
       println(out,"  public String getAssetGetMethod() {return assetGetter;}");
       println(out,"  public String getAssetSetMethod() {return assetSetter;}");
       println(out,"  public Class getIntrospectionClass() {\n"+
-                  "    return "+className+"Impl.class;\n"+
-                  "  }");
-
+              "    return "+className+"Impl.class;\n"+
+      "  }");
+      
       // implement PG basic api - null never has DQ
       println(out);
       println(out,"  public boolean hasDataQuality() { return false; }");
-
+      
       if (hasDQ(context)) {     // if the class has it, we need to implement the getter
         println(out,"  public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
       }
       println(out,"}");
-
+      
     }
-
+    
     void writeFutureClass(PrintWriter out, String context, String className) {
       println(out);
       // null class implementation
       println(out,"/** Future PG implementation for "+className+" **/");
       println(out,"final class Future\n"+
-                  "  implements "+className+", Future_PG\n"+
-                  "{");
+              "  implements "+className+", Future_PG\n"+
+      "{");
       // declare the slots
-      Vector slotspecs = getAllSlotSpecs(context);
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : getAllSlotSpecs(context)) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -508,73 +479,67 @@ public class PGWriter extends WriterBase {
           println(out,"  /** "+slotdoc+" **/");
         if (as!=null) {
           println(out,"  public "+type+" "+as.getterSpec()+"{\n"+
-                      "    waitForFinalize();\n"+
-                      "    return _real."+as.getterCall()+";\n"+
-                      "  }");
+                  "    waitForFinalize();\n"+
+                  "    return _real."+as.getterCall()+";\n"+
+          "  }");
         } else {
           println(out,"  public "+type+" get"+clname+"() {\n"+
-                      "    waitForFinalize();\n"+
-                      "    return _real.get"+clname+"();\n"+
-                      "  }");
+                  "    waitForFinalize();\n"+
+                  "    return _real.get"+clname+"();\n"+
+          "  }");
         }
-
-
+        
+        
         // extra collection type api
         if (etype != null) {
           println(out,"  public boolean in"+clname+"("+etype+" element) {\n"+
-                      "    waitForFinalize();\n"+
-                      "    return _real.in"+clname+"(element);\n"+
-                      "  }");
+                  "    waitForFinalize();\n"+
+                  "    return _real.in"+clname+"(element);\n"+
+          "  }");
           println(out,"  public "+etype+"[] get"+clname+"AsArray() {\n"+
-                      "    waitForFinalize();\n"+
-                      "    return _real.get"+clname+"AsArray();\n"+
-                      "  }");
+                  "    waitForFinalize();\n"+
+                  "    return _real.get"+clname+"AsArray();\n"+
+          "  }");
           println(out,"  public "+etype+" getIndexed"+clname+"(int index) {\n"+
-                      "    waitForFinalize();\n"+
-                      "    return _real.getIndexed"+clname+"(index);\n"+
-                      "  }");
+                  "    waitForFinalize();\n"+
+                  "    return _real.getIndexed"+clname+"(index);\n"+
+          "  }");
         }
       }      
-
+      
       println(out,"  public boolean equals(Object object) {\n"+
-	      "    waitForFinalize();\n"+
-	      "    return _real.equals(object);\n"+
-	      "  }");
-
-      Vector v = getAllDelegateSpecs(context);
-      if (v != null) {
-        for (int i =0; i<v.size(); i++) {
-          Argument dv = (Argument) v.elementAt(i);
-          Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
-          for (int j=0; j<dsv.size(); j++) {
-            DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
-            println(out,"  public "+ds.type+" "+ds.name+
-                        "("+unparseArguments(ds.args,true)+") {\n"+
-                        "    waitForFinalize();\n"+
-                        "    "+ ("void".equals(ds.type)?"":"return ")+"_real."+ds.name+
-                        "("+unparseArguments(ds.args,false)+");\n"+
-                        "  }");
-          }
+              "    waitForFinalize();\n"+
+              "    return _real.equals(object);\n"+
+      "  }");
+      
+      for (Argument dv : getAllDelegateSpecs(context)) {
+        for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
+          println(out,"  public "+ds.type+" "+ds.name+
+                  "("+unparseArguments(ds.args,true)+") {\n"+
+                  "    waitForFinalize();\n"+
+                  "    "+ ("void".equals(ds.type)?"":"return ")+"_real."+ds.name+
+                  "("+unparseArguments(ds.args,false)+");\n"+
+          "  }");
         }
       }
-
-
-
+      
+      
+      
       // TimePhased getters
       if (isTimePhased(context)) {
         println(out,"  public long getStartTime() {\n" + 
-                    "    waitForFinalize();\n"+
-                    "    return _real.getStartTime();\n"+
-                    "  }");
+                "    waitForFinalize();\n"+
+                "    return _real.getStartTime();\n"+
+        "  }");
         println(out,"  public long getEndTime() {\n" + 
-                    "    waitForFinalize();\n"+
-                    "    return _real.getEndTime();\n"+
-                    "  }");
+                "    waitForFinalize();\n"+
+                "    return _real.getEndTime();\n"+
+        "  }");
       }
       
       println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
-                  "    throw new CloneNotSupportedException();\n"+
-                  "  }");
+              "    throw new CloneNotSupportedException();\n"+
+      "  }");
       println(out,"  public NewPropertyGroup unlock(Object key) { return null; }");
       println(out,"  public PropertyGroup lock(Object key) { return null; }");
       println(out,"  public PropertyGroup lock() { return null; }");
@@ -583,65 +548,62 @@ public class PGWriter extends WriterBase {
       println(out,"  public String getAssetGetMethod() {return assetGetter;}");
       println(out,"  public String getAssetSetMethod() {return assetSetter;}");
       println(out,"  public Class getIntrospectionClass() {\n"+
-                  "    return "+className+"Impl.class;\n"+
-                  "  }");
-
+              "    return "+className+"Impl.class;\n"+
+      "  }");
+      
       // Futures do not have data quality, though the replacement instance
       // may.
       println(out,"  public synchronized boolean hasDataQuality() {\n"+
-                  "    return (_real!=null) && _real.hasDataQuality();\n"+
-                  "  }");
+              "    return (_real!=null) && _real.hasDataQuality();\n"+
+      "  }");
       if (hasDQ(context)) {     // if the class has it, we need to implement the getter
         println(out,"  public synchronized org.cougaar.planning.ldm.dq.DataQuality getDataQuality() {\n"+
-                    "    return (_real==null)?null:(_real.getDataQuality());\n"+
-                    "  }");
+                "    return (_real==null)?null:(_real.getDataQuality());\n"+
+        "  }");
       }
-
+      
       println(out);
       println(out,"  // Finalization support");
       println(out,"  private "+className+" _real = null;");
       println(out,"  public synchronized void finalize(PropertyGroup real) {\n"+
-                  "    if (real instanceof "+className+") {\n"+
-                  "      _real=("+className+") real;\n"+
-                  "      notifyAll();\n"+
-                  "    } else {\n"+
-                  "      throw new IllegalArgumentException(\"Finalization with wrong class: \"+real);\n"+
-                  "    }\n"+
-                  "  }");
+              "    if (real instanceof "+className+") {\n"+
+              "      _real=("+className+") real;\n"+
+              "      notifyAll();\n"+
+              "    } else {\n"+
+              "      throw new IllegalArgumentException(\"Finalization with wrong class: \"+real);\n"+
+              "    }\n"+
+      "  }");
       println(out,"  private synchronized void waitForFinalize() {\n"+
-                  "    while (_real == null) {\n"+
-                  "      try {\n"+
-                  "        wait();\n"+
-                  "      } catch (InterruptedException _ie) {\n"+
-                  "        // We should really let waitForFinalize throw InterruptedException\n"+
-                  "        Thread.interrupted();\n"+
-                  "      }\n"+
-                  "    }\n"+
-                  "  }");
+              "    while (_real == null) {\n"+
+              "      try {\n"+
+              "        wait();\n"+
+              "      } catch (InterruptedException _ie) {\n"+
+              "        // We should really let waitForFinalize throw InterruptedException\n"+
+              "        Thread.interrupted();\n"+
+              "      }\n"+
+              "    }\n"+
+      "  }");
       println(out,"}");
     }
-
-
+    
+    
     void writeSetterIfc(PrintWriter out, String context, String className) {
       println(out,"/** Additional methods for "+className);
       println(out," * offering mutators (set methods) for the object's owner");
       println(out," **/");
       println(out);
       doPackaging(out, context);
-
+      
       String importstr=(String)p.get(context,"import");
       if (importstr!=null) {
-        Vector v = explode(importstr, ',');
-        Enumeration ves = v.elements();
-        while (ves.hasMoreElements()) {
-          String ve=(String)ves.nextElement();
+        for (String ve : explode(importstr, ',')) {
           println(out,"import "+ve+";");
         }
       }
       println(out);
-
+      
       String newclassName = "New"+className;
-
+      
       // figure out what we're supposed to extend
       String timePhased = (isTimePhased(context)?"TimePhased":"");
       String dq = (hasDQ(context)?", org.cougaar.planning.ldm.dq.HasDataQuality":"");
@@ -649,12 +611,9 @@ public class PGWriter extends WriterBase {
       String extendstring = "extends "+className+ ", New"+timePhased+"PropertyGroup"+dq+hasRelationships;
       
       println(out,"public interface "+newclassName+" "+extendstring+" {");
-
+      
       // declare the slots
-      Vector slotspecs = getAllSlotSpecs(context);
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : getAllSlotSpecs(context)) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -676,7 +635,7 @@ public class PGWriter extends WriterBase {
           println(out,"  void "+as.setterSpec()+";");
         } else {
           println(out,"  void set"+toClassName(name)+"("+
-                      type+" "+name+");");
+                  type+" "+name+");");
         }
         // mutators for collection types
         if (etype != null) {
@@ -684,84 +643,75 @@ public class PGWriter extends WriterBase {
           println(out,"  boolean removeFrom"+toClassName(name)+"("+etype+" _element);");
           println(out,"  boolean addTo"+toClassName(name)+"("+etype+" _element);");
         }
-
+        
         if (as != null) {
           // handler installation method
           String htype = as.handlerName();
           println(out,"  void set"+htype+"("+className+"."+htype+" handler);");
           println(out,"  "+className+"."+htype+" get"+htype+"();");
         }
-
+        
       }
-
+      
       // delegation
       {
-        Vector v = getAllDelegateSpecs(context);
-        if (v != null) {
-          for (int i =0; i<v.size(); i++) {
-            Argument dv = (Argument) v.elementAt(i);
-            
-            // define delegate getter and setter if non-automatic
-            String autop = (String)p.get(context, dv.name+".auto");
-            // if it isn't automatic, define the setter and getter
-            if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
-              println(out,"  "+dv.type+" get"+toClassName(dv.name)+"();");
-              println(out,"  void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+");");
-            }
-            
+        for (Argument dv : getAllDelegateSpecs(context)) {
+          // define delegate getter and setter if non-automatic
+          String autop = (String)p.get(context, dv.name+".auto");
+          // if it isn't automatic, define the setter and getter
+          if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
+            println(out,"  "+dv.type+" get"+toClassName(dv.name)+"();");
+            println(out,"  void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+");");
           }
+          
         }
       }
-
+      
       println(out,"}");
     }
-
-    Vector getAllSlotSpecs(String context) {
-      Vector slotspecs = getLocalSlotSpecs(context);
+    
+    List<String> getAllSlotSpecs(String context) {
+      List<String> slotspecs = getLocalSlotSpecs(context);
       String exts = p.get(context, "extends");
       
       if (exts != null && exts.length() > 0) {
-        Vector superspecs = getAllSlotSpecs(exts);
-        Enumeration sss = superspecs.elements();
-        while (sss.hasMoreElements()) {
-          slotspecs.addElement(sss.nextElement());
+        for (String ss : getAllSlotSpecs(exts)) {
+          slotspecs.add(ss);
         }
       }
-
+      
       return slotspecs;
     }        
-
-    Vector getLocalSlotSpecs(String context) {
+    
+    List<String> getLocalSlotSpecs(String context) {
       return parseSlots(p.get(context, "slots"));
     }
-
-    Vector getAllDelegateSpecs(String context) {
-      Vector slotspecs = getLocalDelegateSpecs(context);
+    
+    List<Argument> getAllDelegateSpecs(String context) {
+      List<Argument> slotspecs = getLocalDelegateSpecs(context);
       String exts = p.get(context, "extends");
       if (exts != null && exts.length() > 0) {
-        Vector superspecs = getAllDelegateSpecs(exts);
-        Enumeration sss = superspecs.elements();
-        while (sss.hasMoreElements()) {
-          slotspecs.addElement(sss.nextElement());
+        for (Argument arg : getAllDelegateSpecs(exts)) {
+          slotspecs.add(arg);
         }
       }
       return slotspecs;
     }        
     
-    Vector getLocalDelegateSpecs(String context) {
+    List<Argument> getLocalDelegateSpecs(String context) {
       return parseArguments(p.get(context, "delegates"));
     }
-
-    Vector parseSlots(String slotstr) {
+    
+    List<String> parseSlots(String slotstr) {
       if (slotstr == null) slotstr ="";
       int s=0;
       char[] chars = slotstr.toCharArray();
       int l = chars.length;
       int parens = 0;
-      Vector slotds = new Vector();
-
+      List<String> slots = new ArrayList<String>();
+      
       int p;
-      for (p = 0; p<l; p++) {
+      for (p=0; p<l; p++) {
         char c = chars[p];
         // need to parse out parens
         if (c == '(') {
@@ -769,19 +719,19 @@ public class PGWriter extends WriterBase {
         } else if (c == ')') {
           parens--;
         } else if (c == ',' && parens==0) {
-          slotds.addElement(slotstr.substring(s,p).trim());
+          slots.add(slotstr.substring(s,p).trim());
           s = p+1;
         } else {
           // just advance
         }
       }
       if (p > s) {
-        slotds.addElement(slotstr.substring(s,p).trim());
+        slots.add(slotstr.substring(s,p).trim());
       }
-      return slotds;
+      return slots;
     }
-
-
+    
+    
     void writeImpl(PrintWriter out, String context, String className) {
       println(out,"/** Implementation of "+className+".");
       println(out," *  @see "+className);
@@ -794,13 +744,10 @@ public class PGWriter extends WriterBase {
       println(out,"import java.io.IOException;");
       println(out,"import java.beans.PropertyDescriptor;");
       println(out,"import java.beans.IndexedPropertyDescriptor;");
-
+      
       String importstr=(String)p.get(context,"import");
       if (importstr!=null) {
-        Vector v = explode(importstr, ',');
-        Enumeration ves = v.elements();
-        while (ves.hasMoreElements()) {
-          String ve=(String)ves.nextElement();
+        for (String ve : explode(importstr, ',')) {
           println(out,"import "+ve+";");
         }
       }
@@ -808,7 +755,7 @@ public class PGWriter extends WriterBase {
       // figure out what we're supposed to extend
       String exts = p.get(context, "extends");
       String extendstring = "";
-
+      
       if (exts != null) {
         extendstring = extendstring+", "+exts;
       }
@@ -816,26 +763,22 @@ public class PGWriter extends WriterBase {
       String adapter = p.get(context, "adapter");
       if (adapter == null)
         adapter = "java.beans.SimpleBeanInfo";
-
+      
       String implclassName = className+"Impl";
       String newclassName = "New"+className;
       // dataquality requires a subclass
       println(out,"public"+(hasDQ(context)?"":" final")+" class "+implclassName+" extends "+adapter+"\n"+
-                  "  implements "+newclassName+", Cloneable\n{");
-
+              "  implements "+newclassName+", Cloneable\n{");
+      
       // constructor
       println(out,"  public "+implclassName+"() {");
-      Vector v = getAllDelegateSpecs(context);
-      if (v != null) {
-        for (int i =0; i<v.size(); i++) {
-          Argument dv = (Argument) v.elementAt(i);
-
-          // define delegate getter and setter if non-automatic
-          String autop = (String)p.get(context, dv.name+".auto");
-          // if it is automatic, pre-initialize it
-          if (autop != null && Boolean.valueOf(autop).booleanValue()) {
-            println(out,"    "+dv.name+" = new "+dv.type+"(this);");
-          }
+      
+      for (Argument dv : getAllDelegateSpecs(context)) {
+        // define delegate getter and setter if non-automatic
+        String autop = (String)p.get(context, dv.name+".auto");
+        // if it is automatic, pre-initialize it
+        if (autop != null && Boolean.valueOf(autop).booleanValue()) {
+          println(out,"    "+dv.name+" = new "+dv.type+"(this);");
         }
       }
       println(out,"  }");
@@ -846,14 +789,11 @@ public class PGWriter extends WriterBase {
         //handle time phased support separately because getters != setters
         println(out,NewTimeSpanText);
       }
-        
-      Vector slotspecs = getAllSlotSpecs(context);
-
+      
       // declare the slots (including "inherited" ones)
       println(out,"  // Slots\n");
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      List<String> slotspecs = getAllSlotSpecs(context);
+      for (String slotspec : slotspecs) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -867,37 +807,37 @@ public class PGWriter extends WriterBase {
           type = ct.ctype;
           etype = ct.etype;
         }
-
+        
         String var = (String)p.get(context,name+".var");
         if (var == null) { var = "the"+toClassName(name); } // set the default
         if (var.equals("")) { var = null; } // unset if specified as empty
-          
+        
         String getter =  (String)p.get(context,name+".getter");
         String setter =  (String)p.get(context,name+".setter");
-
+        
         if (as != null) {
           // active slot - write dispatchers
           String htype = as.handlerName();
           var = "the"+htype;
-
+          
           // storage for the handler
           println(out,"  private transient "+className+"."+htype+" "+var+" = null;");
           
           // handler installation
           println(out,"  public void set"+htype+"("+className+"."+htype+" handler) {\n"+
-                      "    "+var+" = handler;\n"+
-                      "  }");
+                  "    "+var+" = handler;\n"+
+          "  }");
           println(out,"  public "+className+"."+htype+" get"+htype+"() {\n"+
-                      "    return "+var+";\n"+
-                      "  }");
-
+                  "    return "+var+";\n"+
+          "  }");
+          
           // get dispatcher
           if (getter != null){
             println(out,getter);
           } else {
             println(out,"  public "+type+" "+as.getter(var));
           }
-
+          
           // set dispatcher
           if (setter != null){
             println(out,setter);
@@ -906,7 +846,7 @@ public class PGWriter extends WriterBase {
           }
           
         } else {
-
+          
           // storage
           if (var != null) {
             String init = (String)p.get(context,name+".init");
@@ -915,22 +855,22 @@ public class PGWriter extends WriterBase {
               print(out," = new "+init+"()");
             }
             println(out,";");
-
+            
             // Normal getter
             if (getter != null) {
               println(out,getter);
             } else {
               println(out, "  public "+type+" get"+toClassName(name)+"(){ "+
-                           "return "+var+"; }");
+                      "return "+var+"; }");
             }
-
+            
             // test for Collection types
             if (etype != null) {
               String clname = toClassName(name);
               println(out,"  public boolean in"+clname+"("+etype+" _element) {\n"+
-                          "    return ("+var+"==null)?false:("+var+".contains(_element));\n"+
-                          "  }");
-
+                      "    return ("+var+"==null)?false:("+var+".contains(_element));\n"+
+              "  }");
+              
               println(out,"  public "+etype+"[] get"+clname+"AsArray() {");
               println(out,"    if ("+var+" == null) return new "+etype+"[0];");
               println(out,"    int l = "+var+".size();");
@@ -942,7 +882,7 @@ public class PGWriter extends WriterBase {
               println(out,"    }");
               println(out,"    return v;");
               println(out,"  }");
-          
+              
               println(out,"  public "+etype+" getIndexed"+clname+"(int _index) {");
               println(out,"    if ("+var+" == null) return null;");
               println(out,"    for (Iterator _i = "+var+".iterator(); _i.hasNext();) {");
@@ -953,7 +893,7 @@ public class PGWriter extends WriterBase {
               println(out,"    return null;");
               println(out,"  }");
             }
-
+            
             // setter
             if (setter != null) {
               println(out,setter);
@@ -969,65 +909,57 @@ public class PGWriter extends WriterBase {
               println(out,"    "+var+"="+name+";");
               println(out,"  }");
             }
-
+            
             // mutators for collection types
             if (etype != null) {
               println(out,"  public void clear"+toClassName(name)+"() {\n"+
-                          "    "+var+".clear();\n"+
-                          "  }");
+                      "    "+var+".clear();\n"+
+              "  }");
               println(out,"  public boolean removeFrom"+toClassName(name)+"("+etype+" _element) {\n"+
-                          "    return "+var+".remove(_element);\n"+
-                          "  }");
+                      "    return "+var+".remove(_element);\n"+
+              "  }");
               println(out,"  public boolean addTo"+toClassName(name)+"("+etype+" _element) {\n"+
-                          "    return "+var+".add(_element);\n"+
-                          "  }");
+                      "    return "+var+".add(_element);\n"+
+              "  }");
             }
-
+            
           } else {                // var is specified as empty
             if (getter != null) println(out,getter);
             if (setter != null) println(out,setter);
           }
         }
       }
-
+      
       // delgates
       {
-        Vector vs = getAllDelegateSpecs(context);
-        if (vs != null) {
-          println(out);
-          for (int i =0; i<vs.size(); i++) {
-            Argument dv = (Argument) vs.elementAt(i);
-
-            println(out,"  private "+dv.type+" "+dv.name+" = null;");
-
-            // define delegate getter and setter if non-automatic
-            String autop = (String)p.get(context, dv.name+".auto");
-            // if it isn't automatic, define the setter and getter
-            if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
-              println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"() {\n"+
-                          "    return "+dv.name+";\n"+
-                          "  }");
-              println(out,"  public void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+") {\n"+
-                          "    if ("+dv.name+" != null) throw new IllegalArgumentException(\""+
-                          dv.name+" already set\");\n"+
-                          "    "+dv.name+" = _"+dv.name+";\n"+
-                          "  }");
-            }
-
-
-            Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
-            for (int j=0; j<dsv.size(); j++) {
-              DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
-              println(out,"  public "+ds.type+" "+ds.name+
-                          "("+unparseArguments(ds.args,true)+") {"+
-                          " "+ ("void".equals(ds.type)?"":"return ")+dv.name+"."+ds.name+
-                          "("+unparseArguments(ds.args,false)+");"+
-                          "  }");
-            }
+        println(out);
+        for (Argument dv : getAllDelegateSpecs(context)) {
+          println(out,"  private "+dv.type+" "+dv.name+" = null;");
+          
+          // define delegate getter and setter if non-automatic
+          String autop = (String)p.get(context, dv.name+".auto");
+          // if it isn't automatic, define the setter and getter
+          if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
+            println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"() {\n"+
+                    "    return "+dv.name+";\n"+
+            "  }");
+            println(out,"  public void set"+toClassName(dv.name)+"("+dv.type+" _"+dv.name+") {\n"+
+                    "    if ("+dv.name+" != null) throw new IllegalArgumentException(\""+
+                    dv.name+" already set\");\n"+
+                    "    "+dv.name+" = _"+dv.name+";\n"+
+            "  }");
+          }
+          
+          for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
+            println(out,"  public "+ds.type+" "+ds.name+
+                    "("+unparseArguments(ds.args,true)+") {"+
+                    " "+ ("void".equals(ds.type)?"":"return ")+dv.name+"."+ds.name+
+                    "("+unparseArguments(ds.args,false)+");"+
+            "  }");
           }
         }
       }
-
+      
       // copy constructor
       println(out);
       println(out,"  public "+implclassName+"("+className+" original) {");
@@ -1036,11 +968,9 @@ public class PGWriter extends WriterBase {
         // copy TimeSpan info
         println(out, "    setTimeSpan(original.getStartTime(), original.getEndTime());");
       }
-
+      
       // Copy slot info
-      se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : slotspecs) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -1048,13 +978,11 @@ public class PGWriter extends WriterBase {
         if (as != null) {
           name = as.name;
         }
-        String etype = null;
         CollectionType ct = parseCollectionType(type);
         if (ct != null) {
           type = ct.ctype;
-          etype = ct.etype;
         }
-
+        
         if (as != null) {
           // do nothing - clones don't get the handler automatically.
         } else {
@@ -1068,7 +996,7 @@ public class PGWriter extends WriterBase {
       }
       println(out,"  }");
       println(out);
-
+      
       // .equals 
       writeEquals(out, context, className);
       
@@ -1076,57 +1004,62 @@ public class PGWriter extends WriterBase {
         println(out,"  public boolean hasDataQuality() { return false; }");
         println(out,"  public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return null; }");
         /*
-          // classes without runtime support do not implement NewHasDataQuality!
-        println(out,"  public void setDataQuality(org.cougaar.planning.ldm.dq.DataQuality dq) {\n"+
-                    "    throw new IllegalArgumentException(\"This instance does not support setting of DataQuality.\");\n"+
-                    "  }");
-        */
+         // classes without runtime support do not implement NewHasDataQuality!
+          println(out,"  public void setDataQuality(org.cougaar.planning.ldm.dq.DataQuality dq) {\n"+
+          "    throw new IllegalArgumentException(\"This instance does not support setting of DataQuality.\");\n"+
+          "  }");
+          */
         println(out);
         println(out,"  // static inner extension class for real DataQuality Support");
         println(out,"  public final static class DQ extends "+className+"Impl implements org.cougaar.planning.ldm.dq.NewHasDataQuality {");
-        println(out,"   public DQ() {\n"+ // never copy data quality
-                    "    super();\n"+
-                    "   }");
-
-        println(out,"   public DQ("+className+" original) {\n"+ // never copy data quality
-                    "    super(original);\n"+
-                    "   }");
+        println(out,
+                "   public DQ() {\n"+ // never copy data quality
+                "    super();\n"+
+                "   }");
+        
+        println(out,
+                "   public DQ("+className+" original) {\n"+ // never copy data quality
+                "    super(original);\n"+
+                "   }");
         println(out,"   public Object clone() { return new DQ(this); }");
         println(out,"   private transient org.cougaar.planning.ldm.dq.DataQuality _dq = null;");
         println(out,"   public boolean hasDataQuality() { return (_dq!=null); }");
         println(out,"   public org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return _dq; }");
         println(out,"   public void setDataQuality(org.cougaar.planning.ldm.dq.DataQuality dq) { _dq=dq; }");
-        println(out,"   private void writeObject(ObjectOutputStream out) throws IOException {\n"+
-                    "    out.defaultWriteObject();\n"+
-                    "    if (out instanceof org.cougaar.core.persist.PersistenceOutputStream) out.writeObject(_dq);\n"+
-                    "   }");
-        println(out,"   private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {\n"+
-                    "    in.defaultReadObject();\n"+
-                    "    if (in instanceof org.cougaar.core.persist.PersistenceInputStream) _dq=(org.cougaar.planning.ldm.dq.DataQuality)in.readObject();\n"+
-                    "   }");
+        println(out,
+                "   private void writeObject(ObjectOutputStream out) throws IOException {\n"+
+                "    out.defaultWriteObject();\n"+
+                "    if (out instanceof org.cougaar.core.persist.PersistenceOutputStream) out.writeObject(_dq);\n"+
+                "   }");
+        println(out,
+                "   private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {\n"+
+                "    in.defaultReadObject();\n"+
+                "    if (in instanceof org.cougaar.core.persist.PersistenceInputStream) _dq=(org.cougaar.planning.ldm.dq.DataQuality)in.readObject();\n"+
+                "   }");
         println(out,"    ");
-        println(out,"    private final static PropertyDescriptor properties[]=new PropertyDescriptor[1];\n"+
-                    "    static {\n"+
-                    "      try {\n"+
-                    "        properties[0]= new PropertyDescriptor(\"dataQuality\", DQ.class, \"getDataQuality\", null);\n"+
-                    "      } catch (Exception e) { e.printStackTrace(); }\n"+
-                    "    }\n"+
-                    "    public PropertyDescriptor[] getPropertyDescriptors() {\n"+
-                    "      PropertyDescriptor[] pds = super.properties;\n"+
-                    "      PropertyDescriptor[] ps = new PropertyDescriptor[pds.length+properties.length];\n"+
-                    "      System.arraycopy(pds, 0, ps, 0, pds.length);\n"+
-                    "      System.arraycopy(properties, 0, ps, pds.length, properties.length);\n"+
-                    "      return ps;\n"+
-                    "    }");
+        println(out,
+                "    private final static PropertyDescriptor properties[]=new PropertyDescriptor[1];\n"+
+                "    static {\n"+
+                "      try {\n"+
+                "        properties[0]= new PropertyDescriptor(\"dataQuality\", DQ.class, \"getDataQuality\", null);\n"+
+                "      } catch (Exception e) { e.printStackTrace(); }\n"+
+                "    }\n"+
+                "    public PropertyDescriptor[] getPropertyDescriptors() {\n"+
+                "      PropertyDescriptor[] pds = super.properties;\n"+
+                "      PropertyDescriptor[] ps = new PropertyDescriptor[pds.length+properties.length];\n"+
+                "      System.arraycopy(pds, 0, ps, 0, pds.length);\n"+
+                "      System.arraycopy(properties, 0, ps, pds.length, properties.length);\n"+
+                "      return ps;\n"+
+                "    }");
         println(out,"  }");
         println(out);
-
-
+        
+        
       } else {
         println(out,"  public final boolean hasDataQuality() { return false; }");
       }
       println(out);
-
+      
       // lock and unlock methods
       println(out,"  private transient "+className+" _locked = null;");
       println(out,"  public PropertyGroup lock(Object key) {");
@@ -1137,35 +1070,37 @@ public class PGWriter extends WriterBase {
       println(out,"  public NewPropertyGroup unlock(Object key) "+
                   "{ return this; }");
       println(out);
-
+      
       // clone method
       writeCloneMethod(out, context, implclassName, "  ");
       println(out);
-
-      println(out,"  public PropertyGroup copy() {\n"+
-                  "    try {\n"+
-                  "      return (PropertyGroup) clone();\n"+
-                  "    } catch (CloneNotSupportedException cnse) { return null;}\n"+
-                  "  }");
+      
+      println(out,
+              "  public PropertyGroup copy() {\n"+
+              "    try {\n"+
+              "      return (PropertyGroup) clone();\n"+
+              "    } catch (CloneNotSupportedException cnse) { return null;}\n"+
+              "  }");
       println(out);
-
+      
       // introspection methods
-      println(out,"  public Class getPrimaryClass() {\n"+
-                  "    return primaryClass;\n"+
-                  "  }");
-      println(out,"  public String getAssetGetMethod() {\n"+
-                  "    return assetGetter;\n"+
-                  "  }");
-      println(out,"  public String getAssetSetMethod() {\n"+
-                  "    return assetSetter;\n"+
-                  "  }");
+      println(out,
+              "  public Class getPrimaryClass() {\n"+
+              "    return primaryClass;\n"+
+              "  }");
+      println(out,
+              "  public String getAssetGetMethod() {\n"+
+              "    return assetGetter;\n"+
+              "  }");
+      println(out,
+              "  public String getAssetSetMethod() {\n"+
+              "    return assetSetter;\n"+
+              "  }");
       println(out);
       
       // Serialization
       boolean needSerialization = false;
-      se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : slotspecs) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -1173,13 +1108,11 @@ public class PGWriter extends WriterBase {
         if (as != null) {
           name = as.name;
         }
-        String etype = null;
         CollectionType ct = parseCollectionType(type);
         if (ct != null) {
           type = ct.ctype;
-          etype = ct.etype;
         }
-
+        
         if (type.equals("String")) {
           String isInternable = p.get(context, name+".intern");
           if (isInternable != null && isInternable.equals("true")) {
@@ -1188,13 +1121,11 @@ public class PGWriter extends WriterBase {
           }
         }
       }
-
+      
       if (needSerialization) {
         println(out,"  private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {");
         println(out,"    in.defaultReadObject();");
-        se = slotspecs.elements();
-        while (se.hasMoreElements()) {
-          String slotspec = ((String)se.nextElement()).trim();
+        for (String slotspec : slotspecs) {
           int s = slotspec.indexOf(" ");
           String type = slotspec.substring(0,s);
           String name = slotspec.substring(s+1);
@@ -1202,13 +1133,11 @@ public class PGWriter extends WriterBase {
           if (as != null) {
             name = as.name;
           }
-          String etype = null;
           CollectionType ct = parseCollectionType(type);
           if (ct != null) {
             type = ct.ctype;
-            etype = ct.etype;
           }
-
+          
           if (as != null) {
             // serialized copies can't get the active slot remotely.
             continue;           
@@ -1225,13 +1154,13 @@ public class PGWriter extends WriterBase {
             }
           }
         }
-
+        
         println(out,"  }");
         println(out);
       }
-
+      
       writeBeanInfoBody(out, context, className);
-
+      
       // inner (locked) class
       println(out,"  private final class _Locked extends java.beans.SimpleBeanInfo\n"+
                   "    implements "+className+", Cloneable, LockedPG\n"+
@@ -1256,36 +1185,34 @@ public class PGWriter extends WriterBase {
       println(out,"    }");
       println(out);
       /*
-      println(out,"    public PropertyGroup copy() {\n"+
-                  "      return new "+implclassName+"("+implclassName+".this);\n"+
-                  "    }");
-      */
+       println(out,"    public PropertyGroup copy() {\n"+
+       "      return new "+implclassName+"("+implclassName+".this);\n"+
+       "    }");
+       */
       println(out,"    public PropertyGroup copy() {\n"+
                   "      try {\n"+
                   "        return (PropertyGroup) clone();\n"+
                   "      } catch (CloneNotSupportedException cnse) { return null;}\n"+
                   "    }");
       println(out);
-
+      
       println(out);
-
+      
       writeCloneMethod(out, context, implclassName, "    ");
       println(out);
-
+      
       if (timephased) {
         println(out,"    public long getStartTime() { return " + 
-                    implclassName + ".this.getStartTime(); }");
+                implclassName + ".this.getStartTime(); }");
         println(out,"    public long getEndTime() { return " +
-                    implclassName + ".this.getEndTime(); }");
+                implclassName + ".this.getEndTime(); }");
       }
-
+      
       println(out,"    public boolean equals(Object object) { return " + 
-	      implclassName + ".this.equals(object); }");
+              implclassName + ".this.equals(object); }");
       
       // dispatch getters
-      se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : slotspecs) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
@@ -1299,24 +1226,24 @@ public class PGWriter extends WriterBase {
           type = ct.ctype;
           etype = ct.etype;
         }
-
+        
         String getter = "get"+toClassName(name);
         if (as != null) {
           println(out,"    public "+as.rtype+" "+as.getterSpec()+" {\n"+
-                      "      return "+implclassName+".this."+as.getterCall()+";\n"+
-                      "    }");
+                  "      return "+implclassName+".this."+as.getterCall()+";\n"+
+                  "    }");
         } else {
           println(out,"    public "+type+" "+getter+"() { "+
-                      "return "+implclassName+".this."+getter+"(); }");
+                  "return "+implclassName+".this."+getter+"(); }");
         }
-
+        
         // test for Collection types
         if (etype != null) {
           String clname = toClassName(name);
           String ref = implclassName+".this.";
           println(out,"  public boolean in"+clname+"("+etype+" _element) {\n"+
-                      "    return "+ref+"in"+clname+"(_element);\n"+
-                      "  }");
+                  "    return "+ref+"in"+clname+"(_element);\n"+
+          "  }");
           println(out,"  public "+etype+"[] get"+clname+"AsArray() {");
           println(out,"    return "+ref+"get"+clname+"AsArray();");
           println(out,"  }");
@@ -1325,48 +1252,45 @@ public class PGWriter extends WriterBase {
           println(out,"    return "+ref+"getIndexed"+clname+"(_index);");
           println(out,"  }");
         }
-
+        
       }
-
+      
       {
-        Vector vs = getAllDelegateSpecs(context);
-        if (vs != null) {
-          for (int i =0; i<vs.size(); i++) {
-            Argument dv = (Argument) vs.elementAt(i);
-            Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
-            for (int j=0; j<dsv.size(); j++) {
-              DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
-              println(out,"  public "+ds.type+" "+ds.name+
-                          "("+unparseArguments(ds.args,true)+") {\n"+
-                          "    "+("void".equals(ds.type)?"":"return ")+implclassName+".this."+ds.name+
-                          "("+unparseArguments(ds.args,false)+");\n"+
-                          "  }");
-            }
+        for (Argument dv :getAllDelegateSpecs(context)) {
+          for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
+            println(out,"  public "+ds.type+" "+ds.name+
+                    "("+unparseArguments(ds.args,true)+") {\n"+
+                    "    "+("void".equals(ds.type)?"":"return ")+implclassName+".this."+ds.name+
+                    "("+unparseArguments(ds.args,false)+");\n"+
+            "  }");
           }
         }
       }
-
+      
       if (hasDQ(context)) {
         println(out,"  public final boolean hasDataQuality() { return "+
-                    implclassName+".this.hasDataQuality(); }");
+                implclassName+".this.hasDataQuality(); }");
         println(out,"  public final org.cougaar.planning.ldm.dq.DataQuality getDataQuality() { return "+
-                    implclassName+".this.getDataQuality(); }");
+                implclassName+".this.getDataQuality(); }");
       } else {
         println(out,"  public final boolean hasDataQuality() { return false; }");
       }
-
+      
       // introspection method of locked
-      println(out,"    public Class getPrimaryClass() {\n"+
-                  "      return primaryClass;\n"+
-                  "    }");
-      println(out,"    public String getAssetGetMethod() {\n"+
-                  "      return assetGetter;\n"+
-                  "    }");
-      println(out,"    public String getAssetSetMethod() {\n"+
-                  "      return assetSetter;\n"+
-                  "    }");
+      println(out,
+              "    public Class getPrimaryClass() {\n"+
+              "      return primaryClass;\n"+
+              "    }");
+      println(out,
+              "    public String getAssetGetMethod() {\n"+
+              "      return assetGetter;\n"+
+              "    }");
+      println(out,
+              "    public String getAssetSetMethod() {\n"+
+              "      return assetSetter;\n"+
+              "    }");
       println(out);
-
+      
       // BeanInfo dispatchers
       println(out,"    public PropertyDescriptor[] getPropertyDescriptors() {");
       println(out,"      return properties;");
@@ -1379,22 +1303,20 @@ public class PGWriter extends WriterBase {
       
       println(out,"  }");
       println(out);
-
+      
       println(out,"}");
     }
-
+    
     protected void writeCloneMethod(PrintWriter out, String context, 
                                     String implclassName, 
                                     String leadingSpaces) {
       println(out,leadingSpaces+"public Object clone() throws CloneNotSupportedException {");
-      Vector delegateSpecs = getAllDelegateSpecs(context);
-      if ((delegateSpecs == null) ||
-          (delegateSpecs.size() == 0)) {
+      List<Argument> delegateSpecs = getAllDelegateSpecs(context);
+      if (delegateSpecs.size() == 0) {
         println(out, leadingSpaces+"  return new "+implclassName+"("+implclassName+".this);");
       } else {
         println(out, leadingSpaces+"  "+implclassName+" _tmp = new "+implclassName+"(this);");
-        for (int i = 0; i < delegateSpecs.size(); i++) {
-          Argument delegate = (Argument) delegateSpecs.elementAt(i);
+        for (Argument delegate : delegateSpecs) {
           println(out, leadingSpaces+"  if ("+delegate.name+" != null) {");
           println(out, leadingSpaces+"    _tmp."+delegate.name+" = ("+delegate.type+") "+
                   delegate.name+".copy(_tmp);");
@@ -1404,24 +1326,22 @@ public class PGWriter extends WriterBase {
       }
       println(out, leadingSpaces+"}");
     }
-
+    
     void writeBeanInfoBody( PrintWriter out, String context, String className ) {
       
-      Vector slotspecs = getAllSlotSpecs(context);
-
+      List<String> slotspecs = getAllSlotSpecs(context);
+      
       // Add in time phased slots
       if (isTimePhased(context)) {
-        slotspecs.addElement("long start_time");
-        slotspecs.addElement("long end_time");
+        slotspecs.add("long start_time");
+        slotspecs.add("long end_time");
       }
-
+      
       // figure out how many property slots we need
       int l = 0;                // props
       int asc = 0;              // methods
       int cc = 0;               // collections (not used)
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      for (String slotspec : slotspecs) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         ActiveSlot as = parseActiveSlot(slotspec);
@@ -1437,17 +1357,15 @@ public class PGWriter extends WriterBase {
           asc++;
         }
       }
-        
+      
       println(out,"  private final static PropertyDescriptor properties[] = new PropertyDescriptor["+(l+cc)+"];");
       if ((l+cc)>0) {
         println(out,"  static {");
         println(out,"    try {");
         int i = 0;
-        se = slotspecs.elements();
         String clname = toClassName(context);
-
-        while (se.hasMoreElements()) {
-          String slotspec = ((String)se.nextElement()).trim();
+        
+        for (String slotspec : slotspecs) {
           int s = slotspec.indexOf(" ");
           String type = slotspec.substring(0,s);
           String name = slotspec.substring(s+1);
@@ -1455,36 +1373,34 @@ public class PGWriter extends WriterBase {
           if (as != null) {
             name = as.name;
           }
-          String etype = null;
           CollectionType ct = parseCollectionType(type);
           if (ct != null) {
             type = ct.ctype;
-            etype = ct.etype;
           }
-
-
+          
+          
           if (as == null) {
             // non-active slots
             if (ct == null) {
               // plain slots
               println(out,"      properties["+i+"]= new PropertyDescriptor(\""+
-                          name+"\", "+
-                          clname+".class, "+
-                          "\"get"+toClassName(name)+"\", null);");
+                      name+"\", "+
+                      clname+".class, "+
+                      "\"get"+toClassName(name)+"\", null);");
             } else {
               // collection slots
               println(out,"      properties["+i+"]= new IndexedPropertyDescriptor(\""+
-                          name+"\", "+
-                          clname+".class, "+
-                          "\"get"+toClassName(name)+"AsArray\", null, "+
-                          "\"getIndexed"+toClassName(name)+"\", null);");
+                      name+"\", "+
+                      clname+".class, "+
+                      "\"get"+toClassName(name)+"AsArray\", null, "+
+                      "\"getIndexed"+toClassName(name)+"\", null);");
             }
             i++;
           }
         }
         println(out,"    } catch (Exception e) { \n"+
-                    "      org.cougaar.util.log.Logging.getLogger("+clname+".class).error(\"Caught exception\",e);\n"+
-                    "    }");
+                "      org.cougaar.util.log.Logging.getLogger("+clname+".class).error(\"Caught exception\",e);\n"+
+        "    }");
         println(out,"  }");
       }
       println(out);
@@ -1494,14 +1410,14 @@ public class PGWriter extends WriterBase {
     }
     
     protected void writeEquals(PrintWriter out, String context, 
-			       String className ) {
-
+                               String className ) {
+      
       if (delegatesEquals(context)) {
-	return;
+        return;
       }
-
+      
       String otherVar = "other" + className;
-
+      
       println(out,"  public boolean equals(Object other) {");
       println(out);
       println(out, "    if (!(other instanceof " + className + ")) {");
@@ -1509,98 +1425,93 @@ public class PGWriter extends WriterBase {
       println(out, "    }");
       println(out);
       println(out, "    " + className + " " + otherVar + " = (" + className + 
-	      ") other;");
+      ") other;");
       println(out);
-
+      
       String implClassName = className + "Impl";
-
-      Vector slotspecs = getAllSlotSpecs(context);
-      Enumeration se = slotspecs.elements();
-      while (se.hasMoreElements()) {
-        String slotspec = ((String)se.nextElement()).trim();
+      
+      for (String slotspec : getAllSlotSpecs(context)) {
         int s = slotspec.indexOf(" ");
         String type = slotspec.substring(0,s);
         String name = slotspec.substring(s+1);
         ActiveSlot as = parseActiveSlot(slotspec);
-
-	String getter;
-
+        
+        String getter;
+        
         if (as != null) {
-	  // Limit comparison to handler's .equals()
-	  getter = "get" + as.handlerName() + "()";
-	  type = as.handlerName();
-	} else {
-	  String var = (String)p.get(context,name+".var");
-	  if (var == null) { 
-	    var = "the"+toClassName(name); 
-	  } // set the default
-	  if (var.equals("")) { var = null; } // unset if specified as empty
+          // Limit comparison to handler's .equals()
+          getter = "get" + as.handlerName() + "()";
+          type = as.handlerName();
+        } else {
+          String var = (String)p.get(context,name+".var");
+          if (var == null) { 
+            var = "the"+toClassName(name); 
+          } // set the default
+          if (var.equals("")) { var = null; } // unset if specified as empty
           
-	  getter =  (String)p.get(context,name+".getter");
-
-	  if (getter == null) {	  
-	    getter = "get" + toClassName(name) +  "()";
-	  } 
-	}
-
-	// Does method return an object or a primitive data type?
-	if (primitiveDataType(type)) {
-	  println(out, "    if (!(" + getter + " == " + otherVar +
-		  "." + getter + ")) {");
-	  println(out, "      return false;");
-	  println(out, "    }");
-	  println(out);
-	} else if (as != null) {
-	  println(out, "    if (other instanceof " + implClassName + ") {");
-	  println(out, "      if (" + getter + " == null) {");
-	  println(out, "        if (((" + implClassName + ") " +
-		  otherVar + ")." + getter + " != null) {");
-	  println(out, "          return false;");
-	  println(out, "        }");
-	  println(out, "      } else if (!(" + getter + ".equals(((" + 
-		  implClassName + ") " + otherVar +
-		  ")." + getter + "))) {");
-	  println(out, "        return false;");
-	  println(out, "      }");
-	  println(out, "    }");
-	  println(out);
-	} else {
-	  println(out, "    if (" + getter + " == null) {");
-	  println(out, "      if (" + otherVar + "." + getter + " != null) {");
-	  println(out, "        return false;");
-	  println(out, "      }");
-	  println(out, "    } else if (!(" + getter + ".equals(" + otherVar +
-		  "." + getter + "))) {");
-	  println(out, "      return false;");
-	  println(out, "    }");
-	  println(out);
-	}
+          getter =  (String)p.get(context,name+".getter");
+          
+          if (getter == null) {	  
+            getter = "get" + toClassName(name) +  "()";
+          } 
+        }
+        
+        // Does method return an object or a primitive data type?
+        if (primitiveDataType(type)) {
+          println(out, "    if (!(" + getter + " == " + otherVar +
+                  "." + getter + ")) {");
+          println(out, "      return false;");
+          println(out, "    }");
+          println(out);
+        } else if (as != null) {
+          println(out, "    if (other instanceof " + implClassName + ") {");
+          println(out, "      if (" + getter + " == null) {");
+          println(out, "        if (((" + implClassName + ") " +
+                  otherVar + ")." + getter + " != null) {");
+          println(out, "          return false;");
+          println(out, "        }");
+          println(out, "      } else if (!(" + getter + ".equals(((" + 
+                  implClassName + ") " + otherVar +
+                  ")." + getter + "))) {");
+          println(out, "        return false;");
+          println(out, "      }");
+          println(out, "    }");
+          println(out);
+        } else {
+          println(out, "    if (" + getter + " == null) {");
+          println(out, "      if (" + otherVar + "." + getter + " != null) {");
+          println(out, "        return false;");
+          println(out, "      }");
+          println(out, "    } else if (!(" + getter + ".equals(" + otherVar +
+                  "." + getter + "))) {");
+          println(out, "      return false;");
+          println(out, "    }");
+          println(out);
+        }
       }
-
+      
       // Call .equals for all delegates
-      Vector vs = getAllDelegateSpecs(context);
+      List<Argument> vs = getAllDelegateSpecs(context);
       //BG only accessible from impl class so can't compare _Locked and Impl
-      if ((vs != null) &&
-	  (vs.size() > 0)) {
-	println(out, "    if (other instanceof " + implClassName + ") {");
-	for (int i = 0; i < vs.size(); i++) {
-	  Argument dv = (Argument) vs.elementAt(i);
-	  String getter = "get" + toClassName(dv.name) +  "()";
-	  println(out, "      if (" + getter + " == null) {");
-	  println(out, "        if (((" + implClassName + ") " + otherVar + 
-		  ")." + getter + " != null) {");
-	  println(out, "          return false;");
-	  println(out, "        }");
-	  println(out, "      } else if (!(" + getter + ".equals(((" + 
-		  implClassName + ") " + otherVar +
-		  ")." + getter + "))) {");
-	  println(out, "        return false;");
-	  println(out, "      }");
-	  println(out);
-	}
-	println(out, "    }");
+      if (vs.size() > 0) {
+        println(out, "    if (other instanceof " + implClassName + ") {");
+        for (Argument dv : vs) {
+          String getter = "get" + toClassName(dv.name) +  "()";
+          println(out, "      if (" + getter + " == null) {");
+          println(out, "        if (((" + implClassName + ") " + otherVar + 
+                  ")." + getter + " != null) {");
+          println(out, "          return false;");
+          println(out, "        }");
+          println(out, "      } else if (!(" + getter + ".equals(((" + 
+                  implClassName + ") " + otherVar +
+                  ")." + getter + "))) {");
+          println(out, "        return false;");
+          println(out, "      }");
+          println(out);
+        }
+        println(out, "    }");
       }
-
+      
       println(out, "    return true;");
       println(out, "  }");
       println(out);
@@ -1608,11 +1519,11 @@ public class PGWriter extends WriterBase {
     
     void writePropertyGroup(String context) throws Exception {
       String className = toClassName(context);
-
+      
       FileOutputStream fos;
       OutputStreamWriter osw;
       PrintWriter out;
-
+      
       if (cleanp) {
         (new File(className.toString() + ".java")).delete();
         (new File("New"+ className.toString() + ".java")).delete();
@@ -1620,7 +1531,7 @@ public class PGWriter extends WriterBase {
         (new File(className.toString() + "BeanInfo.java")).delete();
         return;
       }
-
+      
       String outname = className.toString() + ".java";
       if (writeInterfaces) {
         debug("Writing GetterIfc \""+context+"\" to \""+outname+"\"");
@@ -1631,7 +1542,7 @@ public class PGWriter extends WriterBase {
         writeCR(out,deffilename);
         writeGetterIfc(out, context, className);
         out.close();
-
+        
         outname = "New" + className.toString() + ".java";
         debug("Writing SetterIfc \""+context+"\" to \""+outname+"\"");
         noteFile(outname);
@@ -1642,7 +1553,7 @@ public class PGWriter extends WriterBase {
         writeSetterIfc(out, context, className);
         out.close();
       }
-
+      
       outname = className.toString() + "Impl.java";
       debug("Writing Impl \""+context+"\" to \""+outname+"\"");
       noteFile(outname);
@@ -1652,17 +1563,17 @@ public class PGWriter extends WriterBase {
       writeCR(out,deffilename);
       writeImpl(out, context, className);
       out.close();
-
+      
     }
-
+    
     public void writeFactory () throws IOException {
       String outname = "PropertyGroupFactory.java";
-
+      
       if (cleanp) {
         (new File(outname)).delete();
         return;
       }
-
+      
       debug("Writing FactoryImplementation to \""+outname+"\"");
       noteFile(outname);
       FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
@@ -1676,7 +1587,7 @@ public class PGWriter extends WriterBase {
       println(out," **/");
       println(out);
       doPackaging(out,"global");
-
+      
       println(out);
       String xclause = "";
       String exts = p.get("global", "factoryExtends");
@@ -1684,10 +1595,8 @@ public class PGWriter extends WriterBase {
         xclause = "extends "+exts+" ";
       }
       println(out,"public class PropertyGroupFactory "+xclause+"{");
-
-      Enumeration contexts = p.getContexts();
-      while ( contexts.hasMoreElements()) {
-        String context = (String) contexts.nextElement();
+      
+      for (String context : p.getContexts()) {
         if (! context.equals("global") && 
             isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
@@ -1702,30 +1611,30 @@ public class PGWriter extends WriterBase {
           if (timephased) {
             println(out,"  // brand-new instance factory");
             println(out,"  public static PropertyGroupSchedule new"+context+
-                        "Schedule() {");
+            "Schedule() {");
             println(out,"    return new PropertyGroupSchedule(new"+context+"());");
             println(out,"  }");
           }
-
+          
           println(out,"  // instance from prototype factory");
           println(out,"  public static "+newclassName+" new"+context+"("+context+" prototype) {");
           println(out,"    return new "+icn+"(prototype);");
           println(out,"  }");
           println(out);
-
+          
           if (timephased) {
             println(out,"  // instance from prototype factory");
             println(out,"  public static PropertyGroupSchedule new"+context+
-                        "Schedule("+context+" prototype) {");
+                    "Schedule("+context+" prototype) {");
             println(out,"    return new PropertyGroupSchedule(new"+context+"(prototype));");
             println(out,"  }");
             println(out);
-
+            
             println(out,"  // instance from prototype schedule");
             println(out,"  public static PropertyGroupSchedule new"+context+
-                        "Schedule(PropertyGroupSchedule prototypeSchedule) {");
+            "Schedule(PropertyGroupSchedule prototypeSchedule) {");
             println(out,"    if (!prototypeSchedule.getPGClass().equals("+context+
-                    ".class)) {");
+            ".class)) {");
             println(out,"      throw new IllegalArgumentException(\"new"+context+
                     "Schedule requires that getPGClass() on the PropertyGroupSchedule argument return "+
                     context+".class\");");
@@ -1742,9 +1651,7 @@ public class PGWriter extends WriterBase {
       println(out,"   * <factorymethodname> takes zero or one (prototype) argument.");
       println(out,"   **/");
       println(out,"  public static String properties[][]={");
-      contexts = p.getContexts();
-      while ( contexts.hasMoreElements()) {
-        String context = (String) contexts.nextElement();
+      for (String context : p.getContexts()) {
         if (! context.equals("global") && 
             isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
@@ -1755,54 +1662,46 @@ public class PGWriter extends WriterBase {
             println(out);
             print(out,"    {\"org.cougaar.planning.ldm.asset.PropertyGroupSchedule\", \"new"+context+"Schedule\"}");
           }
-          if (contexts.hasMoreElements())
-            print(out,",");
-          println(out);
+          println(out, ",");
         }
       }
       println(out,"  };");
       
-
+      
       println(out,"}");
       out.close();
     }
-
+    
     protected boolean delegatesEquals(String context) {
-      Vector vs = getAllDelegateSpecs(context);
-      if (vs != null) {
-	for (int i = 0; i < vs.size(); i++) {
-	  Argument dv = (Argument) vs.elementAt(i);
-	  Vector dsv = parseDelegateSpecs(p.get(context, dv.name+".delegate"));
-	  for (int j = 0; j < dsv.size(); j++) {
-	    DelegateSpec ds = (DelegateSpec) dsv.elementAt(j);
-	    if ((ds.type.equals("boolean")) &&
-		(ds.name.equals("equals")) &&
-		(ds.args.size() == 1)) {
-	      Argument arg = (Argument) ds.args.elementAt(0);
-	      if (arg.type.equals("Object")) {
-		return true;
-	      } else {
-		return false;
-	      }
-	    }
-	  }
-	}
+      for (Argument dv :getAllDelegateSpecs(context)) {
+        for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
+          if ((ds.type.equals("boolean")) &&
+              (ds.name.equals("equals")) &&
+              (ds.args.size() == 1)) {
+            Argument arg = (Argument) ds.args.get(0);
+            if (arg.type.equals("Object")) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        }
       }
       return false;
     }
-
+    
     protected boolean primitiveDataType(String type) {
       return ((type != null) && 
-	      ((type.equals("boolean")) ||
-	       (type.equals("char")) ||
-	       (type.equals("byte")) ||
-	       (type.equals("short")) ||
-	       (type.equals("int")) ||
-	       (type.equals("long")) ||
-	       (type.equals("float")) ||
-	       (type.equals("double"))));
+              ((type.equals("boolean")) ||
+              (type.equals("char")) ||
+              (type.equals("byte")) ||
+              (type.equals("short")) ||
+              (type.equals("int")) ||
+              (type.equals("long")) ||
+              (type.equals("float")) ||
+              (type.equals("double"))));
     }
-
+    
     protected class CollectionType {
       public String ctype;
       public String etype;
@@ -1822,7 +1721,7 @@ public class PGWriter extends WriterBase {
         return null;
       }
     }
-
+    
     protected class ActiveSlot {
       public String rtype;
       public String name;
@@ -1850,8 +1749,8 @@ public class PGWriter extends WriterBase {
       public String getter(String var) {
         String s = getterSpec();
         s=s+" {\n"+
-          "    if ("+var+"==null) throw new UndefinedValueException();\n"+
-          "    return "+var+".get"+toClassName(name)+"(";
+        "    if ("+var+"==null) throw new UndefinedValueException();\n"+
+        "    return "+var+".get"+toClassName(name)+"(";
         s=s+arglist()+");\n  }";
         return s;
       }
@@ -1864,8 +1763,8 @@ public class PGWriter extends WriterBase {
       public String setter(String var) {
         String s = setterSpec();
         s=s+" {\n"+
-          "    if ("+var+"==null) throw new UndefinedValueException();\n"+
-          "    "+var+".set"+toClassName(name)+"(_value";
+        "    if ("+var+"==null) throw new UndefinedValueException();\n"+
+        "    "+var+".set"+toClassName(name)+"(_value";
         if (arguments.length>0)s=s+", ";
         s=s+arglist()+");\n  }";
         return s;
@@ -1892,10 +1791,10 @@ public class PGWriter extends WriterBase {
       public String handlerClassDef() {
         // BIZARRE - We apparently need the "public static"
         return 
-          "  public static interface "+handlerName()+" {\n"+
-          "    "+rtype+" "+getterSpec()+";\n"+
-          "    void "+setterSpec()+";\n"+
-          "  }";
+        "  public static interface "+handlerName()+" {\n"+
+        "    "+rtype+" "+getterSpec()+";\n"+
+        "    void "+setterSpec()+";\n"+
+        "  }";
       }
     }
     
@@ -1909,13 +1808,11 @@ public class PGWriter extends WriterBase {
       if (!(ee > es && es >= 0)) return null; //  not an active slot?
       
       String name = slotname.substring(0,es);
-      Vector arglist = explode(slotname.substring(es+1, ee), ',');
       
-      Collection args = new ArrayList();
-      Collection types = new ArrayList();
+      List<String> args = new ArrayList<String>();
+      List<String> types = new ArrayList<String>();
       
-      for (Enumeration e = arglist.elements(); e.hasMoreElements();) {
-        String arg = ((String)e.nextElement()).trim();
+      for (String arg : explode(slotname.substring(es+1, ee), ',')) {
         sp = arg.indexOf(" ");
         if (sp < 0) throw new RuntimeException("Broken active slot specification: "+ slotname);
         String at = arg.substring(0,sp);
@@ -1925,7 +1822,7 @@ public class PGWriter extends WriterBase {
       }
       return new ActiveSlot(rtype, name, args.toArray(), types.toArray());
     }
-
+    
     
     class Argument {
       String type;
@@ -1935,12 +1832,12 @@ public class PGWriter extends WriterBase {
         return type+" "+name;
       }
     }
-
+    
     class DelegateSpec {
       String type;
       String name;
-      Vector args;
-      public DelegateSpec(String t, String n, Vector a) {
+      List<Argument> args;
+      public DelegateSpec(String t, String n, List<Argument> a) {
         type=t; name=n; args=a;
       }
       public String toString() {
@@ -1955,30 +1852,26 @@ public class PGWriter extends WriterBase {
                           s.substring(p+1).trim());
     }
     
-    public String unparseArguments(Vector args, boolean typesToo) {
-      int l = args.size();
+    public String unparseArguments(List<Argument> args, boolean typesToo) {
       String s = "";
-      for (int i = 0; i<l; i++) {
-        Argument arg = (Argument) args.elementAt(i);
-        if (i!=0) s=s+", ";
+      for (Argument arg : args) {
+        if (! s.equals("")) s=s+", ";
         if (typesToo) s=s+arg.type+" ";
         s=s+arg.name;
       }
       return s;
     }        
-
-    public Vector parseArguments(String s) {
-      if (s == null)
-        return new Vector(0);
-      Vector argstrs = explode(s, ',');
-      int l = argstrs.size();
-      Vector args = new Vector(l);
-      for (int i = 0; i<l; i++) {
-        args.addElement(parseArgument((String)argstrs.elementAt(i)));
+    
+    public List<Argument> parseArguments(String s) {
+      if (s == null) return new ArrayList<Argument>(0);
+      List<String> argstrs = explode(s, ',');
+      List<Argument> args = new ArrayList<Argument>(argstrs.size());
+      for (String arg : argstrs) {
+        args.add(parseArgument(arg));
       }
       return args;
     }
-
+    
     public DelegateSpec parseDelegateSpec(String s) {
       s = s.trim();
       int p1 = s.indexOf(" ");
@@ -1986,30 +1879,29 @@ public class PGWriter extends WriterBase {
       int p3 = s.indexOf(")");
       String type = s.substring(0,p1).trim();
       String name = s.substring(p1+1,p2).trim();
-      Vector args = parseArguments(s.substring(p2+1,p3));
+      List<Argument> args = parseArguments(s.substring(p2+1,p3));
       return new DelegateSpec(type, name, args);
     }
     
-    public Vector parseDelegateSpecs(String s) {
-      Vector v = explode(s, ';');
-      int l = v.size();
-      Vector ds = new Vector(l);
-      for (int i = 0; i<l; i++) {
-        String x = ((String)v.elementAt(i)).trim();
+    public List<DelegateSpec> parseDelegateSpecs(String s) {
+      List<String> v = explode(s, ';');
+      List<DelegateSpec> ds = new ArrayList<DelegateSpec>(v.size());
+      for (String x : v) {
+        x = x.trim();
         if (x.length()>0) {
-          ds.addElement(parseDelegateSpec(x));
+          ds.add(parseDelegateSpec(x));
         }
       }
       return ds;
     }      
-
+    
     public void writeAsset () throws IOException {
       String outname = "AssetSkeleton.java";
       if (cleanp) {
         (new File(outname)).delete();
         return ;
       }
-
+      
       debug("Writing AssetSkeleton to \""+outname+"\"");
       noteFile(outname);
       FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
@@ -2037,121 +1929,119 @@ public class PGWriter extends WriterBase {
       println(out);
       // copy constructor
       println(out,"  protected AssetSkeleton(AssetSkeleton prototype) {\n"+
-                  "    super(prototype);\n"+
-                  "  }");
+              "    super(prototype);\n"+
+      "  }");
       println(out);
-
+      
       println(out,"  /**                 Default PG accessors               **/");
       println(out);
-
-      Enumeration contexts = p.getContexts();
-      while ( contexts.hasMoreElements()) {
-        String context = (String) contexts.nextElement();
+      
+      for (String context : p.getContexts()) {
         if (!context.equals("global") &&
             isPrimary(context) &&
             (p.get(context, "abstract") == null)) {
           println(out,"  /** Search additional properties for a "+
-                      context+
-                      " instance.");
+                  context+
+          " instance.");
           println(out,"   * @return instance of "+context+" or null.");
           println(out,"   **/");
           
           boolean timephased = isTimePhased(context);
           String timeVar = "";
-
+          
           if (timephased) {
             timeVar = "long time";
           }
           println(out,"  public "+context+" get"+context+"("+timeVar+")");
           println(out,"  {");
-
+          
           if (timephased) {
             timeVar = ", time";
           }
           println(out,"    "+context+" _tmp = ("+context+") resolvePG("+
-                      context+".class"+timeVar+");");
+                  context+".class"+timeVar+");");
           println(out,"    return (_tmp=="+context+".nullPG)?null:_tmp;");
           println(out,"  }");
           println(out);
-
+          
           // For timephased - get default
           if (timephased) {
             println(out,"  public "+context+" get"+context+"()");
             println(out,"  {");
             println(out,"    PropertyGroupSchedule pgSchedule = get"+context+
-                    "Schedule();");
+            "Schedule();");
             println(out,"    if (pgSchedule != null) {");
             println(out,"      return ("+context+
-                    ") pgSchedule.getDefault();");
+            ") pgSchedule.getDefault();");
             println(out,"    } else {");
             println(out,"      return null;");
             println(out,"    }");
             println(out,"  }");
             println(out);
           }
-
+          
           if (timephased) {
             println(out,"  /** Test for existence of a default "+context+"\n"+
-                    "   **/");
+            "   **/");
           } else {
             println(out,"  /** Test for existence of a "+context+"\n"+
-                    "   **/");
+            "   **/");
           }
           println(out,"  public boolean has"+context+"() {");
           println(out,"    return (get"+context+"() != null);\n"+
-                  "  }");
+          "  }");
           println(out);
-
-
+          
+          
           if (timephased) {
             println(out,"  /** Test for existence of a "+context+
                     " at a specific time\n"+"   **/");
             println(out,"  public boolean has"+context+"(long time) {");
             println(out,"    return (get"+context+"(time) != null);\n"+
-                      "  }");
+            "  }");
             println(out);
           }
-
+          
           String vr = "a"+context;
           println(out,"  /** Set the "+context+" property.\n"+
-                      "   * The default implementation will create a new "+context+"\n"+
-                      "   * property and add it to the otherPropertyGroup list.\n"+
-                      "   * Many subclasses override with local slots.\n"+
-                      "   **/\n"+
-                      "  public void set"+context+"(PropertyGroup "+vr+") {\n"+
-                      "    if ("+vr+" == null) {\n"+
-                      "      removeOtherPropertyGroup("+context+".class);\n"+
-                      "    } else {\n"+
-                      "      addOtherPropertyGroup(a"+context+");\n"+
-                      "    }\n"+
-                      "  }");
+                  "   * The default implementation will create a new "+context+"\n"+
+                  "   * property and add it to the otherPropertyGroup list.\n"+
+                  "   * Many subclasses override with local slots.\n"+
+                  "   **/\n"+
+                  "  public void set"+context+"(PropertyGroup "+vr+") {\n"+
+                  "    if ("+vr+" == null) {\n"+
+                  "      removeOtherPropertyGroup("+context+".class);\n"+
+                  "    } else {\n"+
+                  "      addOtherPropertyGroup(a"+context+");\n"+
+                  "    }\n"+
+          "  }");
           println(out);
-
+          
           if (timephased) {
             println(out,"  public PropertyGroupSchedule get"+context+"Schedule()");
             println(out,"  {");
             println(out,"    return searchForPropertyGroupSchedule("+context+
-                      ".class);");
+            ".class);");
             println(out,"  }");
             println(out);
-
+            
             println(out,"  public void set"+context+"Schedule(PropertyGroupSchedule schedule) {\n"+
-                      "    removeOtherPropertyGroup("+context+".class);\n"+
-                      "    if (schedule != null) {\n"+
-                      "      addOtherPropertyGroupSchedule(schedule);\n"+
-                      "    }\n"+
-                      "  }");
+                    "    removeOtherPropertyGroup("+context+".class);\n"+
+                    "    if (schedule != null) {\n"+
+                    "      addOtherPropertyGroupSchedule(schedule);\n"+
+                    "    }\n"+
+            "  }");
             println(out);
           }
         }
       }
-
+      
       println(out,"}");
       out.close();
     }
-
-
-
+    
+    
+    
     private void writeIndex() throws Exception {
       String outname = "Properties.index";
       if (cleanp) {
@@ -2159,31 +2049,26 @@ public class PGWriter extends WriterBase {
         return ;
       }
       noteFile(outname);
-
+      
       debug("Writing Properties Index to \""+outname+"\"");
       FileOutputStream fos = new FileOutputStream(new File(getTargetDir(),outname));
       OutputStreamWriter osw = new OutputStreamWriter(fos);
       PrintWriter out = new PrintWriter(osw);
-
+      
       println(out,"- - - - - List of machine generated PropertyGroups - - - - -");
       
-      HashMap permuted = new HashMap();
-
-      List l =new ArrayList(p.table.keySet());
+      Map<String,List<String>> permuted = new HashMap<String,List<String>>();
+      
+      List<String> l =new ArrayList<String>(p.table.keySet());
       Collections.sort(l);
-      for (Iterator i = l.iterator(); i.hasNext();) {
-        String context = (String) i.next();
+      for (String context : l) {
         println(out,"* "+context);
         String doc = p.get(context,"doc");
         if (doc != null) {
           println(out,doc);
         }
-
-        Vector slotspecs = getAllSlotSpecs(context);
-        Enumeration se = slotspecs.elements();
-        while (se.hasMoreElements()) {
-          String slotspec = ((String)se.nextElement()).trim();
-
+        
+        for (String slotspec : getAllSlotSpecs(context)) {
           int s = slotspec.indexOf(" ");
           String type = slotspec.substring(0, s);
           String name = slotspec.substring(s+1);
@@ -2195,38 +2080,33 @@ public class PGWriter extends WriterBase {
           String slotdoc = (String)p.get(context, name+".doc");
           if (slotdoc != null) print(out,"\t//"+slotdoc);
           println(out);
-
-
-          List pent = (List) permuted.get(name);
+          
+          
+          List<String> pent = permuted.get(name);
           if (pent == null) {
-            pent = new ArrayList();
+            pent = new ArrayList<String>();
             permuted.put(name, pent);
           } 
           pent.add(context);
         }
       }
-
+      
       println(out,"- - - - - Permuted index of PropertyGroupSlots - - - - -");
-      List k = new ArrayList(permuted.keySet());
+      List<String> k = new ArrayList<String>(permuted.keySet());
       Collections.sort(k);
-      for (Iterator i = k.iterator(); i.hasNext();) {
-        String name = (String) i.next();
+      for (String name : k) {
         println(out,"* "+toClassName(name));
-        List cs = (List) permuted.get(name);
-        for (Iterator j = cs.iterator(); j.hasNext();) {
-          String context = (String) j.next();
+        for (String context : permuted.get(name)) {
           println(out,"    "+context);
         }
       }
-
+      
       out.close();
     }
-
+    
     public void write() throws Exception {
       grokGlobal();
-      Enumeration contexts = p.getContexts();
-      while ( contexts.hasMoreElements()) {
-        String context = (String) contexts.nextElement();
+      for (String context : p.getContexts()) {
         if (! context.equals("global") &&
             (p.get(context, "abstract") == null) &&
             (isPrimary(context))) {
@@ -2239,28 +2119,28 @@ public class PGWriter extends WriterBase {
       
       writeIndex();
     }
-
+    
     protected boolean isPrimary(String context) {
       String source = p.get(context, PGParser.PG_SOURCE);
       return (source != null) && (source.equals(PGParser.PRIMARY));
     }
   }
-
+  
   /** arguments to the writer **/
   private String arguments[];
-
+  
   public String deffilename = null;
   
   boolean isVerbose = false;
   boolean cleanp = false;
   boolean writeAbstractFactory = true;
   boolean writeInterfaces = true;
-
+  
   public void debug(String s) {
     if (isVerbose)
       System.err.println(s);
   }
-
+  
   void processFile(String filename) {
     InputStream stream = null;
     try {
@@ -2278,7 +2158,7 @@ public class PGWriter extends WriterBase {
         stream = 
           getClass().getClassLoader().getResourceAsStream(filename);
       }
-
+      
       PGParser p = new PGParser(isVerbose);
       p.parse(stream);
       stream.close();
@@ -2291,21 +2171,21 @@ public class PGWriter extends WriterBase {
       e.printStackTrace();
     }
   }
-
+  
   void usage(String s) {
     System.err.println(s);
     System.err.println("Usage: PGWriter [-v] [-f] [-i] [--] file [file ...]\n"+
                        "-v  toggle verbose mode (default off)\n"+
                        "-f  toggle AbstractFactory generation (on)\n"+
                        "-i  toggle Interface generation (on)\n"
-                       );
+    );
     System.exit(1);
   }
-
+  
   public void start() {
     boolean ignoreDash = false;
     String propertiesFile = null;
-
+    
     for (int i=0; i<arguments.length; i++) {
       String arg = arguments[i];
       if (!ignoreDash && arg.startsWith("-")) { // parse flags
@@ -2332,15 +2212,15 @@ public class PGWriter extends WriterBase {
     if (propertiesFile == null) {
       propertiesFile = PGParser.DEFAULT_FILENAME;
     }
-
+    
     processFile(propertiesFile);
   }
-
+  
   public PGWriter(String args[]) {
     arguments=args;
   }
-
-
+  
+  
   public static void main(String args[]) {
     PGWriter mw = new PGWriter(args);
     mw.start();

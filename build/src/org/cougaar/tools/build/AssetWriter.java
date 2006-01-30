@@ -35,19 +35,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class AssetWriter extends WriterBase {
   public final static String DEFAULT_FILENAME = "assets.def";
 
   class ClassD {
-    Vector imports = new Vector();
+    Collection<String> imports = new ArrayList<String>();
     String name;
     String doc;
     String base;
     boolean hasRelationships = false;
-    Vector slotds = new Vector();
+    List<SlotD> slotds = new ArrayList<SlotD>();
     public ClassD(String name) {
       this.name = name;
       doc = null;
@@ -101,15 +102,14 @@ public class AssetWriter extends WriterBase {
       parseSlot(s.substring(p).trim());
     }
     public SlotD getSlotD(String slotdname) {
-      for (Enumeration en = slotds.elements(); en.hasMoreElements(); ) {
-        SlotD slotd = (SlotD) en.nextElement();
+    	for (SlotD slotd: slotds) {
         if (slotdname.equals(slotd.getName())) 
           return slotd;
       }
       return null;
     }
     public void addSlotD(SlotD slotd) {
-      slotds.addElement(slotd);
+      slotds.add(slotd);
     }
     public void setDoc(String doc) {
       this.doc = doc;
@@ -119,16 +119,16 @@ public class AssetWriter extends WriterBase {
       this.base = base;
     }
     public String getBase() { return base; }
-    public Enumeration getSlotDs() {
-      return slotds.elements();
+    public List<SlotD> getSlotDs() {
+      return slotds;
     }
-    public Vector getSlots() { return slotds; }
-    public Vector getAllSlots() {
+ 
+    public List<SlotD> getAllSlots() {
       if (base != null) {
         ClassD cd = session.findClassD(base);
         if (cd != null) {
-          Vector v = cd.getAllSlots();
-          v = new Vector(v);
+          List<SlotD> v = cd.getAllSlots();
+          v = new ArrayList<SlotD>(v);
           v.addAll(slotds);
           return v;
         }
@@ -138,9 +138,9 @@ public class AssetWriter extends WriterBase {
 
     public String getName() { return name; }
     public String toString() { return "ClassD "+name; }
-    public Vector getImports() { return imports; }
+    public Collection<String> getImports() { return imports; }
     public void addImport(String imp) {
-      imports.addElement(imp);
+      imports.add(imp);
     }
     public boolean getHasRelationships() { return hasRelationships; }
   }
@@ -221,11 +221,11 @@ public class AssetWriter extends WriterBase {
     public void done() {
       filelist.close();
     }
-    public Vector classds = new Vector();
+    
+    public Collection<ClassD> classds = new ArrayList<ClassD>();
 
     public ClassD findClassD(String name) {
-      for (Enumeration e = classds.elements(); e.hasMoreElements(); ) {
-        ClassD cd = (ClassD) e.nextElement();
+      for (ClassD cd : classds) {
         if (cd.getName().equals(name)) return cd;
       }
       return null;
@@ -282,7 +282,7 @@ public class AssetWriter extends WriterBase {
           if (ext != null) {
             cd.setBase(ext);
           }
-          classds.addElement(cd);
+          classds.add(cd);
         } else {
           // a param line
           j = line.indexOf('=');
@@ -353,14 +353,11 @@ public class AssetWriter extends WriterBase {
         println(out,"public class AssetFactory extends EssentialAssetFactory {");
         println(out,"  public static String[] assets = {");
 
-        for (Enumeration cds = classds.elements(); cds.hasMoreElements(); ) {
-          ClassD cd = (ClassD) cds.nextElement();
+        for (ClassD cd : classds) {
           String name = cd.getName();
-          print(out,"    \""+asset_package+"."+name+"\"");
-          if (cds.hasMoreElements()) print(out,",");
+          print(out,"    \""+asset_package+"."+name+"\",");
           println(out);
         }
-
 
         println(out,"  };");
         println(out,"}");
@@ -373,10 +370,7 @@ public class AssetWriter extends WriterBase {
     }
 
     public void write() {
-      for (Enumeration cds = classds.elements();
-           cds.hasMoreElements(); ) {
-        ClassD cd = (ClassD) cds.nextElement();
-
+      for (ClassD cd : classds) {
         // write the class
         String path = cd.getName() + ".java";
         debug("Writing "+cd+" to "+path);
@@ -401,9 +395,8 @@ public class AssetWriter extends WriterBase {
           println(out,"import java.beans.IndexedPropertyDescriptor;" );
           println(out,"import java.beans.IntrospectionException;" );
 
-          for (Enumeration imps = cd.getImports().elements();
-               imps.hasMoreElements(); ) {
-            println(out,"import "+imps.nextElement()+";");
+          for (String imp: cd.getImports()) {
+            println(out,"import "+imp+";");
           }
 
           if (cd.getHasRelationships()) {
@@ -436,8 +429,7 @@ public class AssetWriter extends WriterBase {
           // may be a problem if we reintroduce internal links to cluster
           // state.
           println(out,"  public "+name+"() {");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
+          for (SlotD sd: cd.getSlotDs()) {
             String sname = sd.getName();
 
             // for time phased, want snameSchedule
@@ -455,8 +447,7 @@ public class AssetWriter extends WriterBase {
           println(out,"  public "+name+"("+name+" prototype) {");
           println(out,"    super(prototype);");
 
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
+          for (SlotD sd: cd.getSlotDs()) {
             String sname = sd.getName();
 
             if (sd.getTimePhased()) {
@@ -477,8 +468,7 @@ public class AssetWriter extends WriterBase {
           println(out,"  /** For infrastructure only - use org.cougaar.core.domain.Factory.copyInstance instead. **/");
           println(out,"  public Object clone() throws CloneNotSupportedException {\n"+
                       "    "+name+" _thing = ("+name+") super.clone();");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
+          for (SlotD sd: cd.getSlotDs()) {
             // Don't clone RelationshipSchedules
             // Hack until we figure out how to do this right
             if (!sd.getHasRelationships()) {
@@ -520,8 +510,7 @@ public class AssetWriter extends WriterBase {
           // property filler
           println(out,"  protected void fillAllPropertyGroups(Vector v) {");
           println(out,"    super.fillAllPropertyGroups(v);");
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) { 
-            SlotD sd = (SlotD) sls.nextElement();
+          for (SlotD sd: cd.getSlotDs()) {
             String sname = sd.getName();
             if (sd.getTimePhased()) {
               sname = sname+"Schedule";
@@ -539,8 +528,7 @@ public class AssetWriter extends WriterBase {
           println(out);
 
           // slot hackery
-          for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) { 
-            SlotD sd = (SlotD) sls.nextElement();
+          for (SlotD sd: cd.getSlotDs()) {
             String sname = sd.getName();
             String stype = sd.getType();
             boolean stimephased = sd.getTimePhased();
@@ -660,12 +648,11 @@ public class AssetWriter extends WriterBase {
             }
           }
 
-          if (cd.getSlotDs().hasMoreElements()) {  // don't write the methods unless we need to
+          if (!cd.getSlotDs().isEmpty()) {  // don't write the methods unless we need to
             println(out,"  // generic search methods");
 
             println(out,"  public PropertyGroup getLocalPG(Class c, long t) {");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if (!sd.getExact()) {
                 String sname = sd.getName();
                 // for time phased, want snameSchedule
@@ -693,8 +680,7 @@ public class AssetWriter extends WriterBase {
             println(out);
 
             println(out,"  public PropertyGroupSchedule getLocalPGSchedule(Class c) {");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               String sname = sd.getName();
               // for time phased, want snameSchedule
               if (!sd.getExact() && sd.getTimePhased()) {
@@ -709,8 +695,7 @@ public class AssetWriter extends WriterBase {
 
 
             println(out,"  public void setLocalPG(Class c, PropertyGroup pg) {");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if (!sd.getExact()) {
                 String sname = sd.getName();
                 String var = "my"+sname;
@@ -734,8 +719,7 @@ public class AssetWriter extends WriterBase {
             println(out); 
 
             println(out,"  public void setLocalPGSchedule(PropertyGroupSchedule pgSchedule) {");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if ((!sd.getExact()) && (sd.getTimePhased())) {
                 String sname = sd.getName();
                 // for time phased, want snameSchedule
@@ -752,8 +736,7 @@ public class AssetWriter extends WriterBase {
             println(out,"  public PropertyGroup removeLocalPG(Class c) {");
             println(out,"    PropertyGroup removed = null;");
             print  (out,"    ");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if (!sd.getExact()) {
                 String sname = sd.getName();
                 // for time phased, want snameSchedule
@@ -786,8 +769,7 @@ public class AssetWriter extends WriterBase {
             println(out,"  public PropertyGroup removeLocalPG(PropertyGroup pg) {");
             println(out,"    Class pgc = pg.getPrimaryClass();");
             print  (out,"    ");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if (!sd.getExact()) {
                 String sname = sd.getName();
                 // for time phased, want snameSchedule
@@ -813,8 +795,7 @@ public class AssetWriter extends WriterBase {
             println(out); 
 
             println(out,"  public PropertyGroupSchedule removeLocalPGSchedule(Class c) {");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if ((!sd.getExact()) && (sd.getTimePhased())) {
                 String sname = sd.getName();
                 // for time phased, want snameSchedule
@@ -833,8 +814,7 @@ public class AssetWriter extends WriterBase {
             println(out); 
 
             println(out,"  public PropertyGroup generateDefaultPG(Class c) {");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               if (!sd.getExact()) {
                 String sname = sd.getName();
                 // for time phased, want snameSchedule
@@ -858,9 +838,7 @@ public class AssetWriter extends WriterBase {
             // writer
             println(out,"  private void writeObject(ObjectOutputStream out) throws IOException {");
             println(out,"    out.defaultWriteObject();");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
-
+            for (SlotD sd: cd.getSlotDs()) {
               if (! sd.getTrans()) {
                 String sname = sd.getName();
               
@@ -881,8 +859,7 @@ public class AssetWriter extends WriterBase {
             // reader
             println(out,"  private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {");
             println(out,"    in.defaultReadObject();");
-            for (Enumeration sls = cd.getSlotDs(); sls.hasMoreElements(); ) {  
-              SlotD sd = (SlotD) sls.nextElement();
+            for (SlotD sd: cd.getSlotDs()) {
               String sname = sd.getName();
               String stype = sd.getType();
 
@@ -921,7 +898,7 @@ public class AssetWriter extends WriterBase {
       try {
         println(out,"  private static PropertyDescriptor properties[];\n"+
                     "  static {");
-        Vector v = cd.getSlots(); //cd.getAllSlots();
+        List<SlotD> v = cd.getSlotDs();
         int l = v.size();
         if (l == 0) {
           println(out,"    properties = new PropertyDescriptor["+l+"];");
@@ -930,8 +907,7 @@ public class AssetWriter extends WriterBase {
           println(out,"      properties = new PropertyDescriptor["+l+"];");
 
           int i = 0;
-          for (Enumeration sls = v.elements(); sls.hasMoreElements(); ) {  
-            SlotD sd = (SlotD) sls.nextElement();
+          for (SlotD sd : v) {
             String sname = sd.getName();
             
             if (sd.getTimePhased()) {
@@ -968,10 +944,7 @@ public class AssetWriter extends WriterBase {
     }
 
     public void writeBeanInfo() {
-      for (Enumeration cds = classds.elements();
-           cds.hasMoreElements(); ) {
-        ClassD cd = (ClassD) cds.nextElement();
-
+      for (ClassD cd : classds) {
         // write the class
         String name = cd.getName();
         String path = name + "BeanInfo.java";
@@ -1001,10 +974,8 @@ public class AssetWriter extends WriterBase {
           println(out,"/** BeanInfo for "+name+" **/");
           println(out);
           
-        
-          for (Enumeration imps = cd.getImports().elements();
-               imps.hasMoreElements(); ) {
-            println(out,"import "+imps.nextElement()+";");
+          for (String imp : cd.getImports()) {
+            println(out,"import "+imp+";");
           }
 
 
@@ -1092,9 +1063,8 @@ public class AssetWriter extends WriterBase {
         } else if (filename.indexOf('/') == -1) {
           debug("Reading \""+filename+"\".");
           File pf;
-          int p;
           // must be a '/', NOT filesystem dependent!
-          if ((p=filename.lastIndexOf('/'))!=-1) {
+          if (filename.lastIndexOf('/')!=-1) {
             pf = new File(filename);
           } else {
             pf = new File(getSourceDir(), filename);

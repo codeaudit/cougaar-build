@@ -37,10 +37,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class MeasureWriter extends WriterBase {
   class Parser {
@@ -49,40 +50,37 @@ public class MeasureWriter extends WriterBase {
       this.s = s;
     }
 
-    Hashtable table = new Hashtable();
-    public Hashtable getContext(String context) {
-      Object o = table.get(context);
-      Hashtable ct = null;
-      if (o instanceof Hashtable) {
-        ct = (Hashtable) o;
-      } else {
-        ct = new Hashtable();
-        table.put(context, ct);
+    Map<String,Map<String,Object>> table = new HashMap<String,Map<String,Object>>();
+    public Map<String,Object> getContext(String context) {
+      Map<String, Object> o = table.get(context);
+      if (o == null) {
+        o = new HashMap<String,Object>();
+        table.put(context, o);
       }
-      return ct;
+      return o;
     }
 
     public void put(String context, String key, String value) {
-      Hashtable ct = getContext(context);
+      Map<String,Object> ct = getContext(context);
       ct.put(key, value);
     }
     public void _put(String context, String key, Object value) {
-      Hashtable ct = getContext(context);
+      Map<String,Object> ct = getContext(context);
       ct.put(key, value);
     }
 
     public String get(String context, String key) {
-      Hashtable ct = getContext(context);
-      return (String)ct.get(key);
+      Map<String,Object> ct = getContext(context);
+      return (String) ct.get(key);
     }
 
     public Object _get(String context, String key) {
-      Hashtable ct = getContext(context);
+      Map<String,Object> ct = getContext(context);
       return ct.get(key);
     }      
 
-    public Enumeration getContexts() {
-      return table.keys();
+    public Set<String> getContexts() {
+      return table.keySet();
     }
 
     public void parse() throws IOException {
@@ -217,33 +215,33 @@ public class MeasureWriter extends WriterBase {
       println(out);
     }
     
-    Vector explode(String s) {
-     Vector r = new Vector();
+    List<String> explode(String s) {
+     List<String> r = new ArrayList<String>();
      int last = 0;
      for (int i = 0; i < s.length(); i++) {
        char c = s.charAt(i);
        if (c == ' ') {
          if (i>last)
-           r.addElement(s.substring(last,i));
+           r.add(s.substring(last,i));
          last = i+1;
        }
      }
-     if (s.length()>last) r.addElement(s.substring(last));
+     if (s.length()>last) r.add(s.substring(last));
      return r;
     }
 
-    Vector explodeC(String s, char burst) {
-     Vector r = new Vector();
+    List<String> explodeC(String s, char burst) {
+     List<String> r = new ArrayList<String>();
      int last = 0;
      for (int i = 0; i < s.length(); i++) {
        char c = s.charAt(i);
        if (c == burst) {
          if (i>last)
-           r.addElement(s.substring(last,i));
+           r.add(s.substring(last,i));
          last = i+1;
        }
      }
-     if (s.length()>last) r.addElement(s.substring(last));
+     if (s.length()>last) r.add(s.substring(last));
      return r;
     }
 
@@ -285,9 +283,11 @@ public class MeasureWriter extends WriterBase {
       }
     }
 
-    Vector getUnitV(String context) {
-      Vector v = (Vector) p._get(context,"_units");
+    @SuppressWarnings("unchecked") 
+    List<String> getUnitV(String context) {
+      List<String> v = (List<String>) p._get(context,"_units");
       if (v != null) return v;
+
       String units = p.get(context, "units");
       if (units != null) {
         v = explode(units);
@@ -308,8 +308,8 @@ public class MeasureWriter extends WriterBase {
     String getBaseUnit(String context) {
       String base = p.get(context, "base");
       if (base == null) {
-        Vector units = getUnitV(context);
-        return (String)units.elementAt(0);
+        Collection<String> units = getUnitV(context);
+        return units.iterator().next();
       } else {
         return base;
       }
@@ -328,16 +328,14 @@ public class MeasureWriter extends WriterBase {
                   (isFinal?"final ":"")+
                   "class "+className+" extends "+ext+" implements Externalizable {");
       // get units
-      Vector units = getUnitV(context);
+      List<String> units = getUnitV(context);
       String base = getBaseUnit(context);
       String baseabbrev = p.get(context, "baseabbrev");
       if (baseabbrev == null) baseabbrev=base;
       
       // write static factors
       println(out,"  // Conversion factor constants");
-      Enumeration ue = units.elements();
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
+      for (String unit : units) {
         if (! unit.equals(base)) {
           // f is the factor of (1 unit) = f * (1 baseunit);
           String fact1 = toConstantName(base+"_PER_"+unit);
@@ -383,9 +381,7 @@ public class MeasureWriter extends WriterBase {
       println(out,"    double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();");
       println(out,"    String u = s.substring(i).trim().toLowerCase();");
       print(out,"    ");
-      ue = units.elements();
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
+      for (String unit : units) {
         String unitName = toClassName(unit);
         String fexpr="";
         if (!unit.equals(base)) {
@@ -401,9 +397,7 @@ public class MeasureWriter extends WriterBase {
 
       // Named type factory methods
       println(out,"  // TypeNamed factory methods");
-      ue = units.elements();
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
+      for (String unit : units) {
         String unitName = toClassName(unit);
         String fexpr="";
         if (!unit.equals(base)) {
@@ -434,14 +428,8 @@ public class MeasureWriter extends WriterBase {
 
       println(out,"  // unit names for getUnitName");
       println(out,"  private static final String unitNames[]={");
-      ue = units.elements();
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
-        print(out,"    \""+unit+"\"");
-        if (ue.hasMoreElements())
-          println(out,",");
-        else
-          println(out);
+      for (String unit : units) {
+        println(out,"    \""+unit+"\",");
       }
       println(out,"  };");
       println(out);
@@ -453,25 +441,17 @@ public class MeasureWriter extends WriterBase {
       // index typed factory methods
       println(out,"  // Index Typed factory methods");
       println(out,"  static final double convFactor[]={");
-      ue = units.elements();
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
+      for (String unit : units) {
         String fexpr="1.0";
         if (!unit.equals(base)) {
           fexpr = toConstantName(base+"_PER_"+unit);
         }
-        print(out,"    "+fexpr);
-        if (ue.hasMoreElements())
-          println(out,",");
-        else
-          println(out);
+        println(out,"    ,"+fexpr);
       }
       println(out,"  };");
       println(out,"  // indexes into factor array");
-      ue = units.elements();
       int i = 0;
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
+      for (String unit : units) {
         String unitName = toConstantName(unit);
         println(out,"  public static final int "+unitName+" = "+i+";");
         i++;
@@ -506,9 +486,7 @@ public class MeasureWriter extends WriterBase {
 
       // getters
       println(out,"  // Unit-based Reader methods");
-      ue = units.elements();
-      while (ue.hasMoreElements()) {
-        String unit = (String)ue.nextElement();
+      for (String unit : units) {
         String unitName = toClassName(unit);
         String fexpr="";
         if (!unit.equals(base)) {
@@ -558,9 +536,9 @@ public class MeasureWriter extends WriterBase {
     }
 
     void writeClassDt(PrintWriter out, String context, String className) {
-      Vector mV = explodeC(p.get(context,"derivative"), '/');
-      final String dC = (String) mV.elementAt(0);
-      final String dtC = (String) mV.elementAt(1);
+      List<String> mV = explodeC(p.get(context,"derivative"), '/');
+      final String dC = mV.get(0);
+      final String dtC = mV.get(1);
 
       String dB = getBaseUnit(dC);
       String dtB = getBaseUnit(dtC);
@@ -589,13 +567,11 @@ public class MeasureWriter extends WriterBase {
         }
       }
       
-      ArrayList tuples = new ArrayList();
-      Vector numV = getUnitV(dC);
-      Vector denV = getUnitV(dtC);
-      for (Enumeration nE = numV.elements(); nE.hasMoreElements();) {
-        String nU = (String) nE.nextElement();
-        for (Enumeration dE = denV.elements(); dE.hasMoreElements();) {
-          String dU = (String) dE.nextElement();
+      List<UnitTuple> tuples = new ArrayList<UnitTuple>();
+      List<String> numV = getUnitV(dC);
+      List<String> denV = getUnitV(dtC);
+      for (String nU : numV) {
+        for (String dU : denV) {
           tuples.add(new UnitTuple(nU,dU));
         }
       }
@@ -668,8 +644,7 @@ public class MeasureWriter extends WriterBase {
       println(out,"    double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();");
       println(out,"    String u = s.substring(i).trim().toLowerCase();");
       print(out,"    ");
-      for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-        UnitTuple ut = (UnitTuple) ti.next();
+      for (UnitTuple ut : tuples) {
         println(out,"if (u.equals(\""+
                     toClassName(ut.num+"per"+ut.sden).toLowerCase()+
                     "\")) ");
@@ -682,9 +657,7 @@ public class MeasureWriter extends WriterBase {
 
       // Named type factory methods
       println(out,"  // TypeNamed factory methods");
-      for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-        UnitTuple ut = (UnitTuple) ti.next();
-
+      for (UnitTuple ut : tuples) {
         String unit = ut.num+"_per_"+ut.sden;
         String unitName = toClassName(unit);
         String fexpr="*(1.0/"+ut.factor+")";
@@ -705,12 +678,11 @@ public class MeasureWriter extends WriterBase {
       if (cus == null) { 
         println(out,"    return 0;");
       } else {        
-        Vector v = explodeC(cus,'/');
-        String n=(String)v.elementAt(0);
-        String d=(String)v.elementAt(1);
+        List<String> v = explodeC(cus,'/');
+        String n=v.get(0);
+        String d=v.get(1);
         int i = 0;
-        for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-          UnitTuple ut = (UnitTuple)ti.next();
+        for (UnitTuple ut : tuples) {
           if (n.equals(ut.num) && d.equals(ut.sden)) {
             println(out,"    return "+i+";");
             break;
@@ -730,14 +702,9 @@ public class MeasureWriter extends WriterBase {
 
       println(out,"  // unit names for getUnitName");
       println(out,"  private static final String unitNames[]={");
-      for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-        UnitTuple ut = (UnitTuple)ti.next();
+      for (UnitTuple ut : tuples) {
         String unit = ut.num+"/"+ut.sden;
-        print(out,"    \""+unit+"\"");
-        if (ti.hasNext())
-          println(out,",");
-        else
-          println(out);
+        println(out,"    \""+unit+"\",");
       }
       println(out,"  };");
       println(out);
@@ -751,20 +718,14 @@ public class MeasureWriter extends WriterBase {
       // index typed factory methods
       println(out,"  // Index Typed factory methods");
       println(out,"  static final double convFactor[]={");
-      for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-        UnitTuple ut = (UnitTuple)ti.next();
-        print(out,"    "+ut.factor+"");
-        if (ti.hasNext())
-          println(out,",");
-        else
-          println(out);
+      for (UnitTuple ut : tuples) {
+        println(out,"    "+ut.factor+",");
       }
       println(out,"  };");
 
       println(out,"  // indexes into factor array");
       int i = 0;
-      for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-        UnitTuple ut = (UnitTuple)ti.next();
+      for (UnitTuple ut : tuples) {
         String unit = ut.num+"_per_"+ut.sden;
         String unitName = toConstantName(unit);
         println(out,"  public static final int "+unitName+" = "+i+";");
@@ -837,8 +798,7 @@ public class MeasureWriter extends WriterBase {
 
       // getters
       println(out,"  // Unit-based Reader methods");
-      for (Iterator ti = tuples.iterator(); ti.hasNext(); ) {
-        UnitTuple ut = (UnitTuple)ti.next();
+      for (UnitTuple ut : tuples) {
         String unit = ut.num+"_per_"+ut.sden;
         String unitName = toClassName(unit);
         println(out,"  public double get"+unitName+"() {");
@@ -980,9 +940,7 @@ public class MeasureWriter extends WriterBase {
 
     public void write() throws Exception {
       grokGlobal();
-      Enumeration contexts = p.getContexts();
-      while ( contexts.hasMoreElements()) {
-        String cname = (String) contexts.nextElement();
+      for (String cname: p.getContexts()) {
         if (! cname.equals("global")) {
           try {
             writeMeasure(cname);

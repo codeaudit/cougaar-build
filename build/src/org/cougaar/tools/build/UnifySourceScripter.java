@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -261,9 +260,10 @@ public class UnifySourceScripter {
   private static class DirEntry {
     private final String name;
     // Map<String, (File|DirEntry)>
-    private final Map subdirs = new HashMap();
-    // Map<String, (File|List)>
-    private Map files = Collections.EMPTY_MAP;
+    private final Map<String,Object> subdirs = new HashMap<String,Object>();
+    // Map<String, List<File>>
+    private Map<String, List<File>> files = new HashMap<String,List<File>>();
+    
     public DirEntry(String name) {
       this.name = name;
     }
@@ -282,31 +282,20 @@ public class UnifySourceScripter {
       //          ((File) obj).isDirectory()));
       subdirs.put(dirname, obj);
     }
-    public Object getFile(String fname) {
+    public List<File> getFiles(String fname) {
       return files.get(fname);
     }
-    public Iterator iterateFiles() {
-      return files.entrySet().iterator();
+    public Collection<String> getFilenames() {
+      return files.keySet();
     }
+    
     public void addFile(String fname, File f) {
-      if (files == Collections.EMPTY_MAP) {
-        files = new HashMap();
-      }
-      Object obj = files.get(fname);
-      if (obj == null) {
-        files.put(fname, f);
-      } else if (obj instanceof File) {
-        List l = new ArrayList(3);
-        l.add(obj);
-        l.add(f);
+      List<File> l = files.get(fname);
+      if (l == null) {
+        l = new ArrayList<File>(2);
         files.put(fname, l);
-      } else if (obj instanceof List) {
-        List l = (List) obj;
-        l.add(f);
-      } else {
-        throw new RuntimeException(
-            "Unexpected files entry: "+obj);
       }
+      l.add(f);
     }
   }
 
@@ -405,41 +394,28 @@ public class UnifySourceScripter {
         out.println(prefix+"  link "+fpath);
       }
     }
-    for (Iterator iter = de.iterateFiles();
-        iter.hasNext();
-        ) {
-      Map.Entry me = (Map.Entry) iter.next();
-      Object val = me.getValue();
-      if (val instanceof File) {
-        File f = (File) val;
+    
+    for (String fn : de.getFilenames()) {
+      String fname = null;
+      String firstAlias = null;
+      for (File f : de.getFiles(fn)) {
+        if (fname == null) {
+          fname = f.getName();
+        }
         String fpath = f.getPath();
         fpath = "$"+fpath.substring(2);
-        out.println(prefix+"  link "+fpath);
-      } else if (val instanceof Collection) {
-        String fname = null;
-        String firstAlias = null;
-        for (Iterator i2 = ((Collection) val).iterator();
-            i2.hasNext();
-            ) {
-          File f = (File) i2.next();
-          if (fname == null) {
-            fname = f.getName();
-          }
-          String fpath = f.getPath();
-          fpath = "$"+fpath.substring(2);
-          int sep = fpath.indexOf(File.separator);
-          String falias = 
-            fname+
-            "#"+
-            (sep > 0 ? fpath.substring(1,sep) : fpath);
-          // check if (de.getFile(falias) != null) ?
-          out.println(prefix+"  link "+fpath+" "+falias);
-          if (firstAlias == null) {
-            firstAlias = falias;
-          }
+        int sep = fpath.indexOf(File.separator);
+        String falias = 
+          fname+
+          "#"+
+          (sep > 0 ? fpath.substring(1,sep) : fpath);
+        // check if (de.getFile(falias) != null) ?
+        out.println(prefix+"  link "+fpath+" "+falias);
+        if (firstAlias == null) {
+          firstAlias = falias;
         }
-        out.println(prefix+"  link "+firstAlias+" "+fname);
       }
+      out.println(prefix+"  link "+firstAlias+" "+fname);
     }
     out.println(prefix+"cd ..");
   }

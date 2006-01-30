@@ -34,7 +34,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /** A tool for cleaning up generated code files as listed in
@@ -45,7 +44,7 @@ public class DefCleaner {
     private static void parse(String filename) {
         File genFile = new File(filename);
         InputStream in;
-        List filesToDelete = new ArrayList();
+        List<File> filesToDelete = new ArrayList<File>();
         try {
             if (filename.equals("-")) {
                 in = new DataInputStream(System.in);
@@ -70,8 +69,7 @@ public class DefCleaner {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        for (Iterator i = filesToDelete.iterator(); i.hasNext(); ) {
-            File fileToDelete = (File) i.next();
+        for (File fileToDelete : filesToDelete) {
             try {
                 fileToDelete.delete();
                 System.out.println("deleted " + fileToDelete);
@@ -82,9 +80,8 @@ public class DefCleaner {
     }
 
     public static void main(String args[]) {
-        for (int i = 0; i<args.length; i++) {
-            String defname = args[i];
-            parse(defname);
-        }
+      for (String defname : args) {
+        parse(defname);
+      }
     }
 }

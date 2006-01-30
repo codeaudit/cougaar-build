@@ -30,9 +30,6 @@ package org.cougaar.tools.javadoc;
 
 // basic packages
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -132,8 +129,9 @@ public class CougaarDoclet extends HtmlDoclet
       printBodyHtmlEnd();
     }
 
-    private List parameters = new ArrayList();
+    private List<Tuple> parameters = new ArrayList<Tuple>();
 
+    @SuppressWarnings("unchecked")
     private void buildParameterInfo(RootDoc root) {
       ClassDoc[] classes = root.classes();
       for (int i = 0; i < classes.length; i++) {

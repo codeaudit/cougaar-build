@@ -30,8 +30,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 class PGParser {
@@ -49,8 +50,6 @@ class PGParser {
   private boolean isVerbose = true;
   
   private InputStream inputStream = null;
-  
-
 
   public PGParser(boolean isVerbose) {
     this.isVerbose = isVerbose;
@@ -61,35 +60,32 @@ class PGParser {
     inputStream = input;
   }
   
-  Hashtable table = new Hashtable();
+  Map<String,Map<String,String>> table = new HashMap<String,Map<String,String>>();
   public boolean hasContext(String context) {
     return (table.get(context) != null);
   }
 
-  public Hashtable getContext(String context) {
-    Object o = table.get(context);
-    Hashtable ct = null;
-    if (o instanceof Hashtable) {
-      ct = (Hashtable) o;
-    } else {
-      ct = new Hashtable();
-      table.put(context, ct);
+  public Map<String,String> getContext(String context) {
+    Map<String,String> ct = table.get(context);
+    if (ct == null) {
+      ct = new HashMap<String,String>();
+      table.put(context,ct);
     }
     return ct;
   }
   
   public void put(String context, String key, String value) {
-    Hashtable ct = getContext(context);
+    Map<String,String> ct = getContext(context);
     ct.put(key, value);
   }
   
   public String get(String context, String key) {
-    Hashtable ct = getContext(context);
-    return (String)ct.get(key);
+    Map<String,String> ct = getContext(context);
+    return ct.get(key);
   }
   
-  public Enumeration getContexts() {
-    return table.keys();
+  public Collection<String> getContexts() {
+    return table.keySet();
   }
   
   public void parse() throws IOException {
