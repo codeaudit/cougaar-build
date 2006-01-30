@@ -1813,6 +1813,7 @@ public class PGWriter extends WriterBase {
       List<String> types = new ArrayList<String>();
       
       for (String arg : explode(slotname.substring(es+1, ee), ',')) {
+        arg = arg.trim();
         sp = arg.indexOf(" ");
         if (sp < 0) throw new RuntimeException("Broken active slot specification: "+ slotname);
         String at = arg.substring(0,sp);
