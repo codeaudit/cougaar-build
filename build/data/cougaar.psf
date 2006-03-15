@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+	<provider id="org.eclipse.team.cvs.core.cvsnature">
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/aggagent,aggagent,aggagent"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/logistics,bbn,albbn"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/util,base,base"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/util,bootstrap,bootstrap"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/build,build,build"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/community,community,community"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/util,contract,contract"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/core,core,core"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/csmart,csmart,csmart"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/logistics,datagrabber,datagrabber"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/glm,glm,glm"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/core,jars,jars"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/core,javaiopatch,javaiopatch"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/mts,mtsstd,mtsstd"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,ping,ping"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/tutorials,pizza,pizza"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/planning,planning,planning"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,qos,qos"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,quo,quo"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/util,server,server"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/servicediscovery,servicediscovery,servicediscovery"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/logistics,stoplight,stoplight"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/glm,toolkit,toolkit"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/util,util,util"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/vishnu,vishnuClient,vishnu"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/cws,webaxis,webaxis"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/webserver,webserver,webserver"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/webserver,webtomcat,webtomcat"/>
+		<project reference="1.0,:extssh:cougaar.org:/cvsroot/yp,yp,yp"/>
+	</provider>
+</psf>
