@@ -312,7 +312,6 @@ if ($opt_m) {
   print "Computed modules from $opt_m = \n\t$foo\n";
 }
 
-
 {
   local($sec, $min, $hour, $mday, $mon, $yr, $wday, $yday, $isdst) = localtime;
   $yr = $yr+1900;
@@ -329,7 +328,6 @@ if ($opt_m) {
   $yr="0$yr" if ($yr<10);
   $bdate="$yr$mon$mday$hour$min$sec";
 }
-
 
 # repository tag for build
 if ($opt_r) {
@@ -900,7 +898,8 @@ sub get_classpath {
   my @buildjars = findbypattern($libdir, "\.jar\$");
 
   # current module's lib jars
-  my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
+  my $libpath = gopt($mod, "lib", "lib");
+  my @libjars = findbypattern("$srcdir/$mod/$libpath", "\.(jar|zip)\$");
 
   # add tools
   # (we've checked tools.jar into jars, eliminating this particular problem)
@@ -1069,6 +1068,8 @@ sub rundef {
 
 # build cougaar-src.zip to replace *-dev.zip
 sub build_moby_src {
+  return unless opt("src.enable",1);
+
   my $tmpdir = "$tmp/build-moby_src.$$";
   mkd $tmpdir;
   my $make_zip = 0;		# should we emit a zipfile?
@@ -1101,7 +1102,10 @@ sub build_moby_src {
       my @shipped_subdirs = ( "src", "examples", "regress", "dev" );
       my @maybe_subdirs = @shipped_subdirs;
       my @subdirs = ();
-      my @runtime_subdirs = ("bin", "data", "configs", "doc");
+      my @runtime_subdirs = opt("$mod.subdirs");
+      if (!defined(@runtime_subdirs) || $#runtime_subdirs < 0) {
+        @runtime_subdirs = ("bin", "data", "configs", "doc");
+      }
       @maybe_subdirs = (@maybe_subdirs,@runtime_subdirs) if ($standalone_p);
       foreach $sub (@maybe_subdirs) {
 	if (-d "$srcdir/$mod/$sub") {
@@ -1133,7 +1137,7 @@ sub build_moby_src {
 
 # build cougaar-api.zip to replace *-api.zip
 sub build_moby_api {
-  return if ($nodoc);
+  return if ($nodoc) || !opt("javadoc.enable",1);
 
   print "Building moby javadoc\n";
 
@@ -1236,7 +1240,10 @@ sub build_runtime {
       mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
     }
 
-    my @runtime_subdirs = ("bin", "data", "configs", "doc");
+    my @runtime_subdirs = opt("$mod.subdirs");
+    if (!defined(@runtime_subdirs) || $#runtime_subdirs < 0) {
+      @runtime_subdirs = ("bin", "data", "configs", "doc");
+    }
     foreach $rs (@runtime_subdirs) {
       if (member($rs, @extras)) { # skip top-level bits
 	print "Skipping duplicate install of $mod/$rs\n" if $verbose;
@@ -1248,13 +1255,39 @@ sub build_runtime {
 	  mysystem("tar cf - $rs | (cd $tmpdir/$mod ; tar xf -)");
 	}
       }
-    }
+   }
+  }
+
+  my $include_sys = !opt("sys.keep_separate", 1);
+  if ($include_sys) {
+    populate_support($tmpdir);
   }
 
   fixbats($tmpdir);
 
+  # filter files based on whitelists.  a good enhancement would be to most of
+  # this in the above cp/tar loop
+  my @files = undef;
+  if (opt("whitelist.enable")) {
+    @files = ();
+    foreach $mod (@modules, "jars") {
+      my @mod_files = opt("$mod.whitelist");
+      if (@mod_files) {
+        my @extras = opt("$mod.runtime");
+        foreach $mod_file (@mod_files) {
+          next if (!$include_sys && $mod_file =~ /^sys(\/.*)?$/);
+          # verify that this module contains this file?
+          push @files, $mod_file;
+        }
+      }
+    }
+    if (!@files) {
+      @files = ("no_files_placeholder");
+    }
+  }
+
   chdir $tmpdir;
-  zip("$product runtime", $tmpdir, $distdir, $product);
+  zip("$product runtime", $tmpdir, $distdir, $product, @files);
   chdir $build_dir;
   mysystem("rm -rf $tmpdir");
   print "Done building runtime dist\n" if $verbose;
@@ -1262,11 +1295,46 @@ sub build_runtime {
 
 # build the 3rdparty zip - mostly 3rd party jars.
 sub build_3rdparty {
+  if (!opt("sys.keep_separate", 1)) {
+    return;
+  }
+
   my %member;
   my $mod;
   my $tmpdir = "$tmp/runtime.$$";
   print "\nBuilding 3rdparty dist\n" if $verbose;
   mkd $tmpdir;
+
+  populate_support($tmpdir);
+
+  chdir $tmpdir;
+
+  my @files = undef;
+  if (opt("whitelist.enable")) {
+    @files = ();
+    foreach $mod (@modules, "jars") {
+      my @mod_files = opt("$mod.whitelist");
+      if (@mod_files) {
+        foreach $mod_file (@mod_files) {
+          next unless ($mod_file =~ /^sys(\/.*)?$/);
+          # verify that this module contains this file?
+          push @files, $mod_file;
+        }
+      }
+    }
+    if (!@files) {
+      @files = ("no_files_placeholder");
+    }
+  }
+
+  zip("$product thirdparty jars", $tmpdir, $distdir, "$product-support", @files);
+  chdir $build_dir;
+  mysystem("rm -rf $tmpdir");
+  print "Done building 3rdparty dist\n" if $verbose;
+}
+
+sub populate_support {
+  my($tmpdir) = @_;
   my $tl = "$tmpdir/sys";
   mkd $tl;
 
@@ -1278,7 +1346,8 @@ sub build_3rdparty {
 
   # grab the modules (checked-in) jars
   foreach $mod (@modules) {
-    my @libjars = findbypattern("$srcdir/$mod/lib", "\.(jar|zip)\$");
+    my $libpath = gopt($mod, "lib", "lib");
+    my @libjars = findbypattern("$srcdir/$mod/$libpath", "\.(jar|zip)\$");
     my @alljars = (@sysjars, @libjars);	# prefer sysjars
 
     my @deps = ((split /\s*,\s*/, opt("$mod.jars")),
@@ -1309,12 +1378,6 @@ sub build_3rdparty {
   if (-e "$syslib/index.html") {
     cp("$syslib/index.html","$tl/index.html");
   }
-
-  chdir $tmpdir;
-  zip("$product thirdparty jars", $tmpdir, $distdir, "$product-support");
-  chdir $build_dir;
-  mysystem("rm -rf $tmpdir");
-  print "Done building 3rdparty dist\n" if $verbose;
 }
 
 sub add_dist {
