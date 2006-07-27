@@ -454,7 +454,7 @@
       <available property="has.build" file="${module.classes}"/>
       <!-- source=1.4 required for asserts -->
       <javac srcdir="${src}" destdir="${module.classes}"
-	     source="1.4"
+	     source="1.5"
 	     includeAntRuntime="no"
 	     debug="${build.compiler.debug}"
 	     optimize="${build.compiler.optimize}"
