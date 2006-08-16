@@ -173,11 +173,11 @@ util.repository = :ext:cougaar.org:/cvsroot/util
 
 # core
 core.deps = bootstrap, util
-core.jars = log4j, servlet, concurrent
+core.jars = log4j, servlet
 core.repository = :ext:cougaar.org:/cvsroot/core
 
 # mtsstd
-mtsstd.deps = core, util
+mtsstd.deps = core, util, bootstrap
 mtsstd.jars = log4j, servlet, jms-1.1
 mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
 
@@ -281,7 +281,7 @@ webaxis.repository = :ext:cougaar.org:/cvsroot/cws
 
 # community
 community.deps = util,core
-community.jars = log4j,xercesImpl,servlet,concurrent
+community.jars = log4j,xercesImpl,servlet
 # added bootstrap for junit tests.
 community.extras = bootstrap
 community.repository = :ext:cougaar.org:/cvsroot/community
