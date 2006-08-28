@@ -98,7 +98,7 @@ modules=\
 	server,\
 	webserver, webtomcat, webaxis,\
 	community, \
-	albbn, stoplight, datagrabber,\
+	albbn,\
 	servicediscovery, vishnu,\
 	pizza
 
@@ -296,16 +296,6 @@ albbn.module = bbn
 albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
 albbn.jars = xercesImpl,xml-apis,openmap,fesi-111,jcchart,servlet,vishnuServer
 albbn.runtime = bin,configs
-
-# AL datagrabber
-datagrabber.repository = :ext:cougaar.org:/cvsroot/logistics
-datagrabber.deps = core,planning,glm,toolkit,util,albbn
-datagrabber.jars = xercesImpl,xml-apis,chart,openmap,servlet
-
-# AL stoplight
-stoplight.repository = :ext:cougaar.org:/cvsroot/logistics
-stoplight.deps = core,planning,glm,toolkit,util,albbn,aggagent
-stoplight.jars = xercesImpl,xml-apis,servlet, openmap
 
 #
 # ServiceDiscovery
