@@ -200,7 +200,7 @@ public class UnifySourceScripter {
       DirEntry parentDe,
       File dir) throws Exception {
     String dirname = dir.getName();
-    if (EXCLUDE_CVS && dirname.equals("CVS")) {
+    if (EXCLUDE_CVS && (dirname.equals("CVS") || dirname.equals(".svn"))) {
       return;
     }
     Object obj = parentDe.getSubDir(dirname);
