@@ -248,7 +248,7 @@ csmart.repository = :ext:cougaar.org:/cvsroot/csmart
 csmart.PrettyName = CSMART
 
 # quo/qos
-qos.deps = core,util,mtsstd
+qos.deps = core,util,bootstrap,mtsstd
 qos.jars = resource-status-service,servlet
 qos.runtime = configs,csmart
 qos.repository = :ext:cougaar.org:/cvsroot/qos
