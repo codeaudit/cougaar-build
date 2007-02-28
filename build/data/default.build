@@ -303,7 +303,7 @@ albbn.runtime = bin,configs
 # contract
 servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
-servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr
+servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr,concurrent
 servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
 
 #
