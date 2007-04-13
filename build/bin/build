@@ -408,7 +408,9 @@ mkd $distdir;
 $apidir = "$build_dir/javadoc";
 # unified will go in $apidir/doc/api
 # non-unified modules will go in $apidir/<mod>/doc/api
-mkd $apidir;
+if (!$nodoc) {
+  mkd $apidir;
+}
 
 chdir($distdir) || die("Couldn't chdir to $distdir");
 
@@ -473,6 +475,9 @@ if (! $opt_m || $nodoc) {
 
 # build product-support.zip
 &build_3rdparty;
+
+# build standalone zips
+&build_standalone_zips;
 
 &generateProductAntRecipe($product);
 
@@ -874,7 +879,9 @@ sub build_module {
     sopt($mod, "run.abs.jarlist", join("$cpsep",@apccp));
   }
 
-  generateModuleAntRecipe($mod);
+  if (!opt("$mod.standalone")) {
+    generateModuleAntRecipe($mod);
+  }
 
   $moduleFailed{$mod} = !$builtjar;
 
@@ -1075,59 +1082,57 @@ sub build_moby_src {
   my $make_zip = 0;		# should we emit a zipfile?
 
   foreach $mod (@modules) {
-    if (isPublic($mod)) {
-      my $tmpdist = "$tmpdir/$mod";
-      mkd "$tmpdist";
+    next unless isPublic($mod);
 
-      chdir "$srcdir/$mod";
+    next if opt("$mod.standalone");
 
-      my $standalone_p = opt("$mod.standalone");
+    my $tmpdist = "$tmpdir/$mod";
+    mkd "$tmpdist";
 
-      # figure out complex modules (like BOL)
-      if ($standalone_p && $split_p) {
-	# install some jars in the dist package
-	my $tlib = "$tmpdist/lib";
-	mkd $tlib;
-	foreach $split (@splits) {
-	  my $pjar = "$libdir/${mod}_$split.jar";
-	  my $djar = "$tlib/${split}.jar";
-	  if (-e $pjar) {
-	    &cp($pjar,$djar);
-	    $make_zip++;
-	  }
-	}
+    chdir "$srcdir/$mod";
+
+    # figure out complex modules (like BOL)
+    if ($split_p) {
+      # install some jars in the dist package
+      my $tlib = "$tmpdist/lib";
+      mkd $tlib;
+      foreach $split (@splits) {
+        my $pjar = "$libdir/${mod}_$split.jar";
+        my $djar = "$tlib/${split}.jar";
+        if (-e $pjar) {
+          &cp($pjar,$djar);
+          $make_zip++;
+        }
       }
-
-      # collect the right subdirectories
-      my @shipped_subdirs = ( "src", "examples", "regress", "dev" );
-      my @maybe_subdirs = @shipped_subdirs;
-      my @subdirs = ();
-      my @runtime_subdirs = opt("$mod.subdirs");
-      if (!defined(@runtime_subdirs) || $#runtime_subdirs < 0) {
-        @runtime_subdirs = ("bin", "data", "configs", "doc");
-      }
-      @maybe_subdirs = (@maybe_subdirs,@runtime_subdirs) if ($standalone_p);
-      foreach $sub (@maybe_subdirs) {
-	if (-d "$srcdir/$mod/$sub") {
-	  push @subdirs, $sub ;
-	}
-      }
-      if (-e "$srcdir/$mod/build.xml") {
-	push @subdirs, "build.xml";
-      }
-
-
-      my $subdirs = join(" ", @subdirs);
-      if ($subdirs) {
-	$make_zip++;		# something to emit
-	mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
-      }
-      fixbats($tmpdir);
     }
+
+    # collect the right subdirectories
+    my @shipped_subdirs = ( "src", "examples", "regress", "dev" );
+    my @maybe_subdirs = @shipped_subdirs;
+    my @subdirs = ();
+    my @runtime_subdirs = opt("$mod.subdirs");
+    if (!defined(@runtime_subdirs) || $#runtime_subdirs < 0) {
+      @runtime_subdirs = ("bin", "data", "configs", "doc");
+    }
+    foreach $sub (@maybe_subdirs) {
+      if (-d "$srcdir/$mod/$sub") {
+        push @subdirs, $sub ;
+      }
+    }
+    if (-e "$srcdir/$mod/build.xml") {
+      push @subdirs, "build.xml";
+    }
+
+    my $subdirs = join(" ", @subdirs);
+    if ($subdirs) {
+      $make_zip++;		# something to emit
+      mysystem("tar cf - $subdirs | (cd $tmpdist; tar xf -)");
+    }
+    fixbats($tmpdir);
   }
 
   # Add the top-level ant driver
-  copy("$srcdir/build.xml", $tmpdir);
+  cp("$srcdir/build.xml", $tmpdir);
 
   zip("Source package", $tmpdir, $distdir, "$product-src");
 
@@ -1160,6 +1165,7 @@ sub build_moby_api {
     push @dirs, "doc" if $enableUnified;
 
     foreach $mod (@modules) {
+      next if opt("$mod.standalone");
       push @dirs, $mod if (! isUnified($mod));
     }
 
@@ -1205,14 +1211,15 @@ sub unify {
 # build the runtime package
 #
 sub build_runtime {
-  my $mod;
-  my $tmpdir = "$tmp/runtime.$$";
   print "\nBuilding runtime dist\n" if $verbose;
+
+  my $tmpdir = "$tmp/runtime.$$";
   mkd $tmpdir;
   my $tl = "$tmpdir/lib";
   mkd $tl;
   my $tcl = "$tmpdir/clib";
   mkd $tcl;
+
   foreach $mod (@modules) {
     # skip standalone modules
     my $standalone_p = opt("${mod}.standalone");
@@ -1255,7 +1262,7 @@ sub build_runtime {
 	  mysystem("tar cf - $rs | (cd $tmpdir/$mod ; tar xf -)");
 	}
       }
-   }
+    }
   }
 
   my $include_sys = !opt("sys.keep_separate", 1);
@@ -1331,6 +1338,64 @@ sub build_3rdparty {
   chdir $build_dir;
   mysystem("rm -rf $tmpdir");
   print "Done building 3rdparty dist\n" if $verbose;
+}
+
+sub build_standalone_zips {
+  foreach $mod (@modules) {
+    build_standalone($mod) if opt("${mod}.standalone");
+  }
+}
+
+sub build_standalone {
+  my ($mod)=@_;
+
+  print "\nBuilding standalone $mod\n" if $verbose;
+
+  my $basedir = "$tmp/standalone-$mod.$$";
+  mkd $basedir;
+  my $tmpdir = "$basedir/$mod";
+  mkd $tmpdir;
+
+  if (-e "$build_dir/clib/$mod.jar" && opt("$mod.compiletime")) {
+    print "Adding $mod compiletime\n" if $verbose;
+    my $tcl = "$tmpdir/clib";
+    mkd $tcl;
+    cp("$build_dir/clib/$mod.jar", $tcl);
+  }
+  if (-e "$build_dir/lib/$mod.jar") {
+    print "Adding $mod runtime\n" if $verbose;
+    my $tl = "$tmpdir/lib";
+    mkd $tl;
+    cp("$build_dir/lib/$mod.jar", $tl);
+  }
+  my $moddir = "$srcdir/$mod";
+  chdir $moddir;
+
+  my @extras = opt("$mod.runtime");
+  if (!defined(@extras)) {
+    @extras = <*>;
+  }
+  foreach $extra (@extras) {
+    if (-d "$extra") {
+      mysystem("tar cf - $extra | (cd $tmpdir; tar xf -)");
+    } elsif (-f "$extra") {
+      cp("$extra", $tmpdir);
+    } 
+  }
+
+  fixbats($tmpdir);
+
+  if (!$nodoc && opt("javadoc.enable",1)) {
+    mkd "$tmpdir/doc";
+    chdir "$apidir/$mod";
+    mysystem("tar cf - doc | (cd $tmpdir; tar xf -)");
+  }
+
+  chdir $basedir;
+  zip("$product $mod standalone", $basedir, $distdir, "${product}-${mod}", undef);
+  chdir $build_dir;
+  mysystem("rm -rf $basedir");
+  print "Done building standalone $mod\n" if $verbose;
 }
 
 sub populate_support {
@@ -2169,61 +2234,55 @@ sub junit {
 
 sub compile_dir {
   my ($mod, $from, $to, $extrajars) = @_;
+
+  return 0 unless -d $from;   # src exists
+
+  print "Compiling $from\n" if $verbose;
+
   my $cp = get_classpath($mod);
   if ($extrajars) {
     $cp = "$extrajars$cpsep$cp";
   }
 
-  if (-d $from) {		# src exists
-    print "Compiling $from\n" if $verbose;
+  # run code generators
+  my $grc = generate_code($from, $cp);
+  # compile sources
+  chdir $from;
+  my $tmpfile = "$tmp/build.$$";
+  mysystem("find . -name '*.java' -print>$tmpfile");
+  my $cok = $grc;
+  if (-s $tmpfile) {
+    $cok = javac($mod, $cp, "-d $to \@$tmpfile") && $cok;
+  } else {
+    print "Warning: Module $mod $from does not seem to actually have any sources to compile\n";
+  }
+  unlink($tmpfile);
 
-    my $cp = get_classpath($mod);
-    if ($extrajars) {
-      $cp = "$extrajars$cpsep$cp";
-    }
-
-    # run code generators
-    my $grc = generate_code($from, $cp);
-    # compile sources
-    chdir $from;
-    my $tmpfile = "$tmp/build.$$";
-    mysystem("find . -name '*.java' -print>$tmpfile");
-    my $cok = $grc;
-    if (-s $tmpfile) {
-      $cok = javac($mod, $cp, "-d $to \@$tmpfile") && $cok;
-    } else {
-      print "Warning: Module $mod $from does not seem to actually have any sources to compile\n";
-    }
-    unlink($tmpfile);
-
-    # search for files/classes to rmic
-    my @rmicfl;
-    if ($cok) {
-      my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
-      my(@morefiles)=sysPipe("find . -name '*.java' -exec grep -l 'RMIC GENERATION REQUIRED' {} \\;");
-      push @rmicfiles, @morefiles;
-      if ($#rmicfiles>=0) {
-	foreach $rf (@rmicfiles) {
-	  chomp $rf;
-	  if ( ($rf =~ /\.\/(.*)/) ) {
-	    push @rmicfl, $1;
-	  }
-	  $rf =~ /\.\/(.*)\.java/;
-	  $rf=$1;
-	  $rf =~ s/\//\./g;
-	  rmic($mod, "$to$cpsep$cp", "-d $to $rf");
-	}
+  # search for files/classes to rmic
+  my @rmicfl;
+  if ($cok) {
+    my(@rmicfiles)=sysPipe("find . -name '*Impl.java' -exec grep -l 'UnicastRemoteObject' {} \\;");
+    my(@morefiles)=sysPipe("find . -name '*.java' -exec grep -l 'RMIC GENERATION REQUIRED' {} \\;");
+    push @rmicfiles, @morefiles;
+    if ($#rmicfiles>=0) {
+      foreach $rf (@rmicfiles) {
+        chomp $rf;
+        if ( ($rf =~ /\.\/(.*)/) ) {
+          push @rmicfl, $1;
+        }
+        $rf =~ /\.\/(.*)\.java/;
+        $rf=$1;
+        $rf =~ s/\//\./g;
+        rmic($mod, "$to$cpsep$cp", "-d $to $rf");
       }
     }
-
-    sopt($mod,"rmifiles.list", join (",",@rmicfl));
-
-    # copy non-java "sources" to tmplib
-    add_module_files($from, $to);
-    return $cok;
-  } else {
-    return 0;
   }
+
+  sopt($mod,"rmifiles.list", join (",",@rmicfl));
+
+  # copy non-java "sources" to tmplib
+  add_module_files($from, $to);
+  return $cok;
 }
 
 sub javac {
@@ -2387,7 +2446,7 @@ sub fixbat {
   my ($tmp) = "/tmp/dingbat.$$";
   #print "Fixing CRLFs in $bat\n" if $verbose;
 
-  copy($bat, $tmp);
+  cp($bat, $tmp);
 
   open(I, "<$tmp");
   open(O, ">$bat");
