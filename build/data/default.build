@@ -100,7 +100,8 @@ modules=\
 	community, \
 	albbn,\
 	servicediscovery, vishnu,\
-	pizza
+	pizza,\
+	hello
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -329,4 +330,14 @@ base.runtime = doc,bin,configs
 # would copy the whole doc subdirectory into to top level dist as a
 # new doc subdirectory.
 base.dist = README
+
+#
+# applications
+#
+
+hello.deps = core,util
+#hello.jars = ext   # example sys/ext.jar dependency
+hello.repository = :ext:cougaar.org:/cvsroot/tutorials
+#hello.lib = sys    # support above sys/ext.jar
+hello.standalone = 1
 
