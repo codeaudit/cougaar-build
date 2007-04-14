@@ -674,10 +674,12 @@ sub build_module_javadoc {
     my $mysrc = "$srcdir/$mod/src";
     chdir "$srcdir/$mod";
     mysystem("rm -rf $apidir/$mod/doc");	# clear out any leftovers from previous builds
-    mkd "$apidir/$mod";
-    mkd "$apidir/$mod/doc";
-    mkd "$apidir/$mod/doc/api";
-    javadoc($mod, $mysrc, "$apidir/$mod/doc/api");
+    if (-d $mysrc) {
+      mkd "$apidir/$mod";
+      mkd "$apidir/$mod/doc";
+      mkd "$apidir/$mod/doc/api";
+      javadoc($mod, $mysrc, "$apidir/$mod/doc/api");
+    }
   }
 }
 
