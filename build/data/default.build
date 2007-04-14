@@ -1,3 +1,4 @@
+src.dir=/tmp/code
 # COUGAAR release build driver
 # 
 # !!! THIS IS ONLY AN EXAMPLE !!!
@@ -94,14 +95,15 @@ modules=\
 	glm,aggagent,\
 	base,\
 	csmart,\
-	quo, qos, ping,\
+	quo, qos, profile,\
 	server,\
 	webserver, webtomcat, webaxis,\
 	community, \
 	albbn,\
 	servicediscovery, vishnu,\
 	pizza,\
-	hello
+	hello,\
+	ping
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -120,7 +122,7 @@ modules.unified =\
 	glm,\
 	aggagent,\
 	base,\
-	quo, qos, ping, mtsstd,\
+	quo, qos, profile, mtsstd,\
 	server,\
 	webserver,webtomcat
 # not: javaiopatch, implementations of basic services, AL
@@ -258,9 +260,10 @@ quo.deps = core,planning,qos,util,mtsstd
 quo.jars = resource-status-service,quo-core
 quo.repository = :ext:cougaar.org:/cvsroot/qos
 
-ping.deps = core,util
-ping.jars = servlet
-ping.repository = :ext:cougaar.org:/cvsroot/qos
+# profile (periodically log traffix matrix, cpu load, etc)
+profile.deps = core,util
+profile.jars = servlet
+profile.repository = :ext:cougaar.org:/cvsroot/qos
 
 # App (Node) Server
 server.repository = :ext:cougaar.org:/cvsroot/util
@@ -335,9 +338,14 @@ base.dist = README
 # applications
 #
 
+# the "hello, world" demo
 hello.deps = core,util
 #hello.jars = ext   # example sys/ext.jar dependency
 hello.repository = :ext:cougaar.org:/cvsroot/tutorials
 #hello.lib = sys    # support above sys/ext.jar
 hello.standalone = 1
+
+# the "ping" demo configs (no code)
+ping.repository = :ext:cougaar.org:/cvsroot/tutorials
+ping.standalone = 1
 
