@@ -1374,7 +1374,7 @@ sub build_standalone {
   chdir $moddir;
 
   my @extras = opt("$mod.runtime");
-  if (!defined(@extras)) {
+  if (!defined(@extras) || $#extras < 0) {
     @extras = <*>;
   }
   foreach $extra (@extras) {
