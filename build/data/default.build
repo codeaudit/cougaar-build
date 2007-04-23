@@ -1,4 +1,3 @@
-src.dir=/tmp/code
 # COUGAAR release build driver
 # 
 # !!! THIS IS ONLY AN EXAMPLE !!!
@@ -103,7 +102,8 @@ modules=\
 	servicediscovery, vishnu,\
 	pizza,\
 	hello,\
-	ping
+	ping,\
+	mandelbrot
 
 # default publicness to true - disable with mod.private=1
 default.public=1
@@ -348,4 +348,10 @@ hello.standalone = 1
 # the "ping" demo configs (no code)
 ping.repository = :ext:cougaar.org:/cvsroot/tutorials
 ping.standalone = 1
+
+# the "mandelbrot" demo
+mandelbrot.deps = core,util
+mandelbrot.jars = servlet
+mandelbrot.repository = :ext:cougaar.org:/cvsroot/tutorials
+mandelbrot.standalone = 1
 
