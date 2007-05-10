@@ -10,6 +10,7 @@
 #
 
 product.name=cougaar
+standalone.name=demo
 
 # where to put temporary files and build trees (by default)
 tmp = /tmp
@@ -345,7 +346,9 @@ hello.repository = :ext:cougaar.org:/cvsroot/tutorials
 #hello.lib = sys    # support above sys/ext.jar
 hello.standalone = 1
 
-# the "ping" demo configs (no code)
+# the "ping" demo
+ping.deps = core,util,bootstrap
+ping.jars = servlet
 ping.repository = :ext:cougaar.org:/cvsroot/tutorials
 ping.standalone = 1
 

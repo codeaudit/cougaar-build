@@ -1394,7 +1394,8 @@ sub build_standalone {
   }
 
   chdir $basedir;
-  zip("$product $mod standalone", $basedir, $distdir, "${product}-${mod}", undef);
+  my $std_name = opt("standalone.name", $product);
+  zip("$std_name $mod standalone", $basedir, $distdir, "${std_name}-${mod}", undef);
   chdir $build_dir;
   mysystem("rm -rf $basedir");
   print "Done building standalone $mod\n" if $verbose;
