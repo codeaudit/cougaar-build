@@ -1641,7 +1641,9 @@ sub sign_jar {
     if ($ks && $kssp && $kskp && $alias) {
       # use system so that we don't publish the passwords in the logs
       print STDERR "Signing $jar ($mod)\n" if ($verbose);
+      my ($atime, $mtime) = (stat($jar))[8,9];
       system("$jarsigner_command $jarsigner_arguments -keystore $ks -storepass $kssp -keypass $kskp $jar $alias");
+      utime $atime, $mtime, $jar;
       push @signed_jars, $jar;
     } else {
       #print STDERR "Warning: Not enough information to sign $jar of $mod\n";
