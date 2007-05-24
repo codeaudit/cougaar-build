@@ -2388,7 +2388,7 @@ sub absPath {
 }
 sub cp {
   my($f, $t) = @_;
-  return mysystem("cp $f $t");
+  return mysystem("cp -p $f $t");
 }
 
 sub warnonce {
@@ -2451,6 +2451,10 @@ sub fixbat {
 
   cp($bat, $tmp);
 
+  return if ($pretend);
+
+  my ($atime, $mtime) = (stat($bat))[8,9];
+
   open(I, "<$tmp");
   open(O, ">$bat");
   while(<I>) {
@@ -2460,6 +2464,8 @@ sub fixbat {
   close(O);
   close(I);
   unlink($tmp);
+
+  utime $atime, $mtime, $bat;
 }
 
 # generate the ANT recipe for a module
