@@ -358,3 +358,7 @@ mandelbrot.jars = servlet
 mandelbrot.repository = :ext:cougaar.org:/cvsroot/tutorials
 mandelbrot.standalone = 1
 
+# debugging tools, including Bean Shell
+tools.deps = core,util,bootstrap
+tools.jars = bsh
+tools.repository = :ext:cougaar.org:/cvsroot/tutorials
