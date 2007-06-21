@@ -104,7 +104,8 @@ modules=\
 	pizza,\
 	hello,\
 	ping,\
-	mandelbrot
+	mandelbrot,\
+	tools
 
 # default publicness to true - disable with mod.private=1
 default.public=1
