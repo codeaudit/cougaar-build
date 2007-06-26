@@ -2162,6 +2162,7 @@ public class PGWriter extends WriterBase {
       
       PGParser p = new PGParser(isVerbose);
       p.parse(stream);
+      p.setModifiable(false);
       stream.close();
       
       Writer w = new Writer(p);

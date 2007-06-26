@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +51,7 @@ class PGParser {
   private boolean isVerbose = true;
   
   private InputStream inputStream = null;
+  private boolean modifiable = true;
 
   public PGParser(boolean isVerbose) {
     this.isVerbose = isVerbose;
@@ -69,11 +71,18 @@ class PGParser {
     Map<String,String> ct = table.get(context);
     if (ct == null) {
       ct = new HashMap<String,String>();
-      table.put(context,ct);
+      putIntoContext(context, ct);
     }
     return ct;
   }
-  
+
+  private void putIntoContext(String context, Map<String, String> ct) {
+    if (!isModifiable()) {
+      throw new IllegalStateException("Can't put "+ context + " into context table when read only.");
+    }
+    table.put(context,ct);
+  }
+
   public void put(String context, String key, String value) {
     Map<String,String> ct = getContext(context);
     ct.put(key, value);
@@ -85,7 +94,7 @@ class PGParser {
   }
   
   public Collection<String> getContexts() {
-    return table.keySet();
+    return Collections.unmodifiableSet(table.keySet());
   }
   
   public void parse() throws IOException {
@@ -191,6 +200,13 @@ class PGParser {
     }
   }
 
+  public boolean isModifiable() {
+    return modifiable;
+  }
+
+  public void setModifiable(boolean modifiable) {
+    this.modifiable = modifiable;
+  }
 }
 
 
