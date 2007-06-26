@@ -275,8 +275,8 @@ webserver.deps = bootstrap,core,util
 webserver.jars = servlet
 webserver.repository = :ext:cougaar.org:/cvsroot/webserver
 
-webtomcat.deps = webserver
-webtomcat.jars = servlet, tomcat_40
+webtomcat.deps = util,webserver
+webtomcat.jars = servlet,tomcat_40
 webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
 
 # web services, note that some jars are in webaxis/lib
@@ -311,6 +311,11 @@ servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
 servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr,concurrent
 servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
+
+# debugging tools, including Bean Shell
+tools.deps = core,util,bootstrap
+tools.jars = bsh
+tools.repository = :ext:cougaar.org:/cvsroot/tutorials
 
 #
 # distribution settings
@@ -358,8 +363,3 @@ mandelbrot.deps = core,util
 mandelbrot.jars = servlet
 mandelbrot.repository = :ext:cougaar.org:/cvsroot/tutorials
 mandelbrot.standalone = 1
-
-# debugging tools, including Bean Shell
-tools.deps = core,util,bootstrap
-tools.jars = bsh
-tools.repository = :ext:cougaar.org:/cvsroot/tutorials
