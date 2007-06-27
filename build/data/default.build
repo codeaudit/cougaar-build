@@ -104,6 +104,7 @@ modules=\
 	pizza,\
 	hello,\
 	ping,\
+	mesh,\
 	mandelbrot,\
 	tools
 
@@ -362,6 +363,12 @@ ping.deps = core,util,bootstrap
 ping.jars = servlet
 ping.repository = :ext:cougaar.org:/cvsroot/tutorials
 ping.standalone = 1
+
+# the "mesh" demo
+mesh.deps = core,util,bootstrap
+mesh.jars = servlet
+mesh.repository = :ext:cougaar.org:/cvsroot/tutorials
+mesh.standalone = 1
 
 # the "mandelbrot" demo
 mandelbrot.deps = core,util
