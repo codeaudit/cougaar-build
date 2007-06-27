@@ -97,7 +97,7 @@ modules=\
 	csmart,\
 	quo, qos, profile,\
 	server,\
-	webserver, webtomcat, webaxis,\
+	webserver, webmicro, webtomcat, webaxis,\
 	community, \
 	albbn,\
 	servicediscovery, vishnu,\
@@ -126,7 +126,7 @@ modules.unified =\
 	base,\
 	quo, qos, profile, mtsstd,\
 	server,\
-	webserver,webtomcat
+	webserver, webmicro, webtomcat
 # not: javaiopatch, implementations of basic services, AL
 
 # note that unified support defaults to off.  To enable, either pass
@@ -273,7 +273,12 @@ server.repository = :ext:cougaar.org:/cvsroot/util
 # new PSP/web server
 webserver.deps = bootstrap,core,util
 webserver.jars = servlet
+webserver.runtime = configs
 webserver.repository = :ext:cougaar.org:/cvsroot/webserver
+
+webmicro.deps = bootstrap,util,core,mtsstd,webserver
+webmicro.jars = servlet
+webmicro.repository = :ext:cougaar.org:/cvsroot/webserver
 
 webtomcat.deps = util,webserver
 webtomcat.jars = servlet,tomcat_40
