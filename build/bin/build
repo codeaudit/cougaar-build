@@ -2660,7 +2660,7 @@ sub resolveTag {
     }
   }
 
-  my $modtag = opt("$mod.tag");	# modtag is the per-module tag
+  my $modtag = gopt($mod, "tag");	# modtag is the per-module tag
 
   my $tag = $modtag;
 
