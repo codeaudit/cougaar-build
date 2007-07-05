@@ -553,6 +553,7 @@ public class MeasureWriter extends WriterBase {
       writeNewMeasureMethods(out, className);
 
       writeAddSubtractMethods(out, className);
+      writeDivide(out, className);
 
       // getters
       println(out,"  // Unit-based Reader methods");
@@ -605,6 +606,12 @@ public class MeasureWriter extends WriterBase {
 
     }
 
+    /**
+     * @see #writeClass
+     * @see #writeClassDt
+     * @param out to write to
+     * @param className that we are writing right now, e.g. Volume
+     */
     private void writeAddSubtractMethods(PrintWriter out, String className) {
       println(out,"  // simple math : addition and subtraction");
 
@@ -626,8 +633,6 @@ public class MeasureWriter extends WriterBase {
       println(out,"    return new GenericDerivative<"+className+",D>(this, denom);");
       println(out,"  }");
       println(out);*/
-      println(out);
-
 
       println(out,"  public final Measure negate() {");
       println(out,"    return new"+className+"(-1 * theValue,0);");
@@ -651,6 +656,35 @@ public class MeasureWriter extends WriterBase {
       println(out);
       println(out,"  public final int getNativeUnit() {");
       println(out,"    return 0;");
+      println(out,"  }");
+      println(out);
+    }
+
+    private void writeDivide(PrintWriter out, String className) {
+      println(out,"  public final Duration divide(Rate toRate) {");
+      println(out,"    Measure canonicalNumerator = toRate.getCanonicalNumerator();");
+      println(out,"    if (!(toRate.getCanonicalNumerator() instanceof " + className +")) {");
+      println(out,"      throw new IllegalArgumentException(\"Expecting a " + className +"/Duration\");");
+      println(out,"    }");
+      println(out,"    int durationNativeUnit = toRate.getCanonicalDenominator().getNativeUnit();  // seconds");
+      println(out,"    double value = toRate.getValue(canonicalNumerator.getNativeUnit(), durationNativeUnit); // ?/seconds");
+      println(out,"    return new Duration(theValue/ value,durationNativeUnit);  // ?/?/second = seconds");
+      println(out,"  }");
+      println(out);
+    }
+
+    private void writeDivideDerivative(PrintWriter out, String className) {
+      println(out,"  public final Duration divide(Rate toRate) {");
+      println(out,"    throw new IllegalArgumentException(\"Call divideRate instead to divide one Rate by another.\");");
+      println(out,"  }");
+      println(out);
+      println(out,"  public final double divideRate(Rate toRate) {");
+      println(out,"    if (toRate.getCanonicalNumerator().getClass() !=  getCanonicalNumerator().getClass() ||");
+      println(out,"    toRate.getCanonicalDenominator().getClass() !=  getCanonicalDenominator().getClass()) {");
+      println(out,"      throw new IllegalArgumentException(\"Expecting a " + className + "\" + ");
+      println(out,"      \", got a \" + toRate.getCanonicalNumerator().getClass() + \"/\" + toRate.getCanonicalDenominator().getClass());");
+      println(out,"    }");
+      println(out,"    return theValue/toRate.getNativeValue();");
       println(out,"  }");
       println(out);
     }
@@ -922,7 +956,7 @@ public class MeasureWriter extends WriterBase {
       writeNewMeasureMethods(out, className);
 
       writeAddSubtractMethods(out, className);
-
+      writeDivideDerivative(out,className);
       // getters
       println(out,"  // Unit-based Reader methods");
       for (UnitTuple ut : tuples) {
