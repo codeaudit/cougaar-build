@@ -256,7 +256,7 @@ csmart.PrettyName = CSMART
 # qrs and qos
 
 qrs.deps = 
-qrs.jars = 
+qrs.jars = log4j
 qrs.runtime = 
 qrs.repository = :ext:cougaar.org:/cvsroot/qos
 
