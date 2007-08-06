@@ -95,7 +95,7 @@ modules=\
 	glm,aggagent,\
 	base,\
 	csmart,\
-	quo, qos, profile,\
+	qrs, qos, profile,\
 	server,\
 	webserver, webmicro, webtomcat, webaxis,\
 	community, \
@@ -125,7 +125,7 @@ modules.unified =\
 	glm,\
 	aggagent,\
 	base,\
-	quo, qos, profile, mtsstd,\
+	qrs, qos, profile, mtsstd,\
 	server,\
 	webserver, webmicro, webtomcat
 # not: javaiopatch, implementations of basic services, AL
@@ -253,15 +253,17 @@ csmart.repository = :ext:cougaar.org:/cvsroot/csmart
 # Set PrettyName for ANT script generation
 csmart.PrettyName = CSMART
 
-# quo/qos
-qos.deps = core,util,bootstrap,mtsstd
-qos.jars = resource-status-service,servlet
+# qrs and qos
+
+qrs.deps = 
+qrs.jars = 
+qrs.runtime = 
+qrs.repository = :ext:cougaar.org:/cvsroot/qos
+
+qos.deps = core,util,bootstrap,mtsstd,qrs
+qos.jars = servlet
 qos.runtime = configs,csmart
 qos.repository = :ext:cougaar.org:/cvsroot/qos
-
-quo.deps = core,planning,qos,util,mtsstd
-quo.jars = resource-status-service,quo-core
-quo.repository = :ext:cougaar.org:/cvsroot/qos
 
 # profile (periodically log traffix matrix, cpu load, etc)
 profile.deps = core,util
