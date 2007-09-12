@@ -174,7 +174,7 @@ bootstrap.repository = :ext:cougaar.org:/cvsroot/util
 
 # util
 util.deps = bootstrap
-util.jars = log4j, xercesImpl, xml-apis
+util.jars = log4j
 util.repository = :ext:cougaar.org:/cvsroot/util
 
 # core
