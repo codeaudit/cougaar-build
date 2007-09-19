@@ -184,7 +184,7 @@ core.repository = :ext:cougaar.org:/cvsroot/core
 
 # mtsstd
 mtsstd.deps = core, util, bootstrap
-mtsstd.jars = log4j, servlet, jms-1.1
+mtsstd.jars = servlet, jms-1.1
 mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
 
 # yellow pages
