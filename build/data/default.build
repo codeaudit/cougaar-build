@@ -294,7 +294,7 @@ webaxis.repository = :ext:cougaar.org:/cvsroot/cws
 
 # community
 community.deps = util,core
-community.jars = log4j,xercesImpl,servlet
+community.jars = servlet
 # added bootstrap for junit tests.
 community.extras = bootstrap
 community.repository = :ext:cougaar.org:/cvsroot/community
