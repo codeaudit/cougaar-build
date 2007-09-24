@@ -89,7 +89,7 @@ sys.lib.dontship = vishnuServer
 
 modules=\
 	build,javaiopatch,bootstrap,util,core,\
-	mtsstd,\
+	mtsstd,mtslinks,\
         planning,contract,toolkit,\
 	yp,\
 	glm,aggagent,\
@@ -125,7 +125,7 @@ modules.unified =\
 	glm,\
 	aggagent,\
 	base,\
-	qrs, qos, profile, mtsstd,\
+	qrs, qos, profile, mtsstd, mtslinks,\
 	server,\
 	webserver, webmicro, webtomcat
 # not: javaiopatch, implementations of basic services, AL
@@ -184,6 +184,11 @@ core.repository = :ext:cougaar.org:/cvsroot/core
 
 # mtsstd
 mtsstd.deps = core, util, bootstrap
+mtsstd.jars = servlet
+mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
+
+# mtslinks
+mtsstd.deps = mtsstd, core, util, bootstrap
 mtsstd.jars = servlet, jms-1.1
 mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
 
@@ -278,7 +283,7 @@ webserver.jars = servlet
 webserver.runtime = configs
 webserver.repository = :ext:cougaar.org:/cvsroot/webserver
 
-webmicro.deps = bootstrap,util,core,mtsstd,webserver
+webmicro.deps = bootstrap,util,core,webserver
 webmicro.jars = servlet
 webmicro.repository = :ext:cougaar.org:/cvsroot/webserver
 
