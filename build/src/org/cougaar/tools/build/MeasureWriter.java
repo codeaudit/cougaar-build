@@ -639,7 +639,7 @@ public class MeasureWriter extends WriterBase {
       println(out,"  }");
       println(out);
       println(out,"  public final Measure floor(int unit) {");
-      println(out,"    return new"+className+"(Math.floor(getValue(unit)),0);");
+      println(out,"    return new"+className+"(Math.floor(getValue(unit)),unit);");
       println(out,"  }");
       println(out);
       println(out,"  public final Measure valueOf(double value) {");
