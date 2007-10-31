@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cougaar-app">
+	<!-- This block of properties is relative to the project being built -->
+	<property name="jar.dir" value="lib" />
+	<property name="jar.file" value="${jar.dir}/${ant.project.name}.jar" />
+	<property name="class.dir" value="tmp/classes"/>
+	<property name="src.dir" value="src"/>
+	<property name="sys.dir" value="sys"/>
+
+	<!-- Compiler defaults -->
+	<property name="target" value="1.5" />
+	<property name="source" value="1.5" />
+	<property name="compile.deprecation" value="yes" />
+	<property name="compile.optimize" value="yes" />
+	<property name="debuglevel" value="source,lines,vars" />
+	
+	<!-- Load user defaults -->
+
+	<path id="cougaar-minimal-release.classpath">
+		<fileset dir="${basedir}/../sys" includes="*.jar"/>
+		<fileset dir="${basedir}/../lib" includes="*.jar"/>
+	</path>
+
+	<path id="project.sys.classpath">
+		<fileset dir="${sys.dir}" includes="*.jar"/>
+	</path>
+
+	<path id="project.classpath" description="default build path">
+		<pathelement location="${class.dir}"/>
+		<!-- path refid="project.sys.classpath"/ -->
+		<path refid="cougaar-minimal-release.classpath"/>
+	</path>
+
+	<path id="run.classpath" description="default run path">
+		<pathelement location="${jar.file}"/>
+		<!-- path refid="project.sys.classpath"/ -->
+		<path refid="cougaar-minimal-release.classpath"/>
+	</path>
+	
+	<!--define ant-contrib extenstions to ANT. Needed because Ant 1.6 does not have For loops-->
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+	  <classpath>
+	    <pathelement location="${basedir}/../build/data/ant-contrib-1.0b3.jar"/>
+	  </classpath>
+	</taskdef>
+
+	<target name="init">
+		<!-- Initially populate the classes directory tree with
+			everything in the source tree except .java and .launch
+			files
+		-->
+		<mkdir dir="${class.dir}" />
+		<copy includeemptydirs="false" todir="${class.dir}">
+			<fileset dir="${src.dir}" excludes="**/*.launch, **/*.java" />
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="${class.dir}" />
+		<delete file="${jar.file}" />
+	</target>
+
+	<target name="build" depends="init">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="${class.dir}" source="${source}" target="${target}">
+			<src path="${src.dir}" />
+			<classpath refid="project.classpath" />
+		</javac>
+	</target>
+
+	<target name="jar" description="Creates the main jar file" depends="build">
+		<mkdir dir="${jar.dir}" />
+		<jar jarfile="${jar.file}" basedir="${class.dir}" casesensitive="yes">
+			<manifest>
+				<attribute name="Application-Title" value="BBN - ${ant.project.name}" />
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Build-Date" value="${TODAY}" />
+				<attribute name="Implementation-Version" value="1" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="dist" description="Clean and jar" depends="clean, jar" />
+	
+	<target name="frameset-codegen" depends="init" description="Generate classes from Prototype Frames">
+		<!-- Fork to a new VM to allow codegen in Eclipse -->
+		<java classname="org.cougaar.core.qos.frame.FrameGen" 
+			classpathref="cougaar-minimal-release.classpath"
+			fork="yes">
+			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser"/>
+			<arg value="-clp"/>
+			<arg path="${frameset.codegen.target.directory}"/>
+			<arg path="${frameset.codegen.prototypes}"/>
+		</java>
+	</target>
+
+	<target name="frameset-xmigen"
+			depends="init"
+			description="Generate an xmi file from Prototype Frames">
+		<!-- Fork to a new VM to allow codegen in Eclipse -->
+		<java classname="org.cougaar.core.qos.frame.XMIGen" 
+			classpathref="cougaar-minimal-release.classpath"
+			fork="yes">
+			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser"/>
+			<arg path="${frameset.xmigen.prototypes}"/>
+			<arg path="${frameset.xmigen.target.file}"/>
+		</java>
+	</target>
+
+	<target name="cougaar-run" description="run one society">
+		<!-- Assume working directory is the current project's home -->
+		<condition property="cougaar.name.server" value="NameServer@localhost:8888">
+			<not>
+				<isset property="cougaar.name.server"/>
+			</not>
+		</condition>
+		<echo>NameServer is ${cougaar.name.server}</echo>
+		<condition property="cougaar.society.template" value="single_debug">
+			<not>
+				<isset property="cougaar.society.template"/>
+			</not>
+		</condition>
+		<echo>Template is ${cougaar.society.template}</echo>
+		<condition property="cougaar.node.name" value="Node1">
+			<not>
+				<isset property="cougaar.node.name"/>
+			</not>
+		</condition>
+		<echo>Node is ${cougaar.node.name}</echo>
+		<condition property="cougaar.run.title" value="${cougaar.node.name}">
+			<not>
+				<isset property="cougaar.run.title"/>
+			</not>
+		</condition>
+		<condition property="cougaar.society.file.path" 
+			value="${basedir}/configs/${cougaar.society.file.name}">
+			<not>
+				<isset property="cougaar.society.file.path"/>
+			</not>
+		</condition>
+		<echo>Society file is ${cougaar.society.file.path}</echo>
+		<condition property="cougaar.runtime.file.name" 
+			value="SingleNodeRuntime.xml">
+			<not>
+				<isset property="cougaar.runtime.file.name"/>
+			</not>
+		</condition>
+		<condition property="cougaar.runtime.file.path" 
+			value="${basedir}/run/${cougaar.runtime.file.name}">
+			<not>
+				<isset property="cougaar.runtime.file.path"/>
+			</not>
+		</condition>
+		<echo>Runtime file is ${cougaar.runtime.file.path}</echo>	
+
+		<java classname="org.cougaar.bootstrap.Bootstrapper"
+				fork="yes"
+				dir="run" 
+				classpathref="run.classpath"
+				failonerror="yes">
+			<jvmarg value="-Dorg.cougaar.society.file=${cougaar.society.file.path}" />
+			<jvmarg value="-Dorg.cougaar.runtime.file=${cougaar.runtime.file.path}" />
+			<jvmarg value="-Dorg.cougaar.node.name=${cougaar.node.name}" />
+			<jvmarg value="-Dorg.cougaar.society.xsl.param.template=${cougaar.society.template}" />
+			<jvmarg value="-Dorg.cougaar.society.xsl.param.planning=true" />
+			<jvmarg value="-Dorg.cougaar.core.logging.config.filename=logging.props" />
+			<jvmarg value="-Dorg.cougaar.install.path=${basedir}/../base" />
+			<jvmarg value="-Dorg.cougaar.society.path=${basedir}/configs" />
+			<jvmarg value="-Dorg.cougaar.runtime.path=${basedir}/run" />
+			<jvmarg value="-Dorg.cougaar.bootstrap.application=org.cougaar.core.node.Node" />
+			<jvmarg value="-Dorg.cougaar.name.server=${cougaar.name.server}"/>
+			<jvmarg value="-Dorg.cougaar.core.wp.server.successTTD=30000"/>
+			<jvmarg value="-Dorg.cougaar.core.wp.server.failTTD=1000"/>
+			<jvmarg value="-Dorg.cougaar.core.wp.resolver.rmi.minLookup=500"/>
+			<jvmarg value="-Dorg.cougaar.core.wp.resolver.rmi.maxLookup=2000"/>
+			<jvmarg value="-Dorg.cougaar.core.mts.destq.retry.initialTimeout=250"/>
+			<jvmarg value="-Dorg.cougaar.core.mts.destq.retry.maxTimeout=500"/>
+			<jvmarg value="-Dorg.cougaar.core.node.InitializationComponent=XML" />
+			<jvmarg value="-Dorg.cougaar.core.persistence.verifyJavaIOPatch=false" />
+			<jvmarg value="-Dorg.cougaar.core.agent.quiet=true" />
+			<jvmarg value="-Dorg.cougaar.core.agent.heartbeat=false" />
+			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser" />
+			<jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=${cougaar.run.title}"/>
+			<jvmarg value="-Xms1m" />
+			<jvmarg value="-Xmx256m" />
+			<jvmarg value="-XX:ThreadStackSize=256" />
+		</java>
+	</target>
+
+	<target name="cougaar-run-dir" description="run a directory of societies">
+		<echo message="Running all society files in ${cougaar.society.dir}"/>
+		<foreach target="cougaar-run" param="cougaar.society.file.path">
+		    <path>
+		      <fileset dir="${cougaar.society.dir}" includes="*.xml"/>
+		    </path>
+         </foreach>
+	</target>
+
+	<target name="regression" depends="jar">
+		<!-- default regression test does nothing" -->
+	</target>
+
+	<!-- We can't figured out how to inherit the export directory name
+		without inheriting other attributes that would cause conflicts.
+		For now inherit nothing and hardwire the export directory.
+		Later it should be project-specific.
+	-->
+	<property name="export.root" value="/tmp/export"/>
+	<property name="export.dir" value="${export.root}/export"/>
+
+	<macrodef name="export.jars">
+		<attribute name="source.path.base"/>
+		<attribute name="dir"/>
+		<sequential>
+			<mkdir dir="${export.dir}/@{dir}" />
+			<copy todir="${export.dir}/@{dir}" flatten="true" preservelastmodified="true">
+				<fileset dir="@{source.path.base}/@{dir}" includes="*.jar" />
+			</copy>
+		</sequential>
+	</macrodef>
+
+	<target name="export.std.jars">
+		<export.jars source.path.base="${basedir}" dir="lib"/>
+		<export.jars source.path.base="${basedir}" dir="sys"/>
+	</target>
+
+	<target name="export.dependent.jars" if="project.dependencies">
+		<subant target="export.all.jars" inheritall="false" failonerror="true">
+			<filelist dir="/" files="${project.dependencies}" />
+		</subant>
+	</target>
+
+	<target name="export.all.jars">
+		<antcall target="export.std.jars" />
+		<antcall target="export.dependent.jars" />
+	</target>
+
+</project>
