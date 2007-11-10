@@ -513,6 +513,20 @@
       </copy>
     </target>
 
+	<target name="build.cougaar.core" description="build all core modules" depends="install.jar">
+		<subant buildpath="${TARGETBASE}/bootstrap" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/util" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/core" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/mtsstd" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/mtslinks" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/qrs" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/qos" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/datafeeds" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/planning" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/webserver" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/webmicro" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/webtomcat" target="install.jar"/>
+	</target>
 
     <!-- ========================================================== -->
     <!-- Compile EVERYTHING			                -->
