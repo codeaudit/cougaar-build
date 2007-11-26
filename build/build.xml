@@ -512,10 +512,24 @@
 	<fileset dir="${local.lib}" includes="*.jar"/>
       </copy>
     </target>
-
+	
+    <!-- Convenience target to generate all the core jars.
+        Mostly useful in the context of an Eclipse workspace that contains
+        both the core modules and the application modules.  The latter
+        will depend on the 'cougaar' UserLibrary, which can be configured
+        to include the jars built by this target rather than the jars in
+        $CIP/lib.
+        Since the Eclipse projects are configured to compile to the
+        same destinations dirs as the build files, it's not generally
+        necessary to do an explicit 'clean'.  The one exception is
+        the generated version# code in core.  For that reason we 
+        execute two targets in core: clean-gencode and install.jar.
+        For all other modules install.jar should be sufficient.
+     -->
 	<target name="build.cougaar.core" description="build all core modules" depends="install.jar">
 		<subant buildpath="${TARGETBASE}/bootstrap" target="install.jar"/>
 		<subant buildpath="${TARGETBASE}/util" target="install.jar"/>
+		<subant buildpath="${TARGETBASE}/core" target="clean-gencode"/>
 		<subant buildpath="${TARGETBASE}/core" target="install.jar"/>
 		<subant buildpath="${TARGETBASE}/mtsstd" target="install.jar"/>
 		<subant buildpath="${TARGETBASE}/mtslinks" target="install.jar"/>
