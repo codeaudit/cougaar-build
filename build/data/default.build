@@ -95,7 +95,7 @@ modules=\
 	glm,aggagent,\
 	base,\
 	csmart,\
-	qrs, qos, profile,\
+	qrs, qos, profile, datafeeds, \
 	server,\
 	webserver, webmicro, webtomcat, webaxis,\
 	community, \
@@ -125,7 +125,7 @@ modules.unified =\
 	glm,\
 	aggagent,\
 	base,\
-	qrs, qos, profile, mtsstd, mtslinks,\
+	qrs, qos, profile, datafeeds, mtsstd, mtslinks,\
 	server,\
 	webserver, webmicro, webtomcat
 # not: javaiopatch, implementations of basic services, AL
@@ -268,6 +268,12 @@ qos.jars = servlet
 qos.runtime = configs,csmart
 qos.repository = :ext:cougaar.org:/cvsroot/qos
 
+# datafeeds (metrics service feeds for specialized environments)
+datafeeds.deps = core,util,qos,qrs
+datafeeds.jars = SNMP4J
+datafeeds.runtime = configs,run
+datafeeds.respository = :ext:cougaar.org:/cvsroot/qos
+
 # profile (periodically log traffix matrix, cpu load, etc)
 profile.deps = core,util
 profile.jars = servlet
@@ -323,11 +329,6 @@ servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
 servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr,concurrent
 servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
 
-# debugging tools, including Bean Shell
-tools.deps = core,util,bootstrap
-tools.jars = bsh
-tools.repository = :ext:cougaar.org:/cvsroot/tutorials
-
 #
 # distribution settings
 #
@@ -374,6 +375,12 @@ mesh.deps = core,util,bootstrap
 mesh.jars = servlet
 mesh.repository = :ext:cougaar.org:/cvsroot/tutorials
 mesh.standalone = 1
+
+# the "tools" demo
+tools.deps = core,util,qos
+tools.jars = bsh
+tools.repository = :ext:cougaar.org:/cvsroot/tutorials
+tools.standalone = 1
 
 # the "mandelbrot" demo
 mandelbrot.deps = core,util
