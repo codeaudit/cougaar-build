@@ -586,6 +586,8 @@ sub checkout_module {
     $modpointP = true;
   }
 
+  my $date = gopt($mod, "date", $opt_D);
+
   my $arg = "";
   $arg = "-Q";			# if ($verbose<=1);
   my $rarg="";
@@ -593,13 +595,13 @@ sub checkout_module {
   $rarg = "-r $tag" if (! ($tag eq "HEAD"));
   if ($checkoutP) {
     # hack to allow us to checkout a branch at a specific time
-    $rarg .= " -D '$opt_D'" if ($opt_D && !$modpointP);
+    $rarg .= " -D '$date'" if ($date && !$modpointP);
     # leave it in development mode
     mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $cvsmod");
   } else {
     if (!$modpointP) {
-      if ($opt_D) {
-	$rarg .= " -D '$opt_D'";
+      if ($date) {
+	$rarg .= " -D '$date'";
       } else { 
 	$rarg .= " -D '$rdate'"
       }
