@@ -377,7 +377,7 @@ mesh.repository = :ext:cougaar.org:/cvsroot/tutorials
 mesh.standalone = 1
 
 # the "tools" demo
-tools.deps = core,util,qos
+tools.deps = core,util,qos,qrs,datafeeds
 tools.jars = bsh
 tools.repository = :ext:cougaar.org:/cvsroot/tutorials
 tools.standalone = 1
