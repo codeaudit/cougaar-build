@@ -1378,6 +1378,11 @@ sub build_standalone {
   my @extras = opt("$mod.runtime");
   if (!defined(@extras) || $#extras < 0) {
     @extras = <*>;
+    for $d (".classpath", ".project") {
+      if (-e $d) {
+        push @extras, $d;
+      }
+    }
   }
   foreach $extra (@extras) {
     if (-d "$extra") {
