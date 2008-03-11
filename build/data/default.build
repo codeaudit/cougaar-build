@@ -272,7 +272,7 @@ qos.repository = :ext:cougaar.org:/cvsroot/qos
 datafeeds.deps = core,util,qos,qrs
 datafeeds.jars = SNMP4J
 datafeeds.runtime = configs,run
-datafeeds.respository = :ext:cougaar.org:/cvsroot/qos
+datafeeds.repository = :ext:cougaar.org:/cvsroot/qos
 
 # profile (periodically log traffix matrix, cpu load, etc)
 profile.deps = core,util
