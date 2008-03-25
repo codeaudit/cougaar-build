@@ -23,7 +23,7 @@
 
 	<!-- Load user defaults -->
 
-	<path id="cougaar-minimal-release.classpath">
+	<path id="cougaar-release.classpath">
 		<fileset dir="${CIP}/sys" includes="*.jar" />
 		<fileset dir="${CIP}/lib" includes="*.jar" />
 	</path>
@@ -34,14 +34,14 @@
 
 	<path id="project.classpath" description="default build path">
 		<pathelement location="${class.dir}" />
-		<!-- path refid="project.sys.classpath"/ -->
-		<path refid="cougaar-minimal-release.classpath" />
+		<path refid="project.sys.classpath"/>
+		<path refid="cougaar-release.classpath" />
 	</path>
 
 	<path id="run.classpath" description="default run path">
 		<pathelement location="${jar.file}" />
-		<!-- path refid="project.sys.classpath"/ -->
-		<path refid="cougaar-minimal-release.classpath" />
+		<path refid="project.sys.classpath"/>
+		<path refid="cougaar-release.classpath" />
 	</path>
 
 	<!--define ant-contrib extenstions to ANT. Needed because Ant 1.6 does not have For loops-->
@@ -79,7 +79,7 @@
 		<mkdir dir="${jar.dir}" />
 		<jar jarfile="${jar.file}" basedir="${class.dir}" casesensitive="yes">
 			<manifest>
-				<attribute name="Application-Title" value="BBN - ${ant.project.name}" />
+				<attribute name="Application-Title" value="Cougaar - ${ant.project.name}" />
 				<attribute name="Built-By" value="${user.name}" />
 				<attribute name="Build-Date" value="${TODAY}" />
 				<attribute name="Implementation-Version" value="1" />
@@ -91,7 +91,7 @@
 
 	<target name="frameset-codegen" depends="init" description="Generate classes from Prototype Frames">
 		<!-- Fork to a new VM to allow codegen in Eclipse -->
-		<java classname="org.cougaar.core.qos.frame.FrameGen" classpathref="cougaar-minimal-release.classpath" fork="yes">
+		<java classname="org.cougaar.core.qos.frame.FrameGen" classpathref="cougaar-release.classpath" fork="yes">
 			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser" />
 			<arg value="-clp" />
 			<arg path="${frameset.codegen.target.directory}" />
@@ -101,7 +101,7 @@
 
 	<target name="frameset-xmigen" depends="init" description="Generate an xmi file from Prototype Frames">
 		<!-- Fork to a new VM to allow codegen in Eclipse -->
-		<java classname="org.cougaar.core.qos.frame.XMIGen" classpathref="cougaar-minimal-release.classpath" fork="yes">
+		<java classname="org.cougaar.core.qos.frame.XMIGen" classpathref="cougaar-release.classpath" fork="yes">
 			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser" />
 			<arg path="${frameset.xmigen.prototypes}" />
 			<arg path="${frameset.xmigen.target.file}" />
