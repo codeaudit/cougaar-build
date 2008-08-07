@@ -189,7 +189,7 @@ mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
 
 # mtslinks
 mtslinks.deps = mtsstd, core, util, bootstrap
-mtslinks.jars = servlet, jms-1.1
+mtslinks.jars = servlet, jms-1.1, smack
 mtslinks.repository = :ext:cougaar.org:/cvsroot/mts
 
 # yellow pages
