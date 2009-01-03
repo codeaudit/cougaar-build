@@ -29,19 +29,21 @@
 	</path>
 
 	<path id="project.sys.classpath">
-		<fileset dir="${sys.dir}" includes="*.jar" />
+		<fileset dir="/" includes="${sys.dir}/*.jar" />
 	</path>
 
 	<path id="project.classpath" description="default build path">
 		<pathelement location="${class.dir}" />
 		<path refid="project.sys.classpath"/>
 		<path refid="cougaar-release.classpath" />
+		<path refid="project.dependencies" />
 	</path>
 
 	<path id="run.classpath" description="default run path">
 		<pathelement location="${jar.file}" />
 		<path refid="project.sys.classpath"/>
 		<path refid="cougaar-release.classpath" />
+		<path refid="project.dependencies" />
 	</path>
 
 	<!--define ant-contrib extenstions to ANT. Needed because Ant 1.6 does not have For loops-->
@@ -69,6 +71,7 @@
 
 	<target name="build" depends="init">
 		<echo message="${ant.project.name}: ${ant.file}" />
+		<echo message="build classpath: ${toString:project.classpath}" />
 		<javac debug="true" debuglevel="${debuglevel}" destdir="${class.dir}" source="${source}" target="${target}">
 			<src path="${src.dir}" />
 			<classpath refid="project.classpath" />
@@ -150,6 +153,8 @@
 			</not>
 		</condition>
 		<echo>Runtime file is ${cougaar.runtime.file.path}</echo>
+		<echo>Cougaar Install Path is  ${CIP}</echo>
+		<echo message="Runtime Classpath is ${toString:project.classpath}" />
 
 		<java classname="org.cougaar.bootstrap.Bootstrapper" fork="yes" dir="run" classpathref="run.classpath" failonerror="yes">
 			<jvmarg value="-Dorg.cougaar.society.file=${cougaar.society.file.path}" />
