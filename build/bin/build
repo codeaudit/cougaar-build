@@ -593,25 +593,23 @@ sub checkout_module {
   my $rarg="";
   # special case for HEAD - bogon.
   $rarg = "-r $tag" if (! ($tag eq "HEAD"));
-  if ($checkoutP) {
-    # hack to allow us to checkout a branch at a specific time
-    $rarg .= " -D '$date'" if ($date && !$modpointP);
-    # leave it in development mode
-    mysystem ("cvs $arg -d '$rep' checkout $rarg -d $mod $cvsmod");
-  } else {
-    if (!$modpointP) {
+  if (!$modpointP) {
       if ($date) {
-	$rarg .= " -D '$date'";
+	  $rarg .= " -D '$date'";
       } else { 
-	$rarg .= " -D '$rdate'"
+	  $rarg .= " -D '$rdate'"
       }
-    }
-    mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
+  }
+  # mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
+  if ( ($rep =~ /^:ext:cougaar.org:\/cvsroot\/(.+)$/) ) {
+      print "WARNING: old syntax for repository '$rep'\n" if $verbose;
+      mysystem ("git clone --depth 1 src.dsl.bbn.com:/git/cougaar/$1.git $1");
   }
 }
 
 sub update_module {
   my ($mod, $dir) = @_;
+  die "Update not supported";
   chdir ($dir) || die ("Couldn't chdir to $build_dir");
   print "\tupdating $mod\n" if $verbose;
 
