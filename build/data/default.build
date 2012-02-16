@@ -147,8 +147,8 @@ modules.unified =\
 #following says to replace the tail of the default repository
 #(e.g. from CVSROOT) with the value 'internal'
 #vishnu.repository = internal
-#or you can specify a complete CVSROOT value:
-#albbn.repository = :ext:cougaar.org:/cvsroot/logistics
+#or you can specify a complete git value:
+#albbn.repository = git.cougaar.org:/git/logistics
 
 jars.repository = core
 
@@ -228,7 +228,7 @@ vishnu.module = vishnuClient
 vishnu.repository = vishnu
 
 # uiframework
-#uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
+#uiframework.repository = cui
 #uiframework.deps = core,planning,glm,util
 #uiframework.jars = xercesImpl,xml-apis,openmap,vgj
 #uiframework.extras = mm-mysql-2
@@ -237,13 +237,13 @@ vishnu.repository = vishnu
 # tutorials
 tutorial.deps = core,planning,util
 tutorial.jars = servlet
-tutorial.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
+tutorial.repository = tutorials
 
 # pizza
 # Is YP needed? Will we need xml-apis? uddi?
 pizza.deps = core,planning,util,servicediscovery,yp,community
 pizza.jars = xercesImpl,servlet,xml-apis,jena,uddi4j
-pizza.repository = :ext:cougaarforge.cougaar.org:/cvsroot/tutorials
+pizza.repository = tutorials
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
