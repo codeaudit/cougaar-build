@@ -284,6 +284,7 @@ if (! $java_home) {
     }
   }
 }
+die "cannot execute $java_command in $java_home. java.home parameter incorrectly set" unless -x "$java_home/bin/$java_command";
 
 $jar_command = jdkCommand(opt("jar.command", "jar"));
 {
@@ -550,6 +551,7 @@ sub checkout {
   chdir ($srcdir) || die ("Couldn't chdir to $build_dir");
 
   my ($time0) = time;
+
   foreach $mod (@modules) {
     if ($isUpdating) {
       update_module($mod,$srcdir);
@@ -600,10 +602,14 @@ sub checkout_module {
 	  $rarg .= " -D '$rdate'"
       }
   }
+  my $tco = "GITCO$$";
   # mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
   if ( ($rep =~ /^:ext:cougaar.org:\/cvsroot\/(.+)$/) ) {
-      print "WARNING: old syntax for repository '$rep'\n" if $verbose;
-      mysystem ("git clone --depth 1 src.dsl.bbn.com:/git/cougaar/$1.git $1");
+      #print "WARNING: old syntax for repository '$rep'\n" if $verbose;
+      
+      mysystem ("git clone --depth 1 src.dsl.bbn.com:/git/cougaar/$1.git $tco");
+      mysystem ("mv $tco/$cvsmod $mod");
+      mysystem ("rm -rf $tco")
   }
 }
 
@@ -1113,7 +1119,7 @@ sub build_moby_src {
     my @maybe_subdirs = @shipped_subdirs;
     my @subdirs = ();
     my @runtime_subdirs = opt("$mod.subdirs");
-    if (!defined(@runtime_subdirs) || $#runtime_subdirs < 0) {
+    if (! @runtime_subdirs || $#runtime_subdirs < 0) {
       @runtime_subdirs = ("bin", "data", "configs", "doc");
     }
     foreach $sub (@maybe_subdirs) {
@@ -1250,7 +1256,7 @@ sub build_runtime {
     }
 
     my @runtime_subdirs = opt("$mod.subdirs");
-    if (!defined(@runtime_subdirs) || $#runtime_subdirs < 0) {
+    if (! @runtime_subdirs || $#runtime_subdirs < 0) {
       @runtime_subdirs = ("bin", "data", "configs", "doc");
     }
     foreach $rs (@runtime_subdirs) {
@@ -1374,7 +1380,7 @@ sub build_standalone {
   chdir $moddir;
 
   my @extras = opt("$mod.runtime");
-  if (!defined(@extras) || $#extras < 0) {
+  if (!@extras || $#extras < 0) {
     @extras = <*>;
     for $d (".classpath", ".project") {
       if (-e $d) {
