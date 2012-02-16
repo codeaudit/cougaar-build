@@ -52,8 +52,6 @@ sub parse_args {
       $opt_r = shift @ARGV;
     } elsif (/^-D/) {
       $opt_D = shift @ARGV;
-    } elsif (/^-t/) {
-      $tag = shift @ARGV;
     } elsif (/^-R/) {
       $opt_R = shift @ARGV;
     } elsif (/^-m/) {
@@ -243,10 +241,8 @@ sub maybeLoadParams {
 # might consider doing a workaround for 4466587
 # by detecting the bad cases and doing a limit call.
 
-#$compiler_touse = "jikes";
 $compiler_touse = "javac";
 addopt("javac.command", "javac");
-addopt("jikes.command", "jikes");
 addopt("javac.arguments", "-J-Xmx128m -J-Xms128m");
 addopt("default.javadoc.memory", "-J-Xmx512m -J-Xms128m");
 
@@ -380,11 +376,6 @@ $product = "cougaar" if ($product eq "");
 
 $latest_dir = "$build_root/latest";
 
-if ($tag) {
-  tag($tag);
-  exit(0);
-}
-
 # create the build dirs
 mkd "$build_root";
 mkd $build_dir;
@@ -446,19 +437,9 @@ $syslib;
 }
 
 
-# classpath, possibly with rt.jar added for use by jikes
+# classpath, 
 $augmented_classpath = $sysclasspath;
 @rtjars;
-if ($java_home) {
-  if ( $compiler_touse =~ /jikes/ ) { # find rt.jar for jikes
-#    $rtjar = "$java_home/jre/lib/rt.jar";
-    @rtjars = ();
-    my @exts = findbypattern("$java_home/jre/lib", "\.jar\$");
-    push @rtjars, @exts;
-    my $rtx = join("$cpsep",$rtjars);
-    $augmented_classpath = "$augmented_classpath$cpsep$rtx";
-  }
-}
 
 # Check out everything from CVS (handles $skip and $isUpdating correctly)
 &checkout;
@@ -578,7 +559,7 @@ sub checkout_module {
   chdir ($dir) || die ("Couldn't chdir to $build_dir");
   print "\tchecking out $mod\n" if $verbose;
 
-  my $rep = getCVSROOT($mod);
+  my $rep = getRepository($mod);
   my $cvsmod = opt("$mod.module","$mod");
   my $modpointP = $pointP;
 
@@ -605,12 +586,13 @@ sub checkout_module {
   my $tco = "GITCO$$";
   # mysystem ("cvs $arg -d '$rep' export $rarg -d $mod $cvsmod");
   if ( ($rep =~ /^:ext:cougaar.org:\/cvsroot\/(.+)$/) ) {
-      #print "WARNING: old syntax for repository '$rep'\n" if $verbose;
-      
+      print "WARNING: old syntax for repository '$rep'\n" if $verbose;
       mysystem ("git clone --depth 1 src.dsl.bbn.com:/git/cougaar/$1.git $tco");
-      mysystem ("mv $tco/$cvsmod $mod");
-      mysystem ("rm -rf $tco")
+  } else {
+      mysystem ("git clone --depth 1 $rep $tco");
   }
+  mysystem ("mv $tco/$cvsmod $mod");
+  mysystem ("rm -rf $tco")
 }
 
 sub update_module {
@@ -619,7 +601,7 @@ sub update_module {
   chdir ($dir) || die ("Couldn't chdir to $build_dir");
   print "\tupdating $mod\n" if $verbose;
 
-  my $rep = getCVSROOT($mod);
+  my $rep = getRepository($mod);
   my $cvsmod = opt("$mod.module","$mod");
   chdir ($mod);
 
@@ -2125,7 +2107,7 @@ sub max {
 }
 
 
-sub getCVSROOT {
+sub getRepository {
   my($mod) = @_;
 
   my $rept = opt("$mod.repository");
@@ -2149,67 +2131,6 @@ sub getCVSROOT {
       }
     }
     return "$repb$rept";
-  }
-}
-
-sub tag {
-  my($newtag) = @_;		# name to use for tagging
-
-  my ($barg)="";
-  $barg = "-b" if($branchP);
-
-  my ($hairyP) = ($tag ne "HEAD") && ($rdate ne "");
-
-  my (@mods);
-  @mods = @modules;
-  push @modules, "build" if (! member("build",@modules));
-
-  {
-    $syslib = opt("sys.lib");
-    if ($syslib =~ /^module:(.+)/) {
-      my($mod) = $1;
-      push @mods, $mod;
-    }
-  }
-
-  my $tmpdir = "$tmp/tagger.$$";
-  mkd($tmpdir) if $hairyP;
-
-  foreach $mod (@mods) {
-    my $rep = getCVSROOT($mod);
-    my $tag = resolveTag($mod);
-    my $cvsmod = opt("$mod.module","$mod");
-    my $modnewtag = resolveTag($mod, $newtag);
-
-    my $arg = "";
-    $arg = "-Q" if ($verbose<=1);
-    my $rarg="";
-    # special case for HEAD - bogon.
-    $rarg = "-r $tag" if (! ($tag eq "HEAD"));
-    my $Farg = "";
-    if ($forceP) {
-      if ($branchP) {
-	$Farg = "-F -B";
-      } else {
-	$Farg = "-F";
-      }
-    }
-
-    if ($hairyP) {
-      # sigh.  Have to do a checkout and then local tag
-      chdir("$tmpdir");
-      mysystem("cvs $arg -d '$rep' co $rarg -D '$rdate' -d $mod $cvsmod");
-      chdir("$tmpdir/$mod");
-      mysystem("cvs $arg -d '$rep' tag $barg $Farg $modnewtag .");
-      chdir("$tmpdir");
-      mysystem("rm -rf $tmpdir/$mod");
-    } else {
-      mysystem ("cvs $arg -d '$rep' rtag $rarg -D '$rdate' $barg $Farg $modnewtag $cvsmod");
-    }
-  }
-  if ($hairyP) {
-    chdir("/");
-    mysystem("rm -rf $tmpdir");
   }
 }
 
@@ -2307,11 +2228,9 @@ sub javac {
   my $jc = compiler_command($mod);
   #$cp = &cpWrap($cp); # Not apparently necessary when using env vars
   $ENV{CLASSPATH}="$cp";
-  $ENV{JIKESPATH}="$cp";
   print STDERR "CLASSPATH = $ENV{CLASSPATH}\n" if ($verbose>1);
   my ($result) = mysystem("$jc $args");
   undef $ENV{CLASSPATH};
-  undef $ENV{JIKESPATH};
   my ($time1) = time;
   addtime("compile",$time1-$time0);
   return ($result == 0);
@@ -2357,8 +2276,6 @@ sub compiler_command {
   my $args = opt("$mod.$jco.arguments") || opt("$jco.arguments");
 
   my $command = jdkCommand($jc);
-  # pedantic only works for jikes
-  $command .= " +P" if ($pedantic && $jco eq "jikes");
   $command .= " -g" if ($debug);
   $command .= " -deprecation" if ($deprecation);
   $command .= " -O" if ($optimize);

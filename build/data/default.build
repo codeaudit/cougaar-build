@@ -62,11 +62,8 @@ default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
 	org.cougaar.tools.javadoc.GeneratedTaglet, \
 	org.cougaar.tools.javadoc.EventTaglet
 
-# repository.base defaults to CVSROOT without the trailing "cougaar"
-#repository.base=/cvsroot/alp/
-
-# default repository tag is "cougaar"
-#repository.default=cougaar
+# repository.base - module repositories are appended to this
+repository.base=src.dsl.bbn.com:/git/cougaar/
 
 # HEAD is the default
 #tag.default=HEAD
@@ -153,11 +150,11 @@ modules.unified =\
 #or you can specify a complete CVSROOT value:
 #albbn.repository = :ext:cougaar.org:/cvsroot/logistics
 
-jars.repository = :ext:cougaar.org:/cvsroot/core
+jars.repository = core
 
 #Don't generate javadoc for the jdk patches
 javaiopatch.javadoc = 0
-javaiopatch.repository = :ext:cougaar.org:/cvsroot/core
+javaiopatch.repository = core
 
 # build tools requires the jdk tools jars
 build.jars = tools
@@ -166,69 +163,69 @@ build.jars = tools
 build.extras = junit
 # compiletime means that it is installed as clib rather than lib
 build.compiletime = 1
-build.repository = :ext:cougaar.org:/cvsroot/build
+build.repository = build
 
 # bootstrap
 bootstrap.keystore.alias = bootstrapper
-bootstrap.repository = :ext:cougaar.org:/cvsroot/util
+bootstrap.repository = util
 
 # util
 util.deps = bootstrap
 util.jars = log4j
-util.repository = :ext:cougaar.org:/cvsroot/util
+util.repository = util
 
 # core
 core.deps = bootstrap, util
 core.jars = log4j, servlet
-core.repository = :ext:cougaar.org:/cvsroot/core
+core.repository = core
 
 # mtsstd
 mtsstd.deps = core, util, bootstrap
 mtsstd.jars = servlet
-mtsstd.repository = :ext:cougaar.org:/cvsroot/mts
+mtsstd.repository = mts
 
 # mtslinks
 mtslinks.deps = mtsstd, core, util, bootstrap
 mtslinks.jars = servlet, jms-1.1, smack
-mtslinks.repository = :ext:cougaar.org:/cvsroot/mts
+mtslinks.repository = mts
 
 # yellow pages
 yp.deps = util, core
 yp.jars = uddi4j, juddi, hsqldb
-yp.repository = :ext:cougaar.org:/cvsroot/yp
+yp.repository = yp
 
 # planning
 planning.deps = util, core
 planning.jars = xercesImpl, xml-apis, servlet
-planning.repository = :ext:cougaar.org:/cvsroot/planning
+planning.repository = planning
 
 # contract
 contract.deps = util
 contract.jars = xercesImpl,xml-apis
-contract.repository = :ext:cougaar.org:/cvsroot/util
+contract.repository = util
 
 # toolkit
 toolkit.deps = core, planning, util
 toolkit.jars = xercesImpl,xml-apis
-toolkit.repository = :ext:cougaar.org:/cvsroot/glm
+toolkit.repository = glm
 
 # glm3
 glm.deps = core,planning,toolkit,bootstrap,util
 glm.jars = xercesImpl,xml-apis,fesi-111,jcchart,servlet
 glm.extras = mm-mysql-2
-glm.repository = :ext:cougaar.org:/cvsroot/glm
+glm.repository = glm
 glm.runtime = bin
 
 # aggregation agent
 aggagent.deps = core,planning,glm,util
 aggagent.jars = xercesImpl,xml-apis,jpython,silk,servlet
-aggagent.repository = :ext:cougaar.org:/cvsroot/aggagent
+aggagent.repository = aggagent
 
 # vishnu scheduler
 vishnu.deps = core,planning,toolkit,glm,util
 vishnu.jars = xercesImpl,xml-apis,vishnuServer
 vishnu.module = vishnuClient
-vishnu.repository = :ext:cougaar.org:/cvsroot/vishnu
+vishnu.repository = vishnu
 
 # uiframework
 #uiframework.repository = :ext:cougaarforge.cougaar.org:/cvsroot/cui
@@ -254,67 +251,67 @@ csmart.jars = xercesImpl,xml-apis,jcchart,grappa1_2,servlet
 # csmart wants DBMS for regression tests, too
 csmart.extras = mm-mysql-2, log4j
 #csmart.repository = internal
-csmart.repository = :ext:cougaar.org:/cvsroot/csmart
+csmart.repository = csmart
 # Set PrettyName for ANT script generation
 csmart.PrettyName = CSMART
 
 # qrs and qos
 
 qrs.deps = util
-qrs.repository = :ext:cougaar.org:/cvsroot/qos
+qrs.repository = qos
 
 qos.deps = core,util,bootstrap,mtsstd,qrs
 qos.jars = servlet
 qos.runtime = configs,csmart
-qos.repository = :ext:cougaar.org:/cvsroot/qos
+qos.repository = qos
 
 # datafeeds (metrics service feeds for specialized environments)
 datafeeds.deps = core,util,qos,qrs
 datafeeds.jars = SNMP4J
 # datafeeds.runtime = configs,run
-datafeeds.repository = :ext:cougaar.org:/cvsroot/qos
+datafeeds.repository = qos
 
 # profile (periodically log traffix matrix, cpu load, etc)
 profile.deps = core,util
 profile.jars = servlet
-profile.repository = :ext:cougaar.org:/cvsroot/qos
+profile.repository = qos
 
 # App (Node) Server
-server.repository = :ext:cougaar.org:/cvsroot/util
+server.repository = util
 
 # new PSP/web server
 webserver.deps = bootstrap,core,util
 webserver.jars = servlet
 webserver.runtime = configs
-webserver.repository = :ext:cougaar.org:/cvsroot/webserver
+webserver.repository = webserver
 
 webmicro.deps = bootstrap,util,core,webserver
 webmicro.jars = servlet
-webmicro.repository = :ext:cougaar.org:/cvsroot/webserver
+webmicro.repository = webserver
 
 webtomcat.deps = util,webserver
 webtomcat.jars = servlet,tomcat_40
-webtomcat.repository = :ext:cougaar.org:/cvsroot/webserver
+webtomcat.repository = webserver
 
 # web services, note that some jars are in webaxis/lib
 webaxis.deps = util,core,mtsstd
 webaxis.jars = activation,servlet,axis_1_2_beta,mail
 #webaxis.extras = axis_1_2_beta
-webaxis.repository = :ext:cougaar.org:/cvsroot/cws
+webaxis.repository = cws
 
 # community
 community.deps = util,core
 community.jars = servlet
 # added bootstrap for junit tests.
 community.extras = bootstrap
-community.repository = :ext:cougaar.org:/cvsroot/community
+community.repository = community
 
 #
 # Adaptive Logistics jars
 #
 #
 # AL BBN
-albbn.repository = :ext:cougaar.org:/cvsroot/logistics
+albbn.repository = logistics
 albbn.module = bbn
 albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
 albbn.jars = xercesImpl,xml-apis,openmap,fesi-111,jcchart,servlet,vishnuServer
@@ -327,13 +324,13 @@ albbn.runtime = bin,configs
 servicediscovery.deps = core, util, glm, planning, yp
 servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
 servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr,concurrent
-servicediscovery.repository = :ext:cougaar.org:/cvsroot/servicediscovery
+servicediscovery.repository = servicediscovery
 
 #
 # distribution settings
 #
 
-base.repository = :ext:cougaar.org:/cvsroot/util
+base.repository = util
 
 # runtime specs. Runtime always gets built libs, too.
 # The build process will also try to exclude these guys
@@ -360,30 +357,30 @@ base.dist = README
 # the "hello, world" demo
 hello.deps = core,util
 #hello.jars = ext   # example sys/ext.jar dependency
-hello.repository = :ext:cougaar.org:/cvsroot/tutorials
+hello.repository = tutorials
 #hello.lib = sys    # support above sys/ext.jar
 hello.standalone = 1
 
 # the "ping" demo
 ping.deps = core,util,bootstrap
 ping.jars = servlet
-ping.repository = :ext:cougaar.org:/cvsroot/tutorials
+ping.repository = tutorials
 ping.standalone = 1
 
 # the "mesh" demo
 mesh.deps = core,util,bootstrap
 mesh.jars = servlet
-mesh.repository = :ext:cougaar.org:/cvsroot/tutorials
+mesh.repository = tutorials
 mesh.standalone = 1
 
 # the "tools" demo
 tools.deps = core,util,qos,qrs,datafeeds
 tools.jars = bsh
-tools.repository = :ext:cougaar.org:/cvsroot/tutorials
+tools.repository = tutorials
 tools.standalone = 1
 
 # the "mandelbrot" demo
 mandelbrot.deps = core,util
 mandelbrot.jars = servlet
-mandelbrot.repository = :ext:cougaar.org:/cvsroot/tutorials
+mandelbrot.repository = tutorials
 mandelbrot.standalone = 1
