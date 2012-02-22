@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name="cougaar-app">
+	<!-- Cougaar Installed Code Default -->
 	<property environment="env" />
-	<condition property="CIP" value="${env.COUGAAR_INSTALL_PATH}">
+	<condition property="cougaar.install.path" value="${env.COUGAAR_INSTALL_PATH}">
 		<not>
-			<isset property="CIP" />
+			<isset property="cougaar.install.path" />
 		</not>
 	</condition>
+	<property name="CIP" value="${cougaar.install.path}" />
 	<!-- This block of properties is relative to the project being built -->
 	<property name="jar.dir" value="lib" />
 	<property name="jar.file" value="${jar.dir}/${ant.project.name}.jar" />
@@ -29,7 +31,7 @@
 	</path>
 
 	<path id="project.sys.classpath">
-		<fileset dir="/" includes="${sys.dir}/*.jar" />
+		<fileset dir="${basedir}" includes="${sys.dir}/*.jar" />
 	</path>
 
 	<path id="project.classpath" description="default build path">
@@ -71,6 +73,7 @@
 
 	<target name="build" depends="init">
 		<echo message="${ant.project.name}: ${ant.file}" />
+		<echo message="sys dir: ${sys.dir}"/>
 		<echo message="build classpath: ${toString:project.classpath}" />
 		<javac debug="true" debuglevel="${debuglevel}" destdir="${class.dir}" source="${source}" target="${target}">
 			<src path="${src.dir}" />
