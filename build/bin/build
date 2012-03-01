@@ -44,8 +44,8 @@ $isSigning = 1;
 $enableUnified = 0;
 
 # Prioritized list of MD5 checksum programs to try
-$md5sum1 = "X/usr/bin/md5sum";
-$md5sum2 = "X/sbin/md5";
+$md5sum1 = "/usr/bin/md5sum";
+$md5sum2 = "/sbin/md5";
 chomp($cwd = `pwd`);
 $md5sum3 = $cwd . "/build/bin/md5.pl";
 
