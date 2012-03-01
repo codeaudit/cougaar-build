@@ -16,7 +16,20 @@ standalone.name=demo
 tmp = /tmp
 
 # if set, java.home will be used to find java, jar, javadoc, rmi
-java.home = /usr/local/java/jdk1.5.0
+
+# typical value for older Linux
+###java.home = /usr/local/java/jdk1.5.0
+##
+# value good on dante.dsl.bbn.com in early 2012
+java.home=/usr/java/jdk1.5.0_18
+##
+# typical value for OS X 10.7 with JDK 1.5.0 installed (non-standard installation)
+###java.home = /System/Library/Java/JavaVirtualMachines/1.5.0/Contents/Home/
+##
+# typical value for OS X 10.7 with default JDK 1.6.0 installed
+# See source5 option below for why this doesn't work
+###java.home = /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/
+##
 # java.command may be used to figure out java.home if not otherwise
 java.command = java
 
@@ -43,6 +56,10 @@ compiler.debug = 1
 compiler.deprecation = 1
 # optimize bytecode
 #compiler.optimize = 1
+# option to add "-source 5" to javac command line to force compiling
+# as java language version 5.  Does not help compiling cougaar 12.4+
+# because of JDBC interface changes.  So disabled
+##compiler.source5 = 1
 
 # arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
 javac.arguments = -J-Xmx256m -J-Xms128m -Xlint:unchecked

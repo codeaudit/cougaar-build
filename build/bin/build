@@ -43,6 +43,22 @@ $pointP = 0;
 $isSigning = 1;
 $enableUnified = 0;
 
+# Prioritized list of MD5 checksum programs to try
+$md5sum1 = "X/usr/bin/md5sum";
+$md5sum2 = "X/sbin/md5";
+chomp($cwd = `pwd`);
+$md5sum3 = $cwd . "/build/bin/md5.pl";
+
+if ( -x  $md5sum1 ) {
+    $md5sum = $md5sum1;
+} elsif ( -x  $md5sum2 ) {
+    $md5sum = $md5sum2;
+} elsif ( -x  $md5sum3 ) {
+    $md5sum = $md5sum3;
+} else {
+    die("no md5sum program available");
+}
+
 sub parse_args {
   while ($#ARGV>=0) {
     $_ = shift @ARGV;
@@ -1605,7 +1621,7 @@ sub add_md5 {
     push @list, $a;
   }
   my $list = join(" ", @list);
-  mysystem("md5sum $list > md5sums.txt");
+  mysystem("$md5sum $list > md5sums.txt");
 }
 
 sub sign_report {
@@ -2275,10 +2291,16 @@ sub compiler_command {
   my $optimize = opt("$mod.compiler.optimize") || opt("compiler.optimize");
   my $args = opt("$mod.$jco.arguments") || opt("$jco.arguments");
 
+  # option to add "-source 5" to javac command line to force compiling
+  # as java language version 5.  Does not help compiling cougaar 12.4+
+  # because of JDBC interface changes.
+  my $source5 = opt("$mod.compiler.source5") || opt("compiler.source5");
+
   my $command = jdkCommand($jc);
   $command .= " -g" if ($debug);
   $command .= " -deprecation" if ($deprecation);
   $command .= " -O" if ($optimize);
+  $command .= " -source 5" if ($source5);
   $command .= " $args" if ($args ne "");
 
   return $command;
