@@ -16,15 +16,19 @@ standalone.name=demo
 tmp = /tmp
 
 # if set, java.home will be used to find java, jar, javadoc, rmi
-# typical value for Linux
-java.home = /usr/local/java/jdk1.5.0
+
+# typical value for older Linux
+###java.home = /usr/local/java/jdk1.5.0
+##
+# value good on dante.dsl.bbn.com in early 2012
+java.home=/usr/java/jdk1.5.0_18
 ##
 # typical value for OS X 10.7 with JDK 1.5.0 installed (non-standard installation)
-java.home = /System/Library/Java/JavaVirtualMachines/1.5.0/Contents/Home/
+###java.home = /System/Library/Java/JavaVirtualMachines/1.5.0/Contents/Home/
 ##
 # typical value for OS X 10.7 with default JDK 1.6.0 installed
 # See source5 option below for why this doesn't work
-#java.home = /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/
+###java.home = /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/
 ##
 # java.command may be used to figure out java.home if not otherwise
 java.command = java
