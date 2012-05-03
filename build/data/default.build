@@ -22,6 +22,8 @@ tmp = /tmp
 ##
 # value good on dante.dsl.bbn.com in early 2012
 java.home=/usr/java/jdk1.5.0_18
+#java.home=/usr/java/jdk1.6.0_07
+
 ##
 # typical value for OS X 10.7 with JDK 1.5.0 installed (non-standard installation)
 ###java.home = /System/Library/Java/JavaVirtualMachines/1.5.0/Contents/Home/
@@ -80,7 +82,12 @@ default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
 	org.cougaar.tools.javadoc.EventTaglet
 
 # repository.base - module repositories are appended to this
-repository.base=src.dsl.bbn.com:/git/cougaar/
+## To use the external public Cougaar epositories:
+repository.base=http://cougaar.org/git/
+## To use the internal BBN repositories:
+##repository.base=src.dsl.bbn.com:/git/cougaar/
+## On Waitzman's mac, with local GIT repositories, the following works
+##repository.base=file:///Users/djw/unbackedup/cougaar-tmp/repo/
 
 # HEAD is the default
 #tag.default=HEAD
