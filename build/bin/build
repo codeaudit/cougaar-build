@@ -404,6 +404,11 @@ mkd $srcdir;
 $libdir = "$build_dir/lib";
 mkd $libdir;
 # libdir is where we store compile-time built jars
+if ($skip && -f "$libdir/tools.jar") {
+  # an incorrect tools.jar is left in latest/lib/tools.jar so remove it if we rebuild
+  unlink("$libdir/tools.jar") || print STDERR "Warning: Could not remove old $libdir/tools.jar; build might break";
+}
+
 $clibdir = "$build_dir/clib";
 mkd $clibdir;
 # distdir is where we put end products
