@@ -51,7 +51,6 @@ Example trimmed "cougaar.mod" file:
     -build
   Repository: /cvsroot/core
     -core
-    -javaiopatch
     -jars
 When run with the above "cougaar.mod" file, this script will creates
 these directories:
@@ -60,11 +59,10 @@ these directories:
 and does the following CVS checkouts (or updates if they already
 exist):
   cvs -d :ext:$USER:cvs.cougaar.org:/cvsroot/build co build
-  cvs -d :ext:$USER:cvs.cougaar.org:/cvsroot/core co core javaiopatch jars
+  cvs -d :ext:$USER:cvs.cougaar.org:/cvsroot/core co core jars
 resulting in local cvs directories for:
   ./cvs.cougaar.org/cvsroot/build/build
   ./cvs.cougaar.org/cvsroot/core/core
-  ./cvs.cougaar.org/cvsroot/core/javaiopatch
   ./cvs.cougaar.org/cvsroot/core/jars
 Next you can optionally create a symlink to simplify the paths:
   ln -s cvs.cougaar.org/cvsroot cougaar
