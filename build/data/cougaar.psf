@@ -13,7 +13,6 @@
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/logistics,datagrabber,datagrabber"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/glm,glm,glm"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/core,jars,jars"/>
-		<project reference="1.0,:extssh:cougaar.org:/cvsroot/core,javaiopatch,javaiopatch"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/mts,mtsstd,mtsstd"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,ping,ping"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/tutorials,pizza,pizza"/>

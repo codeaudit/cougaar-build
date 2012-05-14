@@ -172,7 +172,6 @@ if [ -d $COUGAAR/community ]; then
 fi
 clink core core
 clink core jars
-clink core javaiopatch
 clink csmart csmart
 clink glm glm
 clink glm toolkit

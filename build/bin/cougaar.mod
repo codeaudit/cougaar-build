@@ -4,7 +4,6 @@ Host: cvs.cougaar.org
 Searching for repositories under /cvsroot
 Repository: /cvsroot/core
 -core
--javaiopatch
 -jars
 Repository: /cvsroot/glm
 -glm
