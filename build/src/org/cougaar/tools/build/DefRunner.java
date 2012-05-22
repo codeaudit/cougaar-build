@@ -47,7 +47,7 @@ public class DefRunner {
   public static void runDef(String defile, String argline) {
     List<String> argx = explode(argline, " ");
     
-    String classname = (String) argx.get(0);
+    String classname = argx.get(0);
     
     List<String> nargs = new ArrayList<String>();
     for (String a : argx) {
@@ -55,7 +55,7 @@ public class DefRunner {
     }
     nargs.add(defile);          // last argument is always the def file
     
-    String[] args = (String[]) nargs.toArray(new String[nargs.size()]);
+    String[] args = nargs.toArray(new String[nargs.size()]);
     
     // prepend the standard build prefix when it is probably wrong.
     if (classname.indexOf('.')==-1) {

@@ -190,7 +190,7 @@ public class PGWriter extends WriterBase {
       }
     }
     void doImports(PrintWriter out, String context) {
-      String importstr=(String)p.get(context,"import");
+      String importstr=p.get(context,"import");
       if (importstr!=null) {
         for (String ve : explode(importstr, ',')) {
           println(out,"import "+ve+";");
@@ -233,7 +233,7 @@ public class PGWriter extends WriterBase {
     
     void writeGetterIfc(PrintWriter out, String context, String className) {
       println(out,"/** Primary client interface for "+className+".");
-      String doc = (String)p.get(context,"doc");
+      String doc = p.get(context,"doc");
       if (doc != null)
         println(out," * "+doc);
       println(out," *  @see New"+className);
@@ -270,8 +270,8 @@ public class PGWriter extends WriterBase {
         }
         String clname = toClassName(name);
         
-        String slotdoc = (String)p.get(context, name+".doc");
-        String depp = (String)p.get(context,name+".deprecated");
+        String slotdoc = p.get(context, name+".doc");
+        String depp = p.get(context,name+".deprecated");
         if (depp != null) {
           if (slotdoc != null) 
             slotdoc=slotdoc+"\n   * @deprecated "+depp;
@@ -311,7 +311,7 @@ public class PGWriter extends WriterBase {
       // delegation handling
       for (Argument dv : getAllDelegateSpecs(context)) {
         for (DelegateSpec ds : parseDelegateSpecs(p.get(context, dv.name+".delegate"))) {
-          String slotdoc = (String)p.get(context, ds.name+".doc");
+          String slotdoc = p.get(context, ds.name+".doc");
           if (slotdoc!=null) 
             println(out,"  /** "+slotdoc+" **/");
           
@@ -370,7 +370,7 @@ public class PGWriter extends WriterBase {
         String clname = toClassName(name);
         
         String slotdoc = null;
-        String depp = (String)p.get(context,name+".deprecated");
+        String depp = p.get(context,name+".deprecated");
         if (depp != null) {
           slotdoc="@deprecated "+depp;
         }
@@ -392,7 +392,7 @@ public class PGWriter extends WriterBase {
       
       for (Argument dv : getAllDelegateSpecs(context)) {
         // define delegate getter and setter if non-automatic
-        String autop = (String)p.get(context, dv.name+".auto");
+        String autop = p.get(context, dv.name+".auto");
         // if it isn't automatic, define the setter and getter
         if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
           println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"() {\n"+
@@ -471,7 +471,7 @@ public class PGWriter extends WriterBase {
         String clname = toClassName(name);
         
         String slotdoc = null;
-        String depp = (String)p.get(context,name+".deprecated");
+        String depp = p.get(context,name+".deprecated");
         if (depp != null) {
           slotdoc="@deprecated "+depp;
         }
@@ -594,7 +594,7 @@ public class PGWriter extends WriterBase {
       println(out);
       doPackaging(out, context);
       
-      String importstr=(String)p.get(context,"import");
+      String importstr=p.get(context,"import");
       if (importstr!=null) {
         for (String ve : explode(importstr, ',')) {
           println(out,"import "+ve+";");
@@ -628,7 +628,7 @@ public class PGWriter extends WriterBase {
           etype = ct.etype;
         }
         
-        String depp = (String)p.get(context,name+".deprecated");
+        String depp = p.get(context,name+".deprecated");
         if (depp != null) 
           println(out,"  /** @deprecated "+depp+" **/");
         if (as != null) {
@@ -657,7 +657,7 @@ public class PGWriter extends WriterBase {
       {
         for (Argument dv : getAllDelegateSpecs(context)) {
           // define delegate getter and setter if non-automatic
-          String autop = (String)p.get(context, dv.name+".auto");
+          String autop = p.get(context, dv.name+".auto");
           // if it isn't automatic, define the setter and getter
           if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
             println(out,"  "+dv.type+" get"+toClassName(dv.name)+"();");
@@ -745,7 +745,7 @@ public class PGWriter extends WriterBase {
       println(out,"import java.beans.PropertyDescriptor;");
       println(out,"import java.beans.IndexedPropertyDescriptor;");
       
-      String importstr=(String)p.get(context,"import");
+      String importstr=p.get(context,"import");
       if (importstr!=null) {
         for (String ve : explode(importstr, ',')) {
           println(out,"import "+ve+";");
@@ -775,7 +775,7 @@ public class PGWriter extends WriterBase {
       
       for (Argument dv : getAllDelegateSpecs(context)) {
         // define delegate getter and setter if non-automatic
-        String autop = (String)p.get(context, dv.name+".auto");
+        String autop = p.get(context, dv.name+".auto");
         // if it is automatic, pre-initialize it
         if (autop != null && Boolean.valueOf(autop).booleanValue()) {
           println(out,"    "+dv.name+" = new "+dv.type+"(this);");
@@ -808,12 +808,12 @@ public class PGWriter extends WriterBase {
           etype = ct.etype;
         }
         
-        String var = (String)p.get(context,name+".var");
+        String var = p.get(context,name+".var");
         if (var == null) { var = "the"+toClassName(name); } // set the default
         if (var.equals("")) { var = null; } // unset if specified as empty
         
-        String getter =  (String)p.get(context,name+".getter");
-        String setter =  (String)p.get(context,name+".setter");
+        String getter =  p.get(context,name+".getter");
+        String setter =  p.get(context,name+".setter");
         
         if (as != null) {
           // active slot - write dispatchers
@@ -849,7 +849,7 @@ public class PGWriter extends WriterBase {
           
           // storage
           if (var != null) {
-            String init = (String)p.get(context,name+".init");
+            String init = p.get(context,name+".init");
             print(out,"  private "+type+" "+var);
             if (init != null) {
               print(out," = new "+init+"()");
@@ -937,7 +937,7 @@ public class PGWriter extends WriterBase {
           println(out,"  private "+dv.type+" "+dv.name+" = null;");
           
           // define delegate getter and setter if non-automatic
-          String autop = (String)p.get(context, dv.name+".auto");
+          String autop = p.get(context, dv.name+".auto");
           // if it isn't automatic, define the setter and getter
           if (!(autop != null && Boolean.valueOf(autop).booleanValue())) {
             println(out,"  public "+dv.type+" get"+toClassName(dv.name)+"() {\n"+
@@ -986,7 +986,7 @@ public class PGWriter extends WriterBase {
         if (as != null) {
           // do nothing - clones don't get the handler automatically.
         } else {
-          String var = (String)p.get(context,name+".var");
+          String var = p.get(context,name+".var");
           if (var == null) { var = "the"+toClassName(name); } // set the default
           if (var.equals("")) { var = null; } // unset if specified as empty
           if (var != null) {
@@ -1142,7 +1142,7 @@ public class PGWriter extends WriterBase {
             // serialized copies can't get the active slot remotely.
             continue;           
           }
-          String var = (String)p.get(context,name+".var");
+          String var = p.get(context,name+".var");
           if (var == null) { var = "the"+toClassName(name); } // set the default
           if (var.equals("")) { var = null; } // unset if specified as empty
           if (var != null) {
@@ -1339,7 +1339,6 @@ public class PGWriter extends WriterBase {
       
       // figure out how many property slots we need
       int l = 0;                // props
-      int asc = 0;              // methods
       int cc = 0;               // collections (not used)
       for (String slotspec : slotspecs) {
         int s = slotspec.indexOf(" ");
@@ -1353,8 +1352,6 @@ public class PGWriter extends WriterBase {
           } else {
             l++;
           }
-        } else {
-          asc++;
         }
       }
       
@@ -1443,13 +1440,13 @@ public class PGWriter extends WriterBase {
           getter = "get" + as.handlerName() + "()";
           type = as.handlerName();
         } else {
-          String var = (String)p.get(context,name+".var");
+          String var = p.get(context,name+".var");
           if (var == null) { 
             var = "the"+toClassName(name); 
           } // set the default
           if (var.equals("")) { var = null; } // unset if specified as empty
           
-          getter =  (String)p.get(context,name+".getter");
+          getter =  p.get(context,name+".getter");
           
           if (getter == null) {	  
             getter = "get" + toClassName(name) +  "()";
@@ -1678,7 +1675,7 @@ public class PGWriter extends WriterBase {
           if ((ds.type.equals("boolean")) &&
               (ds.name.equals("equals")) &&
               (ds.args.size() == 1)) {
-            Argument arg = (Argument) ds.args.get(0);
+            Argument arg = ds.args.get(0);
             if (arg.type.equals("Object")) {
               return true;
             } else {
@@ -1829,6 +1826,7 @@ public class PGWriter extends WriterBase {
       String type;
       String name;
       public Argument(String t, String n) { type=t; name=n; }
+      @Override
       public String toString() {
         return type+" "+name;
       }
@@ -1841,6 +1839,7 @@ public class PGWriter extends WriterBase {
       public DelegateSpec(String t, String n, List<Argument> a) {
         type=t; name=n; args=a;
       }
+      @Override
       public String toString() {
         return type+" "+name+"("+args+")";
       }
@@ -2078,7 +2077,7 @@ public class PGWriter extends WriterBase {
             name = as.name;
           }
           print(out,"    "+type+" "+toClassName(name)+";");
-          String slotdoc = (String)p.get(context, name+".doc");
+          String slotdoc = p.get(context, name+".doc");
           if (slotdoc != null) print(out,"\t//"+slotdoc);
           println(out);
           

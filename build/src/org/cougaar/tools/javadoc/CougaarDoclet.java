@@ -35,10 +35,16 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.javadoc.*;
-import com.sun.tools.doclets.formats.html.*;
-import com.sun.tools.doclets.internal.toolkit.*;
-import com.sun.tools.doclets.internal.toolkit.util.*;
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.Doc;
+import com.sun.javadoc.MemberDoc;
+import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Tag;
+import com.sun.tools.doclets.formats.html.ConfigurationImpl;
+import com.sun.tools.doclets.formats.html.HtmlDoclet;
+import com.sun.tools.doclets.formats.html.LinkInfoImpl;
+import com.sun.tools.doclets.internal.toolkit.Configuration;
+import com.sun.tools.doclets.internal.toolkit.util.ClassTree;
 
 /**
  * An extension of the "Standard" Doclet for generating files which 
@@ -64,7 +70,8 @@ public class CougaarDoclet extends HtmlDoclet
     return doclet.start(doclet, root);
   }
 
-  protected void generateOtherFiles(RootDoc root, ClassTree classtree) throws Exception {
+  @Override
+protected void generateOtherFiles(RootDoc root, ClassTree classtree) throws Exception {
     super.generateOtherFiles(root,classtree);
 
     generateParameterList(root);
@@ -72,7 +79,7 @@ public class CougaarDoclet extends HtmlDoclet
 
   protected void generateParameterList(RootDoc root) throws Exception {
     ParameterListWriter packgen;
-    packgen = new ParameterListWriter((ConfigurationImpl)configuration, ParameterListWriter.PARAMETERFILE);
+    packgen = new ParameterListWriter(configuration, ParameterListWriter.PARAMETERFILE);
     packgen.generateParameterListFile(root);
     packgen.close();
   }
@@ -86,7 +93,8 @@ public class CougaarDoclet extends HtmlDoclet
     }
 
     protected Configuration cs;
-    public Configuration configuration() { return cs; }
+    @Override
+   public Configuration configuration() { return cs; }
 
 
     protected void generateParameterListFile(RootDoc root) {
@@ -119,7 +127,7 @@ public class CougaarDoclet extends HtmlDoclet
           MemberDoc md = (MemberDoc) d;
           print(md.qualifiedName());
           print(" in ");
-          printLink(new LinkInfoImpl(i, (ClassDoc) md.containingClass()));
+          printLink(new LinkInfoImpl(i, md.containingClass()));
         }
         println(")");
         //liEnd();
@@ -159,13 +167,11 @@ public class CougaarDoclet extends HtmlDoclet
 
   private static class Tuple implements Comparable {
     public Doc doc;
-    public Tag tag;
     public String param = null;
     public String text = null;
     public final static String white = " \t\n\r"; // whitespace chars
     public Tuple(Doc doc, Tag tag) {
       this.doc = doc; 
-      this.tag = tag;
 
       String tt = tag.text();
       int i;

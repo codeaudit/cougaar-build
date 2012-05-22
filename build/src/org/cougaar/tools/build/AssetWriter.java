@@ -55,7 +55,7 @@ public class AssetWriter extends WriterBase {
       base = null;
     }
     void parseSlot(String t) {
-      if (t == null && t.length() == 0)
+      if (t == null || t.length() == 0)
         return;
 
       String v = t;
@@ -137,7 +137,8 @@ public class AssetWriter extends WriterBase {
     }
 
     public String getName() { return name; }
-    public String toString() { return "ClassD "+name; }
+    @Override
+   public String toString() { return "ClassD "+name; }
     public Collection<String> getImports() { return imports; }
     public void addImport(String imp) {
       imports.add(imp);
@@ -198,7 +199,8 @@ public class AssetWriter extends WriterBase {
     public boolean getExact() { return exact; }
     public boolean getTimePhased() {return timephased; }
     public boolean getHasRelationships() {return hasRelationships; }
-    public String toString() { return "SlotD "+name; }
+    @Override
+   public String toString() { return "SlotD "+name; }
   }
 
   class Session {

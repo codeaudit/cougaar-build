@@ -166,7 +166,7 @@ public class PropertyTaglet implements Taglet {
     String result = "\n<DT><B>" + (tags.length == 1 ? SINGULAR_HEADER : PLURAL_HEADER) + "</B><DD>";
     result += "<table cellpadding=2 cellspacing=0>";
     for (int i = 0; i < tags.length; i++) {
-      Tuple t = new Tuple((Tag)tags[i]);
+      Tuple t = new Tuple(tags[i]);
       result += "<tr valign=\"top\"><td>"+ t.param +"</td>"+
         "<td>"+ t.text +"</td></tr>";
     }

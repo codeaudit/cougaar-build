@@ -260,7 +260,7 @@ public class MeasureWriter extends WriterBase {
     }
 
     void doImports(PrintWriter out, String context) {
-      String importstr=(String)p.get(context,"import");
+      String importstr=p.get(context,"import");
       if (importstr!=null) {
         List<String> imports = explode(importstr, ',');
         for (String importedClass : imports) {

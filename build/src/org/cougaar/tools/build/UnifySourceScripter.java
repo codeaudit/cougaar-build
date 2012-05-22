@@ -238,7 +238,7 @@ public class UnifySourceScripter {
     } else {
       throw new RuntimeException(
           "unexpected object ("+
-          (obj == null ? "null" : obj.getClass().getName())+
+          obj.getClass().getName()+
           "): "+obj);
     }
 
