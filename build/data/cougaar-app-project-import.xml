@@ -48,6 +48,12 @@
 		<path refid="project.dependencies" />
 	</path>
 
+	<path id="codegen.path">
+		<pathelement path="${cougaar.install.path}/clib/build.jar"/>
+		<path refid="project.classpath"/>
+	</path>
+	<property name="genpath" refid="codegen.path"/>
+
 	<!--define ant-contrib extenstions to ANT. Needed because Ant 1.6 does not have For loops-->
 	<taskdef resource="net/sf/antcontrib/antlib.xml">
 		<classpath>
@@ -183,9 +189,6 @@
 			<jvmarg value="-Dorg.cougaar.core.agent.heartbeat=false" />
 			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser" />
 			<jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=${cougaar.run.title}" />
-			<jvmarg value="-Xms1m" />
-			<jvmarg value="-Xmx256m" />
-			<jvmarg value="-XX:ThreadStackSize=256" />
 		</java>
 	</target>
 
@@ -235,6 +238,28 @@
 	<target name="export.all.jars">
 		<antcall target="export.std.jars" />
 		<antcall target="export.dependent.jars" />
+	</target>
+
+	<target name="asset.codegen"  >
+		<apply executable="java"
+		     parallel="false"
+		     failonerror="false" >
+			<arg line="-classpath ${genpath} org.cougaar.tools.build.DefRunner" />
+			<fileset dir="${src.dir}" >
+				<include name="**/*.def" />
+			</fileset>
+		</apply>
+	</target>
+	
+	<target name="asset.clean"  >
+		<apply executable="java"
+		     parallel="false"
+		     failonerror="false" >
+			<arg line="-classpath ${genpath} org.cougaar.tools.build.DefCleaner" />
+			<fileset dir="${src.dir}" >
+				<include name="**/*.gen" />
+			</fileset>
+		</apply>
 	</target>
 
 </project>
