@@ -109,7 +109,7 @@ sys.lib.dontship = vishnuServer
 # build.root=/tmp/head
 
 modules=\
-	build,javaiopatch,bootstrap,util,core,\
+	build,bootstrap,util,core,\
 	mtsstd,mtslinks,\
         planning,contract,toolkit,\
 	yp,\
@@ -149,7 +149,7 @@ modules.unified =\
 	qrs, qos, profile, datafeeds, mtsstd, mtslinks,\
 	server,\
 	webserver, webmicro, webtomcat
-# not: javaiopatch, implementations of basic services, AL
+# not: implementations of basic services, AL
 
 # note that unified support defaults to off.  To enable, either pass
 # "-u" to build script or uncomment the following line:
@@ -175,10 +175,6 @@ modules.unified =\
 #albbn.repository = git.cougaar.org:/git/logistics
 
 jars.repository = core
-
-#Don't generate javadoc for the jdk patches
-javaiopatch.javadoc = 0
-javaiopatch.repository = core
 
 # build tools requires the jdk tools jars
 build.jars = tools
