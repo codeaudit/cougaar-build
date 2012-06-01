@@ -705,7 +705,7 @@ sub build_module_src {
   my $examples_p = ($pass eq "examples");
   my $junit_p = ($pass eq "junit");
 
-  $extrajars = "$extrajars$cpsep$syslib/junit.jar" if ($junit_p);
+  $extrajars = "$extrajars$cpsep$syslib/junit.jar$cpsep$syslib/log4j.jar" if ($junit_p);
 
   if (-d $mysrc) {
     print "Compiling $jname sources:\n" if $verbose;
