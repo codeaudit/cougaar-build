@@ -184,7 +184,6 @@
 			<jvmarg value="-Dorg.cougaar.core.mts.destq.retry.initialTimeout=250" />
 			<jvmarg value="-Dorg.cougaar.core.mts.destq.retry.maxTimeout=500" />
 			<jvmarg value="-Dorg.cougaar.core.node.InitializationComponent=XML" />
-			<jvmarg value="-Dorg.cougaar.core.persistence.verifyJavaIOPatch=false" />
 			<jvmarg value="-Dorg.cougaar.core.agent.quiet=true" />
 			<jvmarg value="-Dorg.cougaar.core.agent.heartbeat=false" />
 			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser" />
