@@ -181,8 +181,6 @@ clink profiler profiler_impl
 clink profiler profiler_servlet
 clink profiler profiler_transform
 clink qos qos
-clink qos quo
-clink qos ping
 clink servicediscovery servicediscovery
 clink tutorials tutorial
 clink util base

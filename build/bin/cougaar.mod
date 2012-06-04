@@ -16,8 +16,6 @@ Repository: /cvsroot/profiler
 -profiler_stub
 -profiler_transform
 Repository: /cvsroot/qos
--ping
--quo
 -qos
 Repository: /cvsroot/webserver
 -webserver

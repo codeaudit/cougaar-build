@@ -14,11 +14,9 @@
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/glm,glm,glm"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/core,jars,jars"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/mts,mtsstd,mtsstd"/>
-		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,ping,ping"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/tutorials,pizza,pizza"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/planning,planning,planning"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,qos,qos"/>
-		<project reference="1.0,:extssh:cougaar.org:/cvsroot/qos,quo,quo"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/util,server,server"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/servicediscovery,servicediscovery,servicediscovery"/>
 		<project reference="1.0,:extssh:cougaar.org:/cvsroot/logistics,stoplight,stoplight"/>
