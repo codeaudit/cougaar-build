@@ -16,22 +16,12 @@ standalone.name=demo
 tmp = /tmp
 
 # if set, java.home will be used to find java, jar, javadoc, rmi
-
 # typical value for older Linux
-###java.home = /usr/local/java/jdk1.5.0
-##
 # value good on dante.dsl.bbn.com in early 2012
-java.home=/usr/java/jdk1.5.0_18
-#java.home=/usr/java/jdk1.6.0_07
-
-##
-# typical value for OS X 10.7 with JDK 1.5.0 installed (non-standard installation)
-###java.home = /System/Library/Java/JavaVirtualMachines/1.5.0/Contents/Home/
-##
+java.home=/usr/java/jdk1.6.0_32
 # typical value for OS X 10.7 with default JDK 1.6.0 installed
-# See source5 option below for why this doesn't work
-###java.home = /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/
-##
+##java.home = /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/
+
 # java.command may be used to figure out java.home if not otherwise
 java.command = java
 
@@ -122,6 +112,7 @@ modules=\
 	community, \
 	albbn,\
 	servicediscovery, vishnu,\
+	TrimCougaar, \
 	pizza,\
 	hello,\
 	ping,\
@@ -368,7 +359,7 @@ base.runtime = doc,bin,configs
 #   base.dist = doc
 # would copy the whole doc subdirectory into to top level dist as a
 # new doc subdirectory.
-base.dist = README
+base.dist = README.txt
 
 #
 # applications
@@ -404,3 +395,11 @@ mandelbrot.deps = core,util
 mandelbrot.jars = servlet
 mandelbrot.repository = tutorials
 mandelbrot.standalone = 1
+
+# the "TrimCougaar" pre-built repository
+TrimCougaar.repository = trimcougaar
+TrimCougaar.standalone = 1
+# prebuilt forces trimcougaar to have a zip file name
+# that is not prefixed by standalone.name and has a simpler
+# manifest comment
+TrimCougaar.prebuilt = 1

@@ -812,6 +812,12 @@ sub build_module {
     return 0;
   }
 
+  if (opt("${mod}.prebuilt")) {
+      print "Module $mod is prebuilt -- skipping build\n";
+      $moduleDone{$mod}=1;
+      return 1;
+  }
+
   my $mymod = "$srcdir/$mod";
   print "\nBuilding module $mod\n";
   if (! (-d $mymod)) {
@@ -1204,7 +1210,7 @@ sub unify {
   foreach $m (@modules) {
     my $standalone_p = opt("$m.standalone");
     if ($standalone_p) {
-      print "Skipping standalone $mod\n" if $verbose;
+      print "Skipping standalone $m\n" if $verbose;
       next;
     }
     print "Adding module $m sources\n" if $verbose;
@@ -1367,29 +1373,27 @@ sub build_standalone {
   my $tmpdir = "$basedir/$mod";
   mkd $tmpdir;
 
-  if (-e "$build_dir/clib/$mod.jar" && opt("$mod.compiletime")) {
-    print "Adding $mod compiletime\n" if $verbose;
-    my $tcl = "$tmpdir/clib";
-    mkd $tcl;
-    cp("$build_dir/clib/$mod.jar", $tcl);
+  if (!opt("${mod}.prebuilt")) {
+    if (-e "$build_dir/clib/$mod.jar" && opt("$mod.compiletime")) {
+      print "Adding $mod compiletime\n" if $verbose;
+      my $tcl = "$tmpdir/clib";
+      mkd $tcl;
+      cp("$build_dir/clib/$mod.jar", $tcl);
+    }
+    if (-e "$build_dir/lib/$mod.jar") {
+      print "Adding $mod runtime\n" if $verbose;
+      my $tl = "$tmpdir/lib";
+      mkd $tl;
+      cp("$build_dir/lib/$mod.jar", $tl);
+    }
   }
-  if (-e "$build_dir/lib/$mod.jar") {
-    print "Adding $mod runtime\n" if $verbose;
-    my $tl = "$tmpdir/lib";
-    mkd $tl;
-    cp("$build_dir/lib/$mod.jar", $tl);
-  }
+
   my $moddir = "$srcdir/$mod";
   chdir $moddir;
 
   my @extras = opt("$mod.runtime");
   if (!@extras || $#extras < 0) {
-    @extras = <*>;
-    for $d (".classpath", ".project") {
-      if (-e $d) {
-        push @extras, $d;
-      }
-    }
+    @extras = <* .classpath .project>;
   }
   foreach $extra (@extras) {
     if (-d "$extra") {
@@ -1399,17 +1403,23 @@ sub build_standalone {
     } 
   }
 
-  fixbats($tmpdir);
-
-  if (!$nodoc && opt("javadoc.enable",1)) {
-    mkd "$tmpdir/doc";
-    chdir "$apidir/$mod";
-    mysystem("tar cf - doc | (cd $tmpdir; tar xf -)");
+  if (!opt("${mod}.prebuilt")) {
+    if (!$nodoc && opt("javadoc.enable",1)) {
+      mkd "$tmpdir/doc";
+      chdir "$apidir/$mod";
+      mysystem("tar cf - doc | (cd $tmpdir; tar xf -)");
+    }
   }
+
+  fixbats($tmpdir);
 
   chdir $basedir;
   my $std_name = opt("standalone.name", $product);
-  zip("$std_name $mod standalone", $basedir, $distdir, "${std_name}-${mod}", undef);
+  if (opt("${mod}.prebuilt")) {
+    zip("$mod", $basedir, $distdir, "${mod}", undef);
+  } else {
+    zip("$std_name $mod standalone", $basedir, $distdir, "${std_name}-${mod}", undef);
+  }
   chdir $build_dir;
   mysystem("rm -rf $basedir");
   print "Done building standalone $mod\n" if $verbose;
