@@ -1,10 +1,10 @@
 /*
  * <copyright>
  *  
- *  Copyright 1997-2004 BBNT Solutions, LLC
- *  under sponsorship of the Defense Advanced Research Projects
+ *  Copyright 1997-2012 Raytheon BBN Technologies
+ *  partially under sponsorship of the Defense Advanced Research Projects
  *  Agency (DARPA).
- * 
+ *
  *  You can redistribute this software and/or modify it under the
  *  terms of the Cougaar Open Source License as published on the
  *  Cougaar Open Source Website (www.cougaar.org).
@@ -303,8 +303,8 @@ public class UnifySourceScripter {
     out.println(
         "\n# <copyright>"+
         "\n#  "+
-        "\n#  Copyright 1997-2004 BBNT Solutions, LLC"+
-        "\n#  under sponsorship of the Defense Advanced Research Projects"+
+        "\n#  Copyright 1997-2012 Raytheon BBN Technologies"+
+        "\n#  partially under sponsorship of the Defense Advanced Research Projects"+
         "\n#  Agency (DARPA)."+
         "\n# "+
         "\n#  You can redistribute this software and/or modify it under the"+
