@@ -638,7 +638,7 @@
 	       additionalparam="-breakiterator"
 	       windowtitle="${moduleUp} API"
 	       doctitle="${moduleUp} API"
-	       bottom="Copyright &#169; 2004 by BBNT Solutions LLC, all rights reserved.">
+	       bottom="Copyright &#169; 2012 by Raytheon BBN Technlogies, all rights reserved.">
 	<classpath refid="javadoc.path" />
 	<taglet name="org.cougaar.tools.javadoc.PropertyTaglet"
 	       path="${target.clib}/build.jar" />
