@@ -62,7 +62,10 @@ javac.arguments = -J-Xmx256m -J-Xms128m -Xlint:unchecked
 # default memory settings are not enough to build the unified javadoc
 default.javadoc.memory = -J-Xmx512m -J-Xms128m
 # default.javadoc.arguments = 
-default.javadoc.options = -breakiterator -quiet -splitIndex -tag beaninfo:X:BeanInfo
+# note: Unable to get quoting right to get copyright symbol &#169; into footer
+default.javadoc.options = -breakiterator -quiet -splitIndex -tag beaninfo:X:BeanInfo \
+	-header "Cougaar 12.6" \
+	-footer "Copyright 2012 by Raytheon BBN Technologies"
 # jdk1.5 broke the doclet toolkit for everyone but sun
 #default.javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
 default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
