@@ -256,7 +256,7 @@ tutorial.repository = tutorials
 # pizza
 # Is YP needed? Will we need xml-apis? uddi?
 pizza.deps = core,planning,util,servicediscovery,yp,community
-pizza.jars = xercesImpl,servlet,xml-apis,jena,uddi4j
+pizza.jars = xercesImpl,servlet,xml-apis,jena,uddi4j,junit
 pizza.repository = tutorials
 
 # csmart
