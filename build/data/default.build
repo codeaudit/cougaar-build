@@ -258,6 +258,7 @@ tutorial.repository = tutorials
 pizza.deps = core,planning,util,servicediscovery,yp,community
 pizza.jars = xercesImpl,servlet,xml-apis,jena,uddi4j,junit
 pizza.repository = tutorials
+pizza.standalone = 1
 
 # csmart
 csmart.deps = core,planning,server,glm,bootstrap,util
