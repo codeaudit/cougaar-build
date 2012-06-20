@@ -1,0 +1,393 @@
+# COUGAAR release build driver
+# 
+# !!! THIS IS ONLY AN EXAMPLE !!!
+#
+# Note that this build script driver is unlikely to do anything useful
+# on any machine/repository other than the original build script
+# development machine.  While is is very close to what another site
+# might use, you are unlikely to be happy with the results until
+# you've made appropriate changes to the below.
+#
+
+product.name=cougaar
+standalone.name=demo
+
+# where to put temporary files and build trees (by default)
+tmp = /tmp
+
+# if set, java.home will be used to find java, jar, javadoc, rmi
+# typical value for older Linux
+# value good on dante.dsl.bbn.com in early 2012
+java.home=/usr/java/jdk1.6.0_32
+# typical value for OS X 10.7 with default JDK 1.6.0 installed
+##java.home = /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/
+
+# java.command may be used to figure out java.home if not otherwise
+java.command = java
+
+# which compiler to use.  valid options are "javac" and "jikes" and
+# the actual command executed will depend on the $javac.command
+# options below
+#compiler = jikes
+compiler = javac
+
+# these may be modified to have full path names, or they will be found
+# either via java.home or on the path.
+#javac.command = javac
+#jikes.command = jikes
+#jar.command = jar
+#javadoc.command = javadoc
+#rmic.command = rmic
+
+# other compiler options.  May be module prefixed (e.g. core.compiler.pedantic=1)
+# pedantic compilation - issue lots of style/usage warnings (jikes only)
+#compiler.pedantic = 1
+# include as much debugging info as possible (local vars)
+compiler.debug = 1
+# report uses of deprecated features.
+compiler.deprecation = 1
+# optimize bytecode
+#compiler.optimize = 1
+# option to add "-source 5" to javac command line to force compiling
+# as java language version 5.  Does not help compiling cougaar 12.4+
+# because of JDBC interface changes.  So disabled
+##compiler.source5 = 1
+
+# arguments for compiler commands. May be module prefixed (e.g. core.javac.arguments=...)
+javac.arguments = -J-Xmx256m -J-Xms128m -Xlint:unchecked
+#jikes.arguments =
+
+# javadoc.command may specify a complete path - needs to be jdk1.3 or higher!
+# javadoc.command = javadoc
+# default memory settings are not enough to build the unified javadoc
+default.javadoc.memory = -J-Xmx512m -J-Xms128m
+# default.javadoc.arguments = 
+default.javadoc.options = -breakiterator -quiet -splitIndex -tag beaninfo:X:BeanInfo \
+	-header "Cougaar 12.6" \
+	-footer "Copyright 2012 by Raytheon BBN Technologies"
+# jdk1.5 broke the doclet toolkit for everyone but sun
+#default.javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
+default.javadoc.taglets = org.cougaar.tools.javadoc.PropertyTaglet,\
+	org.cougaar.tools.javadoc.ToDoTaglet,\
+	org.cougaar.tools.javadoc.NoteTaglet,\
+	org.cougaar.tools.javadoc.GeneratedTaglet, \
+	org.cougaar.tools.javadoc.EventTaglet
+
+# repository.base - module repositories are appended to this
+## To use the external public Cougaar epositories:
+repository.base=http://cougaar.org/git/
+## To use the internal BBN repositories:
+##repository.base=src.dsl.bbn.com:/git/cougaar/
+## On Waitzman's mac, with local GIT repositories, the following works
+##repository.base=file:///Users/djw/unbackedup/cougaar-tmp/repo/
+
+# HEAD is the default
+#tag.default=HEAD
+
+# where should we get the basic (3rd party) jars from?
+# this lets us point to a specific directory
+#   sys.lib=/local/cougaar/build.jars
+#
+# the syntax "module:foo" means get the sys libs from the lib
+# directory of the "foo" module.  Note that the foo module should
+# not be one of the built modules (e.g. should not listed in modules=)
+sys.lib=module:jars
+
+# these don't get shipped in cougaar-support.zip, usually because of
+# licence restrictions.
+sys.lib.dontship = vishnuServer
+
+# build.root defaults to /tmp/{product.name}
+# build.root=/tmp/head
+
+modules=\
+	build,\
+	bootstrap,util,core,\
+	mtsstd,mtslinks,\
+        planning,\
+	base,\
+	qrs, qos, profile, datafeeds, \
+	webserver, webmicro, webtomcat,\
+	community, hello, mandelbrot, mesh, ping
+
+# default publicness to true - disable with mod.private=1
+default.public=1
+# modules which are public - that is, fully released
+
+# modules which contribute to unified api (javadoc & moby src)
+modules.unified =\
+	build,\
+	bootstrap,\
+	util,\
+	core,\
+        planning,\
+	base,\
+	qrs, qos, profile, datafeeds, mtsstd, mtslinks,\
+	webserver, webmicro, webtomcat
+# not: implementations of basic services, AL
+
+# note that unified support defaults to off.  To enable, either pass
+# "-u" to build script or uncomment the following line:
+#unified.enable = true;
+
+##
+## module-specific flags
+##
+
+# per-module compiler selection:
+# all of the compiler.* options may be prefixed by a module name:
+#core.compiler.pedantic = 1
+#core.compiler.deprecation = 1
+# Also, modules may specify specific branch tags, eg:
+#core.tag = MYCOREBRANCH
+# If you want a point tag, prefix the tag with a '@':
+#core.tag = @MYCOREPOINTTAG
+# You can also specify the repository on a per-module basis.  The
+#following says to replace the tail of the default repository
+#(e.g. from CVSROOT) with the value 'internal'
+#vishnu.repository = internal
+#or you can specify a complete git value:
+#albbn.repository = git.cougaar.org:/git/logistics
+
+jars.repository = core
+
+# build tools requires the jdk tools jars
+build.jars = tools
+# include junit.jar in dist, even though it is only needed for
+# build/release
+build.extras = junit
+# compiletime means that it is installed as clib rather than lib
+build.compiletime = 1
+build.repository = build
+
+# bootstrap
+bootstrap.keystore.alias = bootstrapper
+bootstrap.repository = util
+
+# util
+util.deps = bootstrap
+util.jars = log4j
+util.repository = util
+
+# core
+core.deps = bootstrap, util
+core.jars = log4j, servlet
+core.repository = core
+
+# mtsstd
+mtsstd.deps = core, util, bootstrap
+mtsstd.jars = servlet
+mtsstd.repository = mts
+
+# mtslinks
+mtslinks.deps = mtsstd, core, util, bootstrap
+mtslinks.jars = servlet, jms-1.1, smack
+mtslinks.repository = mts
+
+# yellow pages
+# yp.deps = util, core
+# yp.jars = uddi4j, juddi, hsqldb
+# yp.repository = yp
+
+# planning
+planning.deps = util, core
+planning.jars = xercesImpl, xml-apis, servlet
+planning.repository = planning
+
+# contract
+# contract.deps = util
+# contract.jars = xercesImpl,xml-apis
+# contract.repository = util
+
+# toolkit
+# toolkit.deps = core, planning, util
+# toolkit.jars = xercesImpl,xml-apis
+# toolkit.repository = glm
+
+# glm3
+# glm.deps = core,planning,toolkit,bootstrap,util
+# glm.jars = xercesImpl,xml-apis,fesi-111,jcchart,servlet
+# glm.extras = mm-mysql-2
+# glm.repository = glm
+# glm.runtime = bin
+
+# aggregation agent
+# aggagent.deps = core,planning,glm,util
+# aggagent.jars = xercesImpl,xml-apis,jpython,silk,servlet
+# aggagent.repository = aggagent
+
+# vishnu scheduler
+# vishnu.deps = core,planning,toolkit,glm,util
+# vishnu.jars = xercesImpl,xml-apis,vishnuServer
+# vishnu.module = vishnuClient
+# vishnu.repository = vishnu
+
+# uiframework
+#uiframework.repository = cui
+#uiframework.deps = core,planning,glm,util
+#uiframework.jars = xercesImpl,xml-apis,openmap,vgj
+#uiframework.extras = mm-mysql-2
+#uiframework.runtime = bin
+
+# tutorials
+tutorial.deps = core,planning,util
+tutorial.jars = servlet
+tutorial.repository = tutorials
+
+# pizza
+# Is YP needed? Will we need xml-apis? uddi?
+# pizza.deps = core,planning,util,servicediscovery,yp,community
+# pizza.jars = xercesImpl,servlet,xml-apis,jena,uddi4j
+# pizza.repository = tutorials
+
+# csmart
+# csmart.deps = core,planning,server,glm,bootstrap,util
+# csmart.jars = xercesImpl,xml-apis,jcchart,grappa1_2,servlet
+# csmart wants DBMS for regression tests, too
+# csmart.extras = mm-mysql-2, log4j
+#csmart.repository = internal
+# csmart.repository = csmart
+# Set PrettyName for ANT script generation
+# csmart.PrettyName = CSMART
+
+# qrs and qos
+
+qrs.deps = util
+qrs.repository = qos
+
+qos.deps = core,util,bootstrap,mtsstd,qrs
+qos.jars = servlet
+# qos.runtime = configs,csmart
+qos.runtime = configs
+qos.repository = qos
+
+# datafeeds (metrics service feeds for specialized environments)
+datafeeds.deps = core,util,qos,qrs
+datafeeds.jars = SNMP4J
+# datafeeds.runtime = configs,run
+datafeeds.repository = qos
+
+# profile (periodically log traffix matrix, cpu load, etc)
+profile.deps = core,util
+profile.jars = servlet
+profile.repository = qos
+
+# App (Node) Server
+# server.repository = util
+
+# new PSP/web server
+webserver.deps = bootstrap,core,util
+webserver.jars = servlet
+webserver.runtime = configs
+webserver.repository = webserver
+
+webmicro.deps = bootstrap,util,core,webserver
+webmicro.jars = servlet
+webmicro.repository = webserver
+
+webtomcat.deps = util,webserver
+webtomcat.jars = servlet,tomcat_40
+webtomcat.repository = webserver
+
+# web services, note that some jars are in webaxis/lib
+# webaxis.deps = util,core,mtsstd
+# webaxis.jars = activation,servlet,axis_1_2_beta,mail
+#webaxis.extras = axis_1_2_beta
+# webaxis.repository = cws
+
+# community
+# community.deps = util,core
+community.deps = util,core,bootstrap
+community.jars = servlet
+# added bootstrap for junit tests.
+# community.extras = bootstrap
+# community.repository = community
+community.repository = tutorials
+community.standalone = 1
+
+#
+# Adaptive Logistics jars
+#
+#
+# AL BBN
+# albbn.repository = logistics
+# albbn.module = bbn
+# albbn.deps = core,planning,util,toolkit,glm,vishnu,servicediscovery
+# albbn.jars = xercesImpl,xml-apis,openmap,fesi-111,jcchart,servlet,vishnuServer
+# albbn.runtime = bin,configs
+
+#
+# ServiceDiscovery
+#
+# contract
+# servicediscovery.deps = core, util, glm, planning, yp
+# servicediscovery.jars = xercesImpl,xml-apis,jena,servlet,uddi4j
+# servicediscovery.extras = icu4j,rdf-api-2001-01-19,jakarta-oro-2.0.5,antlr,concurrent
+# servicediscovery.repository = servicediscovery
+
+#
+# distribution settings
+#
+
+base.repository = util
+
+# runtime specs. Runtime always gets built libs, too.
+# The build process will also try to exclude these guys
+# from the "standard" locations to avoid duplication/confusion.
+base.runtime = doc,bin,configs
+
+# for each module, copy these files directly to the dist directory.
+# This is really intended to be a one-shot for pointers to the 
+# release notes and installation instructions.
+# Leading directories disappear... e.g. so the following:
+#   base.dist = doc/README.txt
+# would copy README.txt from the doc subdirectory of core to 
+# the top level dist.  If the last file is actually a directory, then
+# the whole directory is copied.. e.g. :
+#   base.dist = doc
+# would copy the whole doc subdirectory into to top level dist as a
+# new doc subdirectory.
+base.dist = README.txt
+
+#
+# applications
+#
+
+# the "hello, world" demo
+hello.deps = core,util
+#hello.jars = ext   # example sys/ext.jar dependency
+hello.repository = tutorials
+#hello.lib = sys    # support above sys/ext.jar
+hello.standalone = 1
+
+# the "ping" demo
+ping.deps = core,util,bootstrap
+ping.jars = servlet
+ping.repository = tutorials
+ping.standalone = 1
+
+# the "mesh" demo
+mesh.deps = core,util,bootstrap
+mesh.jars = servlet
+mesh.repository = tutorials
+mesh.standalone = 1
+
+# the "tools" demo
+tools.deps = core,util,qos,qrs,datafeeds
+tools.jars = bsh
+tools.repository = tutorials
+tools.standalone = 1
+
+# the "mandelbrot" demo
+mandelbrot.deps = core,util
+mandelbrot.jars = servlet
+mandelbrot.repository = tutorials
+mandelbrot.standalone = 1
+
+# the "TrimCougaar" pre-built repository
+# TrimCougaar.repository = trimcougaar
+# TrimCougaar.standalone = 1
+# prebuilt forces trimcougaar to have a zip file name
+# that is not prefixed by standalone.name and has a simpler
+# manifest comment
+# TrimCougaar.prebuilt = 1
