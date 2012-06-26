@@ -63,7 +63,7 @@ javac.arguments = -J-Xmx256m -J-Xms128m -Xlint:unchecked
 default.javadoc.memory = -J-Xmx512m -J-Xms128m
 # default.javadoc.arguments = 
 default.javadoc.options = -breakiterator -quiet -splitIndex -tag beaninfo:X:BeanInfo \
-	-header "Cougaar 12.6" \
+	-header "Cougaar 12.7" \
 	-footer "Copyright 2012 by Raytheon BBN Technologies"
 # jdk1.5 broke the doclet toolkit for everyone but sun
 #default.javadoc.doclets = org.cougaar.tools.javadoc.CougaarDoclet
