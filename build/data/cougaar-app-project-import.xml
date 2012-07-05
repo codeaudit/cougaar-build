@@ -186,7 +186,6 @@
 			<jvmarg value="-Dorg.cougaar.core.node.InitializationComponent=XML" />
 			<jvmarg value="-Dorg.cougaar.core.agent.quiet=true" />
 			<jvmarg value="-Dorg.cougaar.core.agent.heartbeat=false" />
-			<jvmarg value="-Dorg.xml.sax.driver=com.sun.org.apache.xerces.internal.parsers.SAXParser" />
 			<jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=${cougaar.run.title}" />
 		</java>
 	</target>
