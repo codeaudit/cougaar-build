@@ -2,49 +2,53 @@
 
 
    <!-- Temp CIP location to checkout Cougaar -->
-   <property name="git.clone.base" value="../.." /> 
+   <property name="git.clone.base" value="../.." />
    <property name="artifacts.dir" value="tmp" />
    <property name= "zip.dist" value="${artifacts.dir}/cip.zip" />
-   <property name="dist.dir" value="${artifacts.dir}/cip"/>
+   <property name="dist.dir" value="${artifacts.dir}/cip/cip"/>
    <property name="cougaar.install.version" value="HEAD"/>
    <property name="projects" value="util/bootstrap,core/core,core/cougaar,mts/mtslinks,mts/mtsstd,planning/planning,qos/profile,qos/qos,qos/qrs,util/util,webserver/webmicro,webserver/webserver,webserver/webtomcat" />
-   
+   <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
+   <property name="javadoc.zip" value="${artifacts.dir}/javadoc.zip" />
+
 
    <!-- define ant-contrib extenstions to ANT. Needed because Ant 1.6 does not have For loops-->
    <taskdef resource="net/sf/antcontrib/antlib.xml">
-    <classpath>
-     <pathelement location="${git.clone.base}/build/build/data/ant-contrib-1.0b3.jar" />
-    </classpath>
+      <classpath>
+         <pathelement location="${git.clone.base}/build/build/data/ant-contrib-1.0b3.jar" />
+      </classpath>
    </taskdef>
 
    <target name="build.jars">
       <foreach target="project.build" param="project" list="${projects}"/>
    </target>
-   
+
    <target name="project.build">
-      <echo message="Building ${git.clone.base}/${project}/build.xml"></echo>
+      <echo message="Building ${git.clone.base}/${project}/build.xml">
+      </echo>
       <ant antfile="build.xml" target="jar.build" dir="${git.clone.base}/${project}"/>
    </target>
-   
+
    <target name="copy.lib.jars" depends="build.jars">
       <mkdir dir="${artifacts.dir}"/>
       <foreach target="project.jar.copy" param="project" list="${projects}"/>
    </target>
-   
+
    <target name="project.jar.copy">
-      <echo message="Copying ${git.clone.base}/${project} jar to ${dist.dir}/lib"></echo>
+      <echo message="Copying ${git.clone.base}/${project} jar to ${dist.dir}/lib">
+      </echo>
       <copy todir="${dist.dir}/lib" flatten="true" overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/${project}/${artifacts.dir}" includes="*.jar" />
       </copy>
    </target>
-   
+
    <target name="copy.sys.jars">
       <copy todir="${dist.dir}/sys" flatten="true"  overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/core/jars/lib" includes="log4j.jar, servlet.jar, tomcat_40.jar"/>
-            </copy>
+      </copy>
    </target>
-   
-   
+
+
    <target name="copy.cilb" description="Copy trimmed files from CIP to appropriate locations" >
       <property name="project" value="/build/build" />
       <ant target="project.build" />
@@ -52,7 +56,7 @@
          <fileset dir="${git.clone.base}/build/build/tmp" includes="build.jar"/>
       </copy>
    </target>
-   
+
    <target name="copy.tomcat">
       <copy todir="${dist.dir}/webtomcat" flatten="false"  overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/webserver/webtomcat" includes=
@@ -64,30 +68,65 @@
           		 data/work/README"/>
       </copy>
    </target>
-   
+
    <target name="copy.ant.helpers">
       <copy todir="${dist.dir}/build/data" flatten="false" overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/build/build/data" includes="ant-contrib-1.0b3.jar,cougaar-app-project-import.xml"/>
       </copy>
    </target>
-   
+
    <target name="copy.bin">
       <copy todir="${dist.dir}/bin" flatten="false" overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/util/base/bin" includes="cougaar, cougaar.bat"/>
       </copy>
    </target>
-      
+
    <target name="copy.eclipse">
       <copy todir="${dist.dir}" flatten="false" overwrite="true" preservelastmodified="true">
          <fileset dir="eclipse" includes=".project, .classpath"/>
       </copy>
    </target>
-   
+
    <target name="dist" depends="clean, copy.lib.jars,copy.sys.jars,copy.cilb,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
-      <zip destfile="${zip.dist}" basedir="${artifacts.dir}" />
+      <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
    </target>
- 
+
    <target name="clean">
       <delete dir="${artifacts.dir}"/>
+   </target>
+
+   <target name="javadoc" depends="clean,build.jars">
+      
+      <!-- Source path for compiling the javadoc files -->
+      <path id="javadoc.sourcepath">
+        <dirset dir="${git.clone.base}">
+          <include name="**/src"/>
+        </dirset>
+      </path>
+      
+      <!-- Class path for compiling the javadoc files, needed for jclass etc -->
+      <path id="javadoc.classpath">
+        <fileset dir="${git.clone.base}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </path>
+      <javadoc packagenames="org.cougaar.*"
+                sourcepathref="javadoc.sourcepath"
+                classpathref="javadoc.classpath"
+                destdir="${javadoc.dest}"
+                failonerror="false"
+                maxmemory="1024m"
+                author="false"
+                version="true"
+                use="true"
+                private="false"
+                windowtitle="Full Cougaar API"
+                doctitle="&lt;h1&gt;Cougaar&lt;/h1&gt;">
+      </javadoc>
+   </target>
+   
+   <target name="javadoc.zip" depends="javadoc">
+         <zip destfile="${javadoc.zip}" basedir="${javadoc.dest}/.." />
+
    </target>
 </project>
