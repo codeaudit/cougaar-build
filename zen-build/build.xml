@@ -1,9 +1,10 @@
-<project name="Non-Zen" basedir="." default="build.jars">
+<project name="Non-Zen" basedir="." default="dist">
 
 
    <!-- Temp CIP location to checkout Cougaar -->
    <property name="git.clone.base" value="../.." /> 
    <property name="artifacts.dir" value="tmp" />
+   <property name= "zip.dist" value="${artifacts.dir}/cip.zip" />
    <property name="dist.dir" value="${artifacts.dir}/cip"/>
    <property name="cougaar.install.version" value="HEAD"/>
    <property name="projects" value="util/bootstrap,core/core,core/cougaar,mts/mtslinks,mts/mtsstd,planning/planning,qos/profile,qos/qos,qos/qrs,util/util,webserver/webmicro,webserver/webserver,webserver/webtomcat" />
@@ -25,128 +26,68 @@
       <ant antfile="build.xml" target="jar.build" dir="${git.clone.base}/${project}"/>
    </target>
    
-   <target name="update-external" description="Copy trimmed files from CIP to appropriate locations" >
-      <echo>Copying lib jars</echo>
-      <!-- Base Cougaar jars-->
-      <copy todir="lib" flatten="true" overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/lib"
-            	includes="bootstrap.jar,
-      			community.jar,
-      			core.jar,
-      			datafeeds.jar,
-      			mtsstd.jar,
-      			mtslinks.jar
-      			planning.jar,
-      			profile.jar,
-      			qos.jar,
-				qrs.jar,
-      			util.jar,
-      			webserver.jar,
-      			webtomcat.jar,
-				webmicro.jar"/>
+   <target name="copy.lib.jars" depends="build.jars">
+      <mkdir dir="${artifacts.dir}"/>
+      <foreach target="project.jar.copy" param="project" list="${projects}"/>
+   </target>
+   
+   <target name="project.jar.copy">
+      <echo message="Copying ${git.clone.base}/${project} jar to ${dist.dir}/lib"></echo>
+      <copy todir="${dist.dir}/lib" flatten="true" overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/${project}/${artifacts.dir}" includes="*.jar" />
       </copy>
-      <!-- Logistics Cougaar jars-->
-      <copy todir="lib" flatten="true" overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/lib"
-            	includes="glm.jar,
-      			servicediscovery.jar,
-      			toolkit.jar,
-      			yp.jar"/>
+   </target>
+   
+   <target name="copy.sys.jars">
+      <copy todir="${dist.dir}/sys" flatten="true"  overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/core/jars/lib" includes="log4j.jar, servlet.jar, tomcat_40.jar"/>
+            </copy>
+   </target>
+   
+   
+   <target name="copy.cilb" description="Copy trimmed files from CIP to appropriate locations" >
+      <property name="project" value="/build/build" />
+      <ant target="project.build" />
+      <copy todir="${dist.dir}/clib" flatten="true"  overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/build/build/tmp" includes="build.jar"/>
       </copy>
-
-      <echo>Copying sys jars</echo>
-      <!-- Base external jars-->
-      <copy todir="sys" flatten="true"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/sys"
-            	includes="log4j.jar,
-      			servlet.jar,
-      			tomcat_40.jar,
-      			xercesImpl.jar,
-      			xml-apis.jar"/>
+   </target>
+   
+   <target name="copy.tomcat">
+      <copy todir="${dist.dir}/webtomcat" flatten="false"  overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/webserver/webtomcat" includes=
+            "data/conf/modules.xml,
+          		 data/conf/server.xml,
+          		 data/conf/tomcat-users.xml,
+         		  data/webapps/ROOT/WEB-INF/server-config.wsdd,
+          		 data/webapps/ROOT/WEB-INF/web.xml,
+          		 data/work/README"/>
       </copy>
-      <!-- Logistics  external jars-->
-      <echo>Copying Task Codegen jars</echo>
-      <!-- Base external jars-->
-      <copy todir="clib" flatten="true"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/clib"
-            	includes="build.jar"/>
+   </target>
+   
+   <target name="copy.ant.helpers">
+      <copy todir="${dist.dir}/build/data" flatten="false" overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/build/build/data" includes="ant-contrib-1.0b3.jar,cougaar-app-project-import.xml"/>
       </copy>
-      <copy todir="sys" flatten="true"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/sys"
-            	includes="concurrent.jar,
-				fesi-111.jar,
-      			hsqldb.jar,
-      			icu4j.jar,
-      			jena.jar,
-				jms-1.1.jar,
-      			juddi.jar,
-      			smack.jar,
-      			SNMP4J.jar,
-      			uddi4j.jar"/>
+   </target>
+   
+   <target name="copy.bin">
+      <copy todir="${dist.dir}/bin" flatten="false" overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/util/base/bin" includes="cougaar, cougaar.bat"/>
       </copy>
-
-      <echo>Copying configs/common files</echo>
-      <copy todir="configs/common" flatten="true"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/configs/common"
-            	includes="DefaultAgent.xml,
-      			NodeAgent.xsl,
-      			SimpleAgent.xsl,
-      			make_society.xsl,
-      			society.xsl,
-      			util.xsl"/>
+   </target>
+      
+   <target name="copy.eclipse">
+      <copy todir="${dist.dir}" flatten="false" overwrite="true" preservelastmodified="true">
+         <fileset dir="eclipse" includes=".project, .classpath"/>
       </copy>
-      <echo>Copying webtomcat files</echo>
-      <copy todir="webtomcat" flatten="false"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/webtomcat"
-                includes="data/conf/modules.xml,
-          		data/conf/server.xml,
-          		data/conf/tomcat-users.xml,
-         		data/webapps/ROOT/WEB-INF/server-config.wsdd,
-          		data/webapps/ROOT/WEB-INF/web.xml,
-          		data/work/README"/>
-      </copy>
-
-      <!-- logistics data files -->
-      <!-- TODO figure out minimum set -->
-      <echo>Copying Service Discovery files</echo>
-      <copy todir="servicediscovery" flatten="false"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/servicediscovery"
-                includes=""/>
-      </copy>
-      <!-- TODO figure out minimum set -->
-      <echo>Copying YP files</echo>
-      <copy todir="yp" flatten="false"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/yp"
-                includes=""/>
-      </copy>
-
-      <echo>Copying bin files</echo>
-      <!-- not getcip.sh, because we get src files which is not the default -->
-      <copy todir="bin" flatten="false" overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/bin"
-                includes="cougaar,
-          		cougaar.bat"/>
-      </copy>
-      <echo>Copying ant helper files</echo>
-      <!-- TODO include cougaar-app-project-import.xml  -->
-      <copy todir="build/data" flatten="false" overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/build/data"
-                includes="ant-contrib-1.0b3.jar"/>
-      </copy>
-      <echo>Copying tools demo</echo>
-      <copy todir="lib" flatten="false"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${cougaar.install.path}/tools/lib"
-                includes="tools.jar"/>
-      </copy>
-      <echo message="Zipping source files" />
-      <!-- Base  Cougaar source jars-->
-      <foreach target="zip-project-src-files" param="project" 
-			list="bootstrap,datafeeds,community,core,mtslinks,mtsstd,planning,profile,qos,qrs,tools,util,webmicro,webserver,webtomcat"/>
-      <!-- logistics  Cougaar source jars-->
-      <foreach target="zip-project-src-files" param="project" 
-			list="glm,servicediscovery,toolkit,yp"/>
-
-
+   </target>
+   
+   <target name="dist" depends="clean, copy.lib.jars,copy.sys.jars,copy.cilb,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
+      <zip destfile="${zip.dist}" basedir="${artifacts.dir}" />
    </target>
  
+   <target name="clean">
+      <delete dir="${artifacts.dir}"/>
+   </target>
 </project>

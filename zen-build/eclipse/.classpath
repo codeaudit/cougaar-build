@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="lib" path="lib/bootstrap.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/core.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/cougaar.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mtslinks.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mtsstd.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/planning.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/profile.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qos.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/qrs.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/util.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/webmicro.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/webserver.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/webtomcat.jar"/>
+	<classpathentry exported="true" kind="lib" path="sys/log4j.jar"/>
+	<classpathentry exported="true" kind="lib" path="sys/servlet.jar"/>
+	<classpathentry exported="true" kind="lib" path="sys/tomcat_40.jar"/>
+	<classpathentry kind="output" path="tmp/claases"/>
+</classpath>
