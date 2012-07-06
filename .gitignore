@@ -1,0 +1,4 @@
+tmp/
+module.properties
+*~
+.DS_Store
