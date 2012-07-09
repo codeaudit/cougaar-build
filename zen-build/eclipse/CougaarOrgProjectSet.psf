@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.eclipse.egit.core.GitProvider">
+<project reference="1.0,http://cougaar.org/git/util,master,base"/>
+<project reference="1.0,http://cougaar.org/git/util,master,bootstrap"/>
+<project reference="1.0,http://cougaar.org/git/build,master,build"/>
+<project reference="1.0,http://cougaar.org/git/core,master,core"/>
+<project reference="1.0,http://cougaar.org/git/core,master,cougaar"/>
+<project reference="1.0,http://cougaar.org/git/core,master,jars"/>
+<project reference="1.0,http://cougaar.org/git/mts,master,mtslinks"/>
+<project reference="1.0,http://cougaar.org/git/mts,master,mtsstd"/>
+<project reference="1.0,http://cougaar.org/git/planning,master,planning"/>
+<project reference="1.0,http://cougaar.org/git/qos,master,profile"/>
+<project reference="1.0,http://cougaar.org/git/qos,master,qos"/>
+<project reference="1.0,http://cougaar.org/git/qos,master,qrs"/>
+<project reference="1.0,http://cougaar.org/git/util,master,util"/>
+<project reference="1.0,http://cougaar.org/git/webserver,master,webmicro"/>
+<project reference="1.0,http://cougaar.org/git/webserver,master,webserver"/>
+<project reference="1.0,http://cougaar.org/git/webserver,master,webtomcat"/>
+</provider>
+</psf>
