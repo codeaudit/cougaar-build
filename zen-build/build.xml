@@ -83,7 +83,7 @@
 
    <target name="copy.eclipse">
       <copy todir="${dist.dir}" flatten="false" overwrite="true" preservelastmodified="true">
-         <fileset dir="eclipse" includes=".project, .classpath"/>
+         <fileset dir="eclipse" includes=".project, .classpath, projectSet.psf"/>
       </copy>
    </target>
 

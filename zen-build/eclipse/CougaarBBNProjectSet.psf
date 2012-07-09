@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<psf version="2.0">
+<provider id="org.eclipse.egit.core.GitProvider">
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/util,master,base"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/util,master,bootstrap"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/build,master,build"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/core,master,core"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/core,master,cougaar"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/core,master,jars"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/mts,master,mtslinks"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/mts,master,mtsstd"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/planning,master,planning"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/qos,master,profile"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/qos,master,qos"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/qos,master,qrs"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/util,master,util"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/webserver,master,webmicro"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/webserver,master,webserver"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/webserver,master,webtomcat"/>
+</provider>
+</psf>
