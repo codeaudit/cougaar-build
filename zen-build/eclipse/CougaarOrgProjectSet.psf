@@ -17,5 +17,6 @@
 <project reference="1.0,http://cougaar.org/git/webserver,master,webmicro"/>
 <project reference="1.0,http://cougaar.org/git/webserver,master,webserver"/>
 <project reference="1.0,http://cougaar.org/git/webserver,master,webtomcat"/>
+<project reference="1.0,http://cougaar.org/git/cougaar/tutorials,master,hello"/>
 </provider>
 </psf>

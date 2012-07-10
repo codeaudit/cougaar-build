@@ -17,5 +17,6 @@
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/webserver,master,webmicro"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/webserver,master,webserver"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/webserver,master,webtomcat"/>
+<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/tutorials,master,hello"/>
 </provider>
 </psf>
