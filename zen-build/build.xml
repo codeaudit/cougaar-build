@@ -24,6 +24,7 @@
    </target>
 
    <target name="project.build">
+   	 <property name="TARGETBASE" value="${basedir}/${dist.dir}" />
       <echo message="Building ${git.clone.base}/${project}/build.xml"/>
       <ant antfile="build.xml" target="jar.build" dir="${git.clone.base}/${project}"/>
       <echo message="Copying ${git.clone.base}/${project} jar to ${dist.dir}/lib"/>
