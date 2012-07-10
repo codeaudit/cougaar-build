@@ -4,10 +4,10 @@
    <!-- Temp CIP location to checkout Cougaar -->
    <property name="git.clone.base" value="../.." />
    <property name="artifacts.dir" value="tmp" />
-   <property name= "zip.dist" value="${artifacts.dir}/cip.zip" />
+   <property name="zip.dist" value="${artifacts.dir}/cip.zip" />
    <property name="dist.dir" value="${artifacts.dir}/cip/cip"/>
    <property name="cougaar.install.version" value="HEAD"/>
-   <property name="projects" value="util/bootstrap,core/core,core/cougaar,mts/mtslinks,mts/mtsstd,planning/planning,qos/profile,qos/qos,qos/qrs,util/util,webserver/webmicro,webserver/webserver,webserver/webtomcat" />
+   <property name="projects" value="util/bootstrap,util/util,core/core,core/cougaar,mts/mtslinks,mts/mtsstd,planning/planning,qos/profile,qos/qos,qos/qrs,webserver/webmicro,webserver/webserver,webserver/webtomcat" />
    <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
    <property name="javadoc.zip" value="${artifacts.dir}/javadoc.zip" />
 
@@ -49,7 +49,7 @@
    </target>
 
 
-   <target name="copy.cilb" description="Copy trimmed files from CIP to appropriate locations" >
+   <target name="copy.clib" description="Copy trimmed files from CIP to appropriate locations" >
       <property name="project" value="/build/build" />
       <ant target="project.build" />
       <copy todir="${dist.dir}/clib" flatten="true"  overwrite="true" preservelastmodified="true">
@@ -87,7 +87,7 @@
       </copy>
    </target>
 
-   <target name="dist" depends="clean, copy.lib.jars,copy.sys.jars,copy.cilb,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
+   <target name="dist" depends="clean,copy.lib.jars,copy.sys.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
       <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
    </target>
 
