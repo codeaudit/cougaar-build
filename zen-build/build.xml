@@ -7,7 +7,7 @@
    <property name="zip.dist" value="${artifacts.dir}/cip.zip" />
    <property name="dist.dir" value="${artifacts.dir}/cip/cip"/>
    <property name="cougaar.install.version" value="HEAD"/>
-   <property name="projects" value="util/bootstrap,util/util,core/core,core/cougaar,mts/mtslinks,mts/mtsstd,planning/planning,qos/profile,qos/qos,qos/qrs,webserver/webmicro,webserver/webserver,webserver/webtomcat" />
+   <property name="projects" value="util/bootstrap,util/util,core/core,mts/mtsstd,mts/mtslinks,planning/planning,qos/profile,qos/qrs,qos/qos,webserver/webserver,webserver/webmicro,webserver/webtomcat" />
    <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
    <property name="javadoc.zip" value="${artifacts.dir}/javadoc.zip" />
 
