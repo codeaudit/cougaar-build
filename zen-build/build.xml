@@ -24,19 +24,9 @@
    </target>
 
    <target name="project.build">
-      <echo message="Building ${git.clone.base}/${project}/build.xml">
-      </echo>
+      <echo message="Building ${git.clone.base}/${project}/build.xml"/>
       <ant antfile="build.xml" target="jar.build" dir="${git.clone.base}/${project}"/>
-   </target>
-
-   <target name="copy.lib.jars" depends="build.jars">
-      <mkdir dir="${artifacts.dir}"/>
-      <foreach target="project.jar.copy" param="project" list="${projects}"/>
-   </target>
-
-   <target name="project.jar.copy">
-      <echo message="Copying ${git.clone.base}/${project} jar to ${dist.dir}/lib">
-      </echo>
+      <echo message="Copying ${git.clone.base}/${project} jar to ${dist.dir}/lib"/>
       <copy todir="${dist.dir}/lib" flatten="true" overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/${project}/${artifacts.dir}" includes="*.jar" />
       </copy>
@@ -87,7 +77,7 @@
       </copy>
    </target>
 
-   <target name="dist" depends="clean,copy.lib.jars,copy.sys.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
+   <target name="dist" depends="clean,copy.sys.jars,build.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
       <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
    </target>
 
