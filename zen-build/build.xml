@@ -34,7 +34,7 @@
 
    <target name="copy.sys.jars">
       <copy todir="${dist.dir}/sys" flatten="true"  overwrite="true" preservelastmodified="true">
-         <fileset dir="${git.clone.base}/core/jars/lib" includes="log4j.jar, servlet.jar, tomcat_40.jar"/>
+         <fileset dir="${git.clone.base}/core/jars/lib" includes="log4j.jar, servlet.jar, tomcat_40.jar, jms-1.1.jar, smack.jar"/>
       </copy>
    </target>
 
