@@ -4,10 +4,13 @@
    <!-- Temp CIP location to checkout Cougaar -->
    <property name="git.clone.base" value="../.." />
    <property name="artifacts.dir" value="tmp" />
-   <property name="zip.dist" value="${artifacts.dir}/cip.zip" />
-   <property name="dist.dir" value="${artifacts.dir}/cip/cip"/>
+   <property name="zip.dist" value="${artifacts.dir}/cougaar.zip" />
+   <property name="tutorials.zip.dist" value="${artifacts.dir}/tutorials.zip" />
+   <property name="dist.dir" value="${artifacts.dir}/cougaar/cougaar"/>
+   <property name="tutorials.dist.dir" value="${artifacts.dir}/tutorials"/>
    <property name="cougaar.install.version" value="HEAD"/>
    <property name="projects" value="util/bootstrap,util/util,core/core,mts/mtsstd,mts/mtslinks,planning/planning,qos/profile,qos/qrs,qos/qos,webserver/webserver,webserver/webmicro,webserver/webtomcat" />
+   <property name="tutorials.projects" value="hello,ping,mesh,community,mandelbrot" />
    <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
    <property name="javadoc.zip" value="${artifacts.dir}/javadoc.zip" />
 
@@ -31,6 +34,28 @@
       <copy todir="${dist.dir}/lib" flatten="true" overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/${project}/${artifacts.dir}" includes="*.jar" />
       </copy>
+   </target>
+
+   <target name="tutorials">
+      <foreach target="tutorials.project.build" param="project" list="${tutorials.projects}"/>
+      <foreach target="tutorials.copy" param="project" list="${tutorials.projects}"/>
+   </target>
+
+   <target name="tutorials.project.build">
+   	 <property name="TARGETBASE" value="${basedir}/${tutorials.dist.dir}" />
+      <echo message="Building ${git.clone.base}/tutorials/${project}/build.xml"/>
+      <ant antfile="build.xml" target="jar" dir="${git.clone.base}/tutorials/${project}"/>
+      <echo message="Copying ${git.clone.base}/tutorials/${project} jar to ${tutorials.dist.dir}/lib"/>
+      <copy todir="${tutorials.dist.dir}/lib" flatten="true" overwrite="true" preservelastmodified="true">
+         <fileset dir="${git.clone.base}/tutorials/${project}/${artifacts.dir}" includes="*.jar" />
+      </copy>
+   </target>
+   
+   <target name="tutorials.copy">
+     <copy todir="${tutorials.dist.dir}/${project}" overwrite="true">
+       <filelist dir="${git.clone.base}/tutorials/${project}" files=".classpath,.project,build.xml"/>
+       <fileset dir="${git.clone.base}/tutorials/${project}" includes="src/**,doc/**,configs/**,eclipse/**,run/**"/>
+     </copy>
    </target>
 
    <target name="copy.sys.jars">
