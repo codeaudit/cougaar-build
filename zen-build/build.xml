@@ -9,7 +9,7 @@
    <property name="dist.dir" value="${artifacts.dir}/cougaar/cougaar"/>
    <property name="tutorials.dist.dir" value="${artifacts.dir}/tutorials/tutorials"/>
    <property name="cougaar.install.version" value="HEAD"/>
-   <property name="projects" value="util/bootstrap,util/util,core/core,mts/mtsstd,mts/mtslinks,planning/planning,qos/profile,qos/qrs,qos/qos,webserver/webserver,webserver/webmicro,webserver/webtomcat" />
+   <property name="projects" value="util/bootstrap,util/util,core/core,core/cougaar,mts/mtsstd,mts/mtslinks,planning/planning,qos/profile,qos/qrs,qos/qos,webserver/webserver,webserver/webmicro,webserver/webtomcat" />
    <property name="tutorials.projects" value="hello,ping,mesh,community,mandelbrot" />
    <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
    <property name="javadoc.zip" value="${artifacts.dir}/javadoc.zip" />
