@@ -47,16 +47,12 @@
    	 <property name="TARGETBASE" value="${basedir}/${tutorials.dist.dir}" />
       <echo message="Building ${git.clone.base}/tutorials/${project}/build.xml"/>
       <ant antfile="build.xml" target="jar" dir="${git.clone.base}/tutorials/${project}"/>
-      <echo message="Copying ${git.clone.base}/tutorials/${project} jar to ${tutorials.dist.dir}/lib"/>
-      <copy todir="${tutorials.dist.dir}/lib" flatten="true" overwrite="true" preservelastmodified="true">
-         <fileset dir="${git.clone.base}/tutorials/${project}/${artifacts.dir}" includes="*.jar" />
-      </copy>
    </target>
    
    <target name="tutorials.copy">
      <copy todir="${tutorials.dist.dir}/${project}" overwrite="true">
        <filelist dir="${git.clone.base}/tutorials/${project}" files=".classpath,.project,build.xml"/>
-       <fileset dir="${git.clone.base}/tutorials/${project}" includes="src/**,doc/**,configs/**,eclipse/**,run/**"/>
+       <fileset dir="${git.clone.base}/tutorials/${project}" includes="src/**,doc/**,configs/**,eclipse/**,run/**,lib/**,.settings/**"/>
      </copy>
    </target>
 
