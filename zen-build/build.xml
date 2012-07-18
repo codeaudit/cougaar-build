@@ -12,7 +12,7 @@
    <property name="projects" value="util/bootstrap,util/util,core/core,core/cougaar,mts/mtsstd,mts/mtslinks,planning/planning,qos/profile,qos/qrs,qos/qos,webserver/webserver,webserver/webmicro,webserver/webtomcat" />
    <property name="tutorials.projects" value="hello,ping,mesh,community,mandelbrot" />
    <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
-   <property name="javadoc.zip" value="${artifacts.dir}/javadoc.zip" />
+   <property name="javadoc.zip" value="${artifacts.dir}/cougaar-api.zip" />
 
 
    <!-- define ant-contrib extenstions to ANT. Needed because Ant 1.6 does not have For loops-->
