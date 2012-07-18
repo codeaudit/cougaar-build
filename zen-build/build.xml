@@ -104,6 +104,7 @@
 
    <target name="dist" depends="clean,copy.sys.jars,build.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse,tutorials,javadoc.zip">
       <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
+   	  <antcall target="md5"/>
    </target>
 	
 	<target name="md5">
