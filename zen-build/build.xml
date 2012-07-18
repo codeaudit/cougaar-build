@@ -5,6 +5,7 @@
    <property name="git.clone.base" value="../.." />
    <property name="artifacts.dir" value="tmp" />
    <property name="zip.dist" value="${artifacts.dir}/cougaar.zip" />
+   <property name="md5.dist" value="${artifacts.dir}/md5sums.txt" />
    <property name="tutorials.zip.dist" value="${artifacts.dir}/tutorials.zip" />
    <property name="dist.dir" value="${artifacts.dir}/cougaar/cougaar"/>
    <property name="tutorials.dist.dir" value="${artifacts.dir}/tutorials/tutorials"/>
@@ -36,7 +37,7 @@
       </copy>
    </target>
 
-   <target name="tutorials">
+   <target name="tutorials" depends="build.jars">
       <delete dir="${tutorials.dist.dir}"/>
       <foreach target="tutorials.project.build" param="project" list="${tutorials.projects}"/>
       <foreach target="tutorials.copy" param="project" list="${tutorials.projects}"/>
@@ -101,9 +102,18 @@
       </copy>
    </target>
 
-   <target name="dist" depends="clean,copy.sys.jars,build.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse">
+   <target name="dist" depends="clean,copy.sys.jars,build.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse,tutorials,javadoc.zip">
       <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
    </target>
+	
+	<target name="md5">
+		<checksum file="${zip.dist}" property="DIST_MD5" />
+		<checksum file="${javadoc.zip}" property="JAVADOC_MD5" />
+		<checksum file="${tutorials.zip.dist}" property="TUTORIALS_MD5" />
+		<echo file="${md5.dist}" message="The md5 for cougaar.zip is ${DIST_MD5}${line.separator}"/>
+		<echo file="${md5.dist}" append="true" message="The md5 for cougaar-api.zip is ${JAVADOC_MD5}${line.separator}"/>
+		<echo file="${md5.dist}" append="true" message="The md5 for tutorials.zip is ${TUTORIALS_MD5}${line.separator}"/>
+	</target>
 
    <target name="clean">
       <delete dir="${artifacts.dir}"/>
