@@ -6,6 +6,7 @@
    <property name="artifacts.dir" value="tmp" />
    <property name="zip.dist" value="${artifacts.dir}/cougaar.zip" />
    <property name="md5.dist" value="${artifacts.dir}/md5sums.txt" />
+   <property name="sha512.dist" value="${artifacts.dir}/sha512sums.txt" />
    <property name="tutorials.zip.dist" value="${artifacts.dir}/tutorials.zip" />
    <property name="dist.dir" value="${artifacts.dir}/cougaar/cougaar"/>
    <property name="tutorials.dist.dir" value="${artifacts.dir}/tutorials/tutorials"/>
@@ -104,6 +105,7 @@
    <target name="dist" depends="clean,copy.sys.jars,build.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse,tutorials,javadoc.zip">
       <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
    	  <antcall target="md5"/>
+   	  <antcall target="sha512"/>
       <copy file="README.txt" todir="${artifacts.dir}" />
    </target>
 	
@@ -114,6 +116,15 @@
 		<echo file="${md5.dist}" message="The md5 for cougaar.zip is ${DIST_MD5}${line.separator}"/>
 		<echo file="${md5.dist}" append="true" message="The md5 for cougaar-api.zip is ${JAVADOC_MD5}${line.separator}"/>
 		<echo file="${md5.dist}" append="true" message="The md5 for tutorials.zip is ${TUTORIALS_MD5}${line.separator}"/>
+	</target>
+
+	<target name="sha512">
+		<checksum algorithm="SHA-512" file="${zip.dist}" property="DIST_SHA512" />
+		<checksum algorithm="SHA-512" file="${javadoc.zip}" property="JAVADOC_SHA512" />
+		<checksum algorithm="SHA-512" file="${tutorials.zip.dist}" property="TUTORIALS_SHA512" />
+		<echo file="${sha512.dist}" message="The sha512 for cougaar.zip is ${DIST_SHA512}${line.separator}"/>
+		<echo file="${sha512.dist}" append="true" message="The sha512 for cougaar-api.zip is ${JAVADOC_SHA512}${line.separator}"/>
+		<echo file="${sha512.dist}" append="true" message="The sha512 for tutorials.zip is ${TUTORIALS_SHA512}${line.separator}"/>
 	</target>
 
    <target name="clean">
