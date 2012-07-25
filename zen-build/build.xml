@@ -53,8 +53,7 @@
    
    <target name="tutorials.copy">
      <copy todir="${tutorials.dist.dir}/${project}" overwrite="true">
-       <filelist dir="${git.clone.base}/tutorials/${project}" files=".classpath,.project,build.xml"/>
-       <fileset dir="${git.clone.base}/tutorials/${project}" includes="src/**,doc/**,configs/**,eclipse/**,run/**,lib/**,.settings/**"/>
+       <fileset dir="${git.clone.base}/tutorials/${project}" includes=".classpath,.project,build.xml,src/**,doc/**,configs/**,eclipse/**,run/**,lib/**,.settings/**"/>
      </copy>
    </target>
 
