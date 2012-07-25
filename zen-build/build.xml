@@ -12,6 +12,8 @@
    <property name="tutorials.dist.dir" value="${artifacts.dir}/tutorials/tutorials"/>
    <property name="cougaar.install.version" value="HEAD"/>
    <property name="projects" value="util/bootstrap,util/util,core/core,core/cougaar,mts/mtsstd,mts/mtslinks,planning/planning,qos/profile,qos/qrs,qos/qos,webserver/webserver,webserver/webmicro,webserver/webtomcat" />
+   <!-- src.dirs is used as the input directories for generating javadocs.  It equals the expansion of "${projects}/src" -->
+   <property name="src.dirs" value="core/core/src,mts/mtslinks/src,mts/mtsstd/src,planning/planning/src,qos/profile/src,qos/qos/src,qos/qrs/src,util/bootstrap/src,util/util/src,webserver/webmicro/src,webserver/webserver/src,webserver/webtomcat/src" />
    <property name="tutorials.projects" value="hello,ping,mesh,community,mandelbrot" />
    <property name="javadoc.dest" value="${artifacts.dir}/javadoc/javadoc" />
    <property name="javadoc.zip" value="${artifacts.dir}/cougaar-api.zip" />
@@ -137,9 +139,7 @@
       
       <!-- Source path for compiling the javadoc files -->
       <path id="javadoc.sourcepath">
-        <dirset dir="${git.clone.base}">
-          <include name="**/src"/>
-        </dirset>
+        <dirset dir="${git.clone.base}" includes="${src.dirs}" />
       </path>
       
       <!-- Class path for compiling the javadoc files, needed for jclass etc -->
@@ -148,6 +148,7 @@
           <include name="**/*.jar"/>
         </fileset>
       </path>
+
       <javadoc packagenames="org.cougaar.*"
                 sourcepathref="javadoc.sourcepath"
                 classpathref="javadoc.classpath"
@@ -159,6 +160,9 @@
                 use="true"
                 private="false"
                 windowtitle="Full Cougaar API"
+			    Header="Cougaar 12.7"
+			    Footer="Copyright 2012 by Raytheon BBN Technologies"
+			    breakiterator="true"
                 doctitle="&lt;h1&gt;Cougaar&lt;/h1&gt;">
       </javadoc>
    </target>
