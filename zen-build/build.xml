@@ -55,6 +55,8 @@
      <copy todir="${tutorials.dist.dir}/${project}" overwrite="true">
        <fileset dir="${git.clone.base}/tutorials/${project}" includes=".classpath,.project,build.xml,src/**,doc/**,configs/**,eclipse/**,run/**,lib/**,.settings/**"/>
      </copy>
+   	 <replace dir="${git.clone.base}/tutorials/${project}/eclipse"
+   	     token="/bootstrap/src/org/cougaar/bootstrap/Bootstrapper.java" value="/Cougaar/lib/bootstrap.jar" />
    </target>
 
    <target name="copy.sys.jars">
@@ -131,7 +133,7 @@
       <delete dir="${artifacts.dir}"/>
    </target>
 
-   <target name="javadoc" depends="clean,build.jars">
+   <target name="javadoc" depends="clean,build.jars,copy.clib">
       
       <!-- Source path for compiling the javadoc files -->
       <path id="javadoc.sourcepath">
