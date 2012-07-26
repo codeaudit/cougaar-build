@@ -94,18 +94,24 @@
       </copy>
    </target>
 
+	<!--TODO Note that ZIP target does not preserve file permission -->
    <target name="copy.bin">
       <copy todir="${dist.dir}/bin" flatten="false" overwrite="true" preservelastmodified="true">
          <fileset dir="${git.clone.base}/util/base/bin" includes="cougaar, cougaar.bat"/>
       </copy>
+   	<chmod file="${dist.dir}/bin/cougaar" perm="755"/>
    </target>
 
    <target name="copy.eclipse">
       <copy todir="${dist.dir}" flatten="false" overwrite="true" preservelastmodified="true">
-         <fileset dir="eclipse" includes=".project, .classpath, CougaarBBNProjectSet.psf,CougaarOrgProjectSet.psf"/>
+         <fileset dir="eclipse" includes=".project, .classpath"/>
       </copy>
+    <copy todir="${dist.dir}/eclipse" flatten="false" overwrite="true" preservelastmodified="true">
+       <fileset dir="eclipse" includes="CougaarBBNProjectSet.psf,CougaarOrgProjectSet.psf"/>
+    </copy>
    </target>
 
+	<!--TODO Note that ZIP target does not preserve file permission -->
    <target name="dist" depends="clean,copy.sys.jars,build.jars,copy.clib,copy.bin,copy.tomcat,copy.ant.helpers,copy.eclipse,tutorials,javadoc.zip">
       <zip destfile="${zip.dist}" basedir="${dist.dir}/.." />
    	  <antcall target="md5"/>
