@@ -18,5 +18,9 @@
 <project reference="1.0,http://cougaar.org/git/webserver,master,webserver"/>
 <project reference="1.0,http://cougaar.org/git/webserver,master,webtomcat"/>
 <project reference="1.0,http://cougaar.org/git/tutorials,master,hello"/>
+<project reference="1.0,http://cougaar.org/git/tutorials,master,ping"/>
+<project reference="1.0,http://cougaar.org/git/tutorials,master,community"/>
+<project reference="1.0,http://cougaar.org/git/tutorials,master,mandelbrot"/>
+<project reference="1.0,http://cougaar.org/git/tutorials,master,mesh"/>
 </provider>
 </psf>
