@@ -4,6 +4,7 @@
 <project reference="1.0,http://cougaar.org/git/util,master,base"/>
 <project reference="1.0,http://cougaar.org/git/util,master,bootstrap"/>
 <project reference="1.0,http://cougaar.org/git/build,master,build"/>
+<project reference="1.0,http://cougaar.org/git/build,master,zen-build"/>
 <project reference="1.0,http://cougaar.org/git/core,master,core"/>
 <project reference="1.0,http://cougaar.org/git/core,master,cougaar"/>
 <project reference="1.0,http://cougaar.org/git/core,master,jars"/>
