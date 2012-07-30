@@ -4,7 +4,6 @@
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/util,master,base"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/util,master,bootstrap"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/build,master,build"/>
-<project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/build,master,zen-build"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/core,master,core"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/core,master,cougaar"/>
 <project reference="1.0,ssh://src.dsl.bbn.com/git/cougaar/core,master,jars"/>
